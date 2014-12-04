@@ -5,15 +5,15 @@ Version: 0.0.99
 Date: 2014-11-25
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
-Description: The V8 JavaScript Engine is an open source JavaScript engine
-    developed by Google for the Google Chrome web browser. This is an initial
-    proof of concept version to test if we can make it work on various R
-    platforms.
+Description: V8 is an open source JavaScript engine developed by Google. It is
+    used in many popular systems and applications including Chrome, Node, and
+    MongoDB.
 License: MIT + file LICENSE
+URL: http://github.com/jeroenooms/V8
+BugReports: http://github.com/jeroenooms/V8/issues
 SystemRequirements: V8 (~3.14.5): libv8-dev (deb), v8-devel (rpm)
+NeedsCompilation: yes
 Imports:
     Rcpp,
     jsonlite
-LinkingTo:
-    Rcpp,
-    BH
+LinkingTo: Rcpp, BH
