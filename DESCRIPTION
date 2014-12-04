@@ -1,0 +1,15 @@
+Package: V8
+Type: Package
+Title: Embedded JavaScript Engine
+Version: 0.0.99
+Date: 2014-11-25
+Author: Jeroen Ooms
+Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
+Description: The V8 JavaScript Engine is an open source JavaScript engine
+    developed by Google for the Google Chrome web browser. This is an initial
+    proof of concept version to test if we can make it work on various R
+    platforms.
+License: MIT + file LICENSE
+SystemRequirements: V8 (~3.14.5): libv8-dev (deb), v8-devel (rpm)
+Imports: Rcpp, jsonlite
+LinkingTo: Rcpp

@@ -1,0 +1,49 @@
+# Static linking on OSX
+if [ $(echo "$OSTYPE" | grep "darwin") ]; then
+
+  # First try is the libv8 gem is installed
+  V8GEMDIR=$(echo /Library/Ruby/Gems/2.0.0/gems/libv8-*)
+  if [ -e "$V8GEMDIR/vendor/v8/include/v8.h" ]; then
+    echo "libv8 gem found in $V8GEMDIR"
+    echo "PKG_CXXFLAGS= -I$V8GEMDIR/vendor/v8/include" > src/Makevars
+    echo "PKG_LIBS=-L$V8GEMDIR/vendor/v8/out/x64.release -lv8_{base,snapshot}" >> src/Makevars
+    exit 0;
+  fi
+
+  # Check if 'brew' is available
+  if [ ! $(command -v brew) ]; then
+    echo "-------------------------------------------------------"
+    echo "| Neither libv8 nor Homebrew was found on the system. |"
+    echo "| Please do either one of the following:              |"
+    echo "| To install precompiled V8 libraries, run:           |"
+    echo "|   sudo gem install libv8 -- --with-system-v8        |"
+    echo "| OR: install Homebrew from: http://www.brew.sh       |"
+    echo "-------------------------------------------------------"
+    exit 1;
+  fi
+
+  # Test if libv8 already installed
+  V8BREWDIR=$(brew --prefix)/opt/v8-3.14.5;
+  if [ -e $V8BREWDIR ]; then
+    echo "libv8 found in $V8BREWDIR";
+  else
+    echo "Building V8... (this may take a few minutes, but only has to be done once) ";
+    brew install ./tools/v8-3.14.5.rb;
+  fi
+
+  echo "PKG_CPPFLAGS= -I$V8BREWDIR/include" > src/Makevars
+  echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
+  exit 0;
+fi
+
+# Linux and friends:
+if [ "$V8_INCLUDES" ]; then
+  echo "PKG_CPPFLAGS= -I$V8_INCLUDES" >> src/Makevars
+else
+  V8_INCLUDES="/usr/include"
+fi
+
+if [ ! -r "$V8_INCLUDES/v8.h" ]; then
+  echo "File $V8_INCLUDES/v8.h not found. Make sure the V8 development library is installed, e.g. libv8-dev (deb) or v8-devel (rpm)."
+  exit 1
+fi

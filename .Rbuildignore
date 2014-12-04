@@ -1,0 +1,10 @@
+.DS_Store
+.travis.yml
+.git
+.gitignore
+.Rhistory
+^.*\.Rproj$
+^\.Rproj\.user$
+windows
+old
+README.md
