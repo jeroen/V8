@@ -13,14 +13,19 @@
 #' @rdname JavaScript
 #' @name JavaScript
 #' @return Console output.
-#' @examples jseval("JSON.stringify({x:Math.random()})")
+#' @examples # Evaluate JavaScript code
+#' jseval("JSON.stringify({x:Math.random()})")
 #' jseval("(function(x){return x+1;})(123)")
-#' jseval("foo = 123; bar = 456; foo + bar")
+#' jseval(c("foo = 123", "bar = 456", "foo + bar"))
+#'
+#' # Load a library (doesn't do anything yet)
+#' underscore <- system.file("js/underscore.js", package="V8")
+#' jseval(readLines(underscore))
 #'
 #' # Cannot define anonymous function in global scope
 #' jsvalidate("function(x){2*x}") #FALSE
 #' jsvalidate("function foo(x){2*x}") #TRUE
-#' jsvalidate("foo = function(x){2*x}") #TRUEE
+#' jsvalidate("foo = function(x){2*x}") #TRUE
 jseval <- function(code) {
     .Call('V8_jseval', PACKAGE = 'V8', code)
 }

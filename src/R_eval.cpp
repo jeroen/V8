@@ -1,4 +1,7 @@
+// [[Rcpp::depends(BH)]]
 #include <Rcpp.h>
+
+#include <boost/algorithm/string/join.hpp>
 #include "jseval.h"
 using namespace Rcpp;
 
@@ -14,9 +17,14 @@ using namespace Rcpp;
 //' @rdname JavaScript
 //' @name JavaScript
 //' @return Console output.
-//' @examples jseval("JSON.stringify({x:Math.random()})")
+//' @examples # Evaluate JavaScript code
+//' jseval("JSON.stringify({x:Math.random()})")
 //' jseval("(function(x){return x+1;})(123)")
-//' jseval("foo = 123; bar = 456; foo + bar")
+//' jseval(c("foo = 123", "bar = 456", "foo + bar"))
+//'
+//' # Load a library (doesn't do anything yet)
+//' underscore <- system.file("js/underscore.js", package="V8")
+//' jseval(readLines(underscore))
 //'
 //' # Cannot define anonymous function in global scope
 //' jsvalidate("function(x){2*x}") #FALSE
@@ -24,11 +32,11 @@ using namespace Rcpp;
 //' jsvalidate("foo = function(x){2*x}") #TRUE
 // [[Rcpp::export]]
 std::string jseval( std::vector< std::string > code ) {
-  return jseval_string(code[0]);
+  return jseval_string(boost::algorithm::join(code, "\n"));
 }
 
 //' @rdname JavaScript
 // [[Rcpp::export]]
 bool jsvalidate(std::vector< std::string > code) {
-  return jsvalidate_string(code[0]);
+  return jsvalidate_string(boost::algorithm::join(code, "\n"));
 }
