@@ -36,7 +36,7 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
   exit 0;
 fi
 
-# Linux and friends:
+# Linux et al:
 if [ "$V8_INCLUDES" ]; then
   echo "PKG_CPPFLAGS= -I$V8_INCLUDES" >> src/Makevars
 else
