@@ -11,5 +11,7 @@ Description: The V8 JavaScript Engine is an open source JavaScript engine
     platforms.
 License: MIT + file LICENSE
 SystemRequirements: V8 (~3.14.5): libv8-dev (deb), v8-devel (rpm)
-Imports: Rcpp, jsonlite
+Imports:
+    Rcpp,
+    jsonlite
 LinkingTo: Rcpp
