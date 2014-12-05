@@ -1,5 +1,6 @@
 #include <v8.h>
 #include <string>
+#include <stdexcept>
 using namespace v8;
 
 /*
