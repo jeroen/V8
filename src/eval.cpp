@@ -1,7 +1,5 @@
 #include <v8.h>
 #include <string>
-#include <stdexcept>
-using namespace std;
 using namespace v8;
 
 /*

@@ -1,6 +1,5 @@
 // [[Rcpp::depends(BH)]]
 #include <Rcpp.h>
-
 #include <boost/algorithm/string/join.hpp>
 #include "jseval.h"
 using namespace Rcpp;
