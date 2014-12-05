@@ -35,3 +35,7 @@ jsvalidate <- function(code) {
     .Call('V8_jsvalidate', PACKAGE = 'V8', code)
 }
 
+make_context <- function() {
+    .Call('V8_make_context', PACKAGE = 'V8')
+}
+
