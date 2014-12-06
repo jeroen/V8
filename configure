@@ -1,3 +1,13 @@
+# Check for a custom include dir
+if [ "$V8_INCLUDES" ]; then
+  echo "PKG_CPPFLAGS= -I$V8_INCLUDES" >> src/Makevars
+  if [ ! -r "$V8_INCLUDES/v8.h" ]; then
+    echo "File $V8_INCLUDES/v8.h not found."
+    exit 1
+  fi
+  exit 0
+fi
+
 # Static linking on OSX
 if [ $(echo "$OSTYPE" | grep "darwin") ]; then
 
@@ -47,14 +57,8 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
   exit 1;
 fi
 
-# Linux et al:
-if [ "$V8_INCLUDES" ]; then
-  echo "PKG_CPPFLAGS= -I$V8_INCLUDES" >> src/Makevars
-else
-  V8_INCLUDES="/usr/include"
-fi
-
-if [ ! -r "$V8_INCLUDES/v8.h" ]; then
-  echo "File $V8_INCLUDES/v8.h not found. Make sure the V8 development library is installed, e.g. libv8-dev (deb) or v8-devel (rpm)."
+# Linux et al
+if [ ! -r "/usr/include/v8.h" ] && [ ! -r "/usr/local/include/v8.h" ]; then
+  echo "libv8 not found. Make sure the V8 development library is installed, e.g. libv8-dev (deb) or v8-devel (rpm)."
   exit 1
 fi
