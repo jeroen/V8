@@ -7,11 +7,9 @@
 new_context()
 }
 \description{
-The \code{jsvalidate} function tests if a string is valid JavaScript.
-The \code{jseval} function evaluates a JavaScript string and returns
-console output, equivalent to \code{eval()} in JavaScript. These
-functions are stateless: their context is destroyed after the evaluation
-has completed.
+A \emph{context} is an execution environment that allows separate, unrelated,
+JavaScript code to run in a single instance of V8. You must explicitly specify
+the context in which you want any JavaScript code to be run.
 }
 \examples{
 # Create a new context
