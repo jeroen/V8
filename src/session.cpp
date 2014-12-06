@@ -9,9 +9,4 @@ using namespace Rcpp;
  - http://romainfrancois.blog.free.fr/index.php?post/2010/01/08/External-pointers-with-Rcpp
 */
 
-// [[Rcpp::export]]
-XPtr< v8::Persistent<v8::Context> > make_context(){
-  Persistent<Context> context = Context::New();
-  XPtr< Persistent<Context> > ptr(&(context));
-  return(ptr);
-}
+

@@ -1,7 +1,9 @@
 // [[Rcpp::depends(BH)]]
+#include <v8.h>
 #include <Rcpp.h>
 #include <boost/algorithm/string/join.hpp>
 #include "jseval.h"
+using namespace v8;
 using namespace Rcpp;
 
 //' Validate and evaluate JavaScript code
@@ -39,3 +41,19 @@ std::string jseval( std::vector< std::string > code ) {
 bool jsvalidate(std::vector< std::string > code) {
   return jsvalidate_string(boost::algorithm::join(code, "\n"));
 }
+
+// [[Rcpp::export]]
+XPtr< v8::Persistent<v8::Context> > make_context(){
+  Persistent<Context> context = Context::New();
+  XPtr< Persistent<Context> > ptr(&(context));
+  return(ptr);
+}
+
+/*
+
+// [[Rcpp::export]]
+std::string context_eval(std::vector< std::string > code, XPtr< v8::Persistent<v8::Context> > ptr){
+  return eval_in_context(code, ptr);
+}
+
+*/

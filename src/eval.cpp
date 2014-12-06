@@ -7,27 +7,19 @@ using namespace v8;
  http://stackoverflow.com/questions/16613828/how-to-convert-stdstring-to-v8s-localstring
 */
 
-std::string jseval_string(std::string code) {
-  // Create a stack-allocated handle scope.
-  HandleScope handle_scope;
-
-  // Create a new context.
-  Persistent<Context> context = Context::New();
-
-  // Enter the created context for compiling and
-  // running the hello world script.
-  Context::Scope context_scope(context);
-
-  // Create a string containing the JavaScript source code.
+Handle<Script> compile_source(std::string code){
   Handle<String> source = String::New(code.c_str());
-
-  // Compile the source code.
-  TryCatch trycatch;
   Handle<Script> script = Script::Compile(source);
+  return script;
+}
+
+std::string eval_in_context(std::string code, Persistent<Context> context) {
+
+  TryCatch trycatch;
+  Handle<Script> script = compile_source(code);
   if(script.IsEmpty()) {
     Local<Value> exception = trycatch.Exception();
     String::AsciiValue exception_str(exception);
-    context.Dispose();
     throw std::invalid_argument(*exception_str);
   }
 
@@ -36,37 +28,32 @@ std::string jseval_string(std::string code) {
   if(result.IsEmpty()){
     Local<Value> exception = trycatch.Exception();
     String::AsciiValue exception_str(exception);
-    context.Dispose();
     throw std::runtime_error(*exception_str);
   }
-
-  // Dispose the persistent context.
-  context.Dispose();
 
   // Convert the result to an ASCII string and print it.
   String::Utf8Value utf8(result);
   return *utf8;
 }
 
-bool jsvalidate_string(std::string code) {
-  // Create a stack-allocated handle scope.
+std::string jseval_string(std::string code) {
+  // Evaluate in temporary context.
   HandleScope handle_scope;
-
-  // Create a new context.
   Persistent<Context> context = Context::New();
+  Context::Scope context_scope(context);
+  std::string out = eval_in_context(code, context);
+  context.Dispose();
+  return out;
+}
 
-  // Enter the created context for compiling and
-  // running the hello world script.
+bool jsvalidate_string(std::string code) {
+  // Evaluate in temporary context.
+  HandleScope handle_scope;
+  Persistent<Context> context = Context::New();
   Context::Scope context_scope(context);
 
-  // Create a string containing the JavaScript source code.
-  Handle<String> source = String::New(code.c_str());
-
-  // Compile the source code.
+  // Try to compile, catching errors
   TryCatch trycatch;
-  Handle<Script> script = Script::Compile(source);
-  context.Dispose();
-
-  //return success
+  Handle<Script> script = compile_source(code);
   return !script.IsEmpty();
 }
