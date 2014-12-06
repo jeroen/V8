@@ -25,7 +25,6 @@ node ctxlist = *(new node);
 node *lstail = &ctxlist;
 
 void ctx_finalizer( Persistent<Context>* context ){
-  printf("Cleaning.\n");
   context->Dispose();
 }
 
