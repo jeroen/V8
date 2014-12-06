@@ -1,4 +1,4 @@
-#' Embedded JavaScript
+#' Run JavaScript in a V8 context
 #'
 #' A \emph{context} is an execution environment that allows separate, unrelated,
 #' JavaScript code to run in a single instance of V8. You must explicitly specify
@@ -34,6 +34,7 @@
 #' ct$source(system.file("js/underscore.js", package="V8"))
 #'
 #' # Call a function
+#' ct$call("function(x){return x*2}", 123)
 #'
 #'
 new_context <- function() {
@@ -41,7 +42,7 @@ new_context <- function() {
   context <- make_context();
   created <- Sys.time()
   eval <- function(src){
-    context_eval(paste(src, collapse="\n"), context);
+    get_str_output(context_eval(paste(src, collapse="\n"), context));
   }
   validate <- function(src){
     context_validate(paste(src, collapse="\n"), context)
@@ -52,13 +53,13 @@ new_context <- function() {
     jsargs <- toJSON(unname(list(...)), auto_unbox=T);
     src <- paste0("fun=", fun, ";JSON.stringify(fun.apply(this,", jsargs, "));");
     out <- this$eval(src)
-    fromJSON(out)
+    get_json_output(out)
   }
   source <- function(file){
     this$eval(readLines(file, warn = FALSE))
   }
   get <- function(name){
-    fromJSON(this$eval(c("JSON.stringify(", name, ")")))
+    get_json_output(this$eval(c("JSON.stringify(", name, ")")))
   }
   assign <- function(x, value){
     invisible(this$eval(c(x, "=", toJSON(value))))
@@ -66,6 +67,22 @@ new_context <- function() {
   lockEnvironment(this, TRUE)
   #reg.finalizer(this, function(e){}, TRUE)
   structure(this, class="V8")
+}
+
+get_json_output <- function(json){
+  if(identical(json,"undefined")){
+    invisible()
+  } else {
+    fromJSON(json)
+  }
+}
+
+get_str_output <- function(str){
+  if(str == "undefined"){
+    invisible(str)
+  } else {
+    return(str)
+  }
 }
 
 #' @export

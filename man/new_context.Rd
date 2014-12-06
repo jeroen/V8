@@ -2,7 +2,7 @@
 \name{new_context}
 \alias{V8}
 \alias{new_context}
-\title{Embedded JavaScript}
+\title{Run JavaScript in a V8 context}
 \usage{
 new_context()
 }
@@ -37,5 +37,6 @@ ct$validate("function(x){2*x}") #FALSE
 ct$source(system.file("js/underscore.js", package="V8"))
 
 # Call a function
+ct$call("function(x){return x*2}", 123)
 }
 
