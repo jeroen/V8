@@ -5,11 +5,11 @@ make_context <- function() {
     .Call('V8_make_context', PACKAGE = 'V8')
 }
 
-context_eval <- function(code, ctx) {
-    .Call('V8_context_eval', PACKAGE = 'V8', code, ctx)
+context_eval <- function(src, ctx) {
+    .Call('V8_context_eval', PACKAGE = 'V8', src, ctx)
 }
 
-context_validate <- function(code, ctx) {
-    .Call('V8_context_validate', PACKAGE = 'V8', code, ctx)
+context_validate <- function(src, ctx) {
+    .Call('V8_context_validate', PACKAGE = 'V8', src, ctx)
 }
 

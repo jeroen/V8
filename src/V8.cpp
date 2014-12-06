@@ -9,10 +9,8 @@
  - http://romainfrancois.blog.free.fr/index.php?post/2010/01/08/External-pointers-with-Rcpp
 */
 
-// [[Rcpp::depends(BH)]]
 #include <v8.h>
 #include <Rcpp.h>
-#include <boost/algorithm/string/join.hpp>
 using namespace v8;
 
 /* a linked list keeping track of running contexts */
@@ -31,8 +29,7 @@ void ctx_finalizer( Persistent<Context>* context ){
 typedef Rcpp::XPtr<Persistent<Context>, Rcpp::PreserveStorage, ctx_finalizer> ctxptr;
 
 /* Helper fun that compiles JavaScript source code */
-Handle<Script> compile_source( std::vector< std::string > code ){
-  std::string src = boost::algorithm::join(code, "\n");
+Handle<Script> compile_source( std::string src ){
   Handle<String> source = String::New(src.c_str());
   Handle<Script> script = Script::Compile(source);
   return script;
@@ -48,7 +45,7 @@ ctxptr make_context(){
 }
 
 // [[Rcpp::export]]
-std::string context_eval(std::vector< std::string > code, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
 
   // Create a scope
   HandleScope handle_scope;
@@ -56,7 +53,7 @@ std::string context_eval(std::vector< std::string > code, Rcpp::XPtr< v8::Persis
 
   // Compile source code
   TryCatch trycatch;
-  Handle<Script> script = compile_source(code);
+  Handle<Script> script = compile_source(src);
   if(script.IsEmpty()) {
     Local<Value> exception = trycatch.Exception();
     String::AsciiValue exception_str(exception);
@@ -77,13 +74,13 @@ std::string context_eval(std::vector< std::string > code, Rcpp::XPtr< v8::Persis
 }
 
 // [[Rcpp::export]]
-bool context_validate(std::vector< std::string > code, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
   // Create scope
   HandleScope handle_scope;
   Context::Scope context_scope(*ctx);
 
   // Try to compile, catch errors
   TryCatch trycatch;
-  Handle<Script> script = compile_source(code);
+  Handle<Script> script = compile_source(src);
   return !script.IsEmpty();
 }

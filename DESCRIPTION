@@ -16,4 +16,4 @@ NeedsCompilation: yes
 Imports:
     Rcpp,
     jsonlite
-LinkingTo: Rcpp, BH
+LinkingTo: Rcpp

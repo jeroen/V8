@@ -41,7 +41,7 @@ new_context <- function() {
   context <- make_context();
   created <- Sys.time()
   eval <- function(src){
-    context_eval(src, context);
+    context_eval(paste(src, collapse="\n"), context);
   }
   validate <- function(src){
     context_validate(src, context)
