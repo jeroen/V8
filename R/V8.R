@@ -44,7 +44,7 @@ new_context <- function() {
     context_eval(paste(src, collapse="\n"), context);
   }
   validate <- function(src){
-    context_validate(src, context)
+    context_validate(paste(src, collapse="\n"), context)
   }
   call <- function(fun, ...){
     stopifnot(is.character(fun))
