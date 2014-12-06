@@ -29,6 +29,7 @@ using namespace Rcpp;
 //' jsvalidate("function(x){2*x}") #FALSE
 //' jsvalidate("function foo(x){2*x}") #TRUE
 //' jsvalidate("foo = function(x){2*x}") #TRUE
+//'
 // [[Rcpp::export]]
 std::string jseval( std::vector< std::string > code ) {
   return jseval_string(code);
@@ -49,6 +50,5 @@ XPtr< v8::Persistent<v8::Context> > make_context(){
 
 // [[Rcpp::export]]
 std::string context_eval(std::vector< std::string > code, XPtr< v8::Persistent<v8::Context> > ptr){
-  v8::Persistent<v8::Context> context = *ptr;
-  return eval_in_context(code, context);
+  return eval_in_context(code, *ptr);
 }
