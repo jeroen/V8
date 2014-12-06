@@ -2,8 +2,8 @@ require 'formula'
 
 class V83145 < Formula
   homepage 'http://code.google.com/p/v8/'
-  url 'https://github.com/v8/v8/archive/3.14.5.tar.gz'
-  sha1 '595492842ff86eaa7e8cf5cf88b2dd9a000e357f'
+  url 'https://github.com/v8/v8-git-mirror/archive/3.14.5.10.tar.gz'
+  sha1 'd7308e3a17d278f30086f574b325ff3974311abb'
 
   keg_only 'Conflicts with V8 in main repository.'
 
