@@ -50,3 +50,19 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// context_eval
+std::string context_eval(std::vector< std::string > code, XPtr< v8::Persistent<v8::Context> > ptr);
+RcppExport SEXP V8_context_eval(SEXP codeSEXP, SEXP ptrSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< std::vector< std::string > >::type code(codeSEXP );
+        Rcpp::traits::input_parameter< XPtr< v8::Persistent<v8::Context> > >::type ptr(ptrSEXP );
+        std::string __result = context_eval(code, ptr);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

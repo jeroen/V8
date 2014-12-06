@@ -2,6 +2,8 @@
 
 export(jseval)
 export(jsvalidate)
+export(make_context)
+export(context_eval)
 useDynLib(V8, V8_jseval)
 useDynLib(V8, V8_jsvalidate)
 useDynLib(V8, V8_make_context)

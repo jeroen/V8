@@ -39,3 +39,7 @@ make_context <- function() {
     .Call('V8_make_context', PACKAGE = 'V8')
 }
 
+context_eval <- function(code, ptr) {
+    .Call('V8_context_eval', PACKAGE = 'V8', code, ptr)
+}
+
