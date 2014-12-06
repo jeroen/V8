@@ -1,10 +1,6 @@
-// [[Rcpp::depends(BH)]]
-#include <v8.h>
-#include <Rcpp.h>
-#include <boost/algorithm/string/join.hpp>
-using namespace v8;
-
 /*
+ R bindings to V8. Copyright 2014, Jeroen Ooms.
+
  V8 source parsing:
  http://stackoverflow.com/questions/16613828/how-to-convert-stdstring-to-v8s-localstring
 
@@ -12,6 +8,12 @@ using namespace v8;
  - https://github.com/RcppCore/Rcpp/blob/master/inst/unitTests/cpp/XPtr.cpp
  - http://romainfrancois.blog.free.fr/index.php?post/2010/01/08/External-pointers-with-Rcpp
 */
+
+// [[Rcpp::depends(BH)]]
+#include <v8.h>
+#include <Rcpp.h>
+#include <boost/algorithm/string/join.hpp>
+using namespace v8;
 
 /* a linked list keeping track of running contexts */
 struct node {

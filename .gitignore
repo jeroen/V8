@@ -1,6 +1,7 @@
 .Rproj.user
 .Rhistory
 .RData
+homebrew
 src/*.o
 src/*.so
 src/*.dll

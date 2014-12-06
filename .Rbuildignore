@@ -6,5 +6,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 windows
+homebrew
 old
 README.md
