@@ -26,6 +26,7 @@
 #' jsvalidate("function(x){2*x}") #FALSE
 #' jsvalidate("function foo(x){2*x}") #TRUE
 #' jsvalidate("foo = function(x){2*x}") #TRUE
+#'
 jseval <- function(code) {
     .Call('V8_jseval', PACKAGE = 'V8', code)
 }

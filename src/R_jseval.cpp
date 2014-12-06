@@ -4,6 +4,15 @@
 using namespace v8;
 using namespace Rcpp;
 
+/* a linked list keeping track of running contexts */
+struct node {
+  Persistent<Context> context;
+  node *next;
+};
+
+node ctxlist = *(new node);
+node *lstail = &ctxlist;
+
 //' Validate and evaluate JavaScript code
 //'
 //' The \code{jsvalidate} function tests if a string is valid JavaScript.
@@ -43,8 +52,10 @@ bool jsvalidate(std::vector< std::string > code) {
 
 // [[Rcpp::export]]
 XPtr< v8::Persistent<v8::Context> > make_context(){
-  Persistent<Context> context = Context::New();
-  XPtr< Persistent<Context> > ptr(&(context));
+  lstail->context = Context::New();
+  XPtr< Persistent<Context> > ptr(&(lstail->context));
+  lstail->next = new node;
+  lstail = lstail->next;
   return(ptr);
 }
 
