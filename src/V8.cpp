@@ -47,6 +47,10 @@ ctxptr make_context(){
 // [[Rcpp::export]]
 std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
 
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("Context has been disposed.");
+
   // Create a scope
   HandleScope handle_scope;
   Context::Scope context_scope(*ctx);
@@ -75,6 +79,11 @@ std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context
 
 // [[Rcpp::export]]
 bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("Context has been disposed.");
+
   // Create scope
   HandleScope handle_scope;
   Context::Scope context_scope(*ctx);
