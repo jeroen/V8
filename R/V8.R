@@ -1,7 +1,52 @@
-V8 <- function() {
+#' Embedded JavaScript
+#'
+#' The \code{jsvalidate} function tests if a string is valid JavaScript.
+#' The \code{jseval} function evaluates a JavaScript string and returns
+#' console output, equivalent to \code{eval()} in JavaScript. These
+#' functions are stateless: their context is destroyed after the evaluation
+#' has completed.
+#'
+#' @export
+#' @aliases V8
+#' @importFrom jsonlite fromJSON toJSON
+#' @importFrom Rcpp sourceCpp
+#' @useDynLib V8 V8_context_eval V8_make_context V8_context_validate
+#' @examples # Create a new context
+#' ct <- new_context();
+#'
+#' # Evaluate some code
+#' ct$eval("foo=123")
+#' ct$eval("bar=456")
+#' ct$eval("foo+bar")
+#'
+#' # Functions and closures
+#' ct$eval("JSON.stringify({x:Math.random()})")
+#' ct$eval("(function(x){return x+1;})(123)")
+#'
+#' # Objects (via JSON only)
+#' ct$assign("mydata", mtcars)
+#' ct$get("mydata")
+#'
+#' # Validate syntax without evaluating
+#' ct$validate("function foo(x){2*x}") #TRUE
+#' ct$validate("foo = function(x){2*x}") #TRUE
+#' ct$validate("function(x){2*x}") #FALSE
+#'
+#' # Load a JavaScript library
+#' ct$source(system.file("js/underscore.js", package="V8"))
+#'
+#' # Call a function
+#'
+#'
+new_context <- function() {
   this <- environment();
+  context <- make_context();
+  created <- Sys.time()
   eval <- function(src){
-    stopifnot(is.character(src))
+    context_eval(src, context);
+  }
+  validate <- function(src){
+    context_validate(src, context)
   }
   call <- function(fun, ...){
     stopifnot(is.character(fun))
@@ -15,27 +60,33 @@ V8 <- function() {
     this$eval(readLines(file, warn = FALSE))
   }
   get <- function(name){
-    fromJSON(this$eval("JSON.stringify(", name, ")"))
+    fromJSON(this$eval(c("JSON.stringify(", name, ")")))
   }
-  created <- Sys.time()
+  assign <- function(x, value){
+    invisible(this$eval(c(x, "=", toJSON(value))))
+  }
   lockEnvironment(this, TRUE)
-  reg.finalizer(this, function(e){
-    #destroy();
-  }, TRUE)
+  #reg.finalizer(this, function(e){}, TRUE)
   structure(this, class="V8")
 }
 
-`[[.V8` <- `$.V8` <- function(x, y){
+#' @export
+`$.V8` <- function(x, y){
   if(!exists(y, x, inherits = FALSE)){
     stop("V8 object has no field '", y, "'")
   }
   get(y, x, inherits = FALSE)
 }
 
+#' @export
+`[[.V8` <- `$.V8`
+
+#' @export
 print.V8 <- function(x, ...){
-  cat("V8 Engine methods:\n  $eval(src)\n  $source(file)\n  $call(fun, ...)\n  $get(name)\n")
+  cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n")
 }
 
+# Override default call argument.
 stop <- function(..., call. = FALSE){
   base::stop(..., call. = call.)
 }

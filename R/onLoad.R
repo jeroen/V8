@@ -1,4 +1,6 @@
 .onLoad <- function(libname, pkgname){
-  underscore <- system.file("js/underscore.js", package = pkgname)
-  jseval(paste(readLines(underscore, warn = FALSE), collapse = "\n"))
+  # Test for development
+  test <- new_context()
+  test$source(system.file("js/underscore.js", package = pkgname))
+  rm(test)
 }

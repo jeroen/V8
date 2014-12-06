@@ -6,44 +6,14 @@
 
 using namespace Rcpp;
 
-// jseval
-std::string jseval(std::vector< std::string > code);
-RcppExport SEXP V8_jseval(SEXP codeSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< std::vector< std::string > >::type code(codeSEXP );
-        std::string __result = jseval(code);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// jsvalidate
-bool jsvalidate(std::vector< std::string > code);
-RcppExport SEXP V8_jsvalidate(SEXP codeSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< std::vector< std::string > >::type code(codeSEXP );
-        bool __result = jsvalidate(code);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
 // make_context
-XPtr< v8::Persistent<v8::Context> > make_context();
+ctxptr make_context();
 RcppExport SEXP V8_make_context() {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        XPtr< v8::Persistent<v8::Context> > __result = make_context();
+        ctxptr __result = make_context();
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -51,15 +21,31 @@ BEGIN_RCPP
 END_RCPP
 }
 // context_eval
-std::string context_eval(std::vector< std::string > code, XPtr< v8::Persistent<v8::Context> > ptr);
-RcppExport SEXP V8_context_eval(SEXP codeSEXP, SEXP ptrSEXP) {
+std::string context_eval(std::vector< std::string > code, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+RcppExport SEXP V8_context_eval(SEXP codeSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< std::vector< std::string > >::type code(codeSEXP );
-        Rcpp::traits::input_parameter< XPtr< v8::Persistent<v8::Context> > >::type ptr(ptrSEXP );
-        std::string __result = context_eval(code, ptr);
+        Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP );
+        std::string __result = context_eval(code, ctx);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// context_validate
+bool context_validate(std::vector< std::string > code, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+RcppExport SEXP V8_context_validate(SEXP codeSEXP, SEXP ctxSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< std::vector< std::string > >::type code(codeSEXP );
+        Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP );
+        bool __result = context_validate(code, ctx);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
