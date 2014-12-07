@@ -12,13 +12,13 @@ JavaScript code to run in a single instance of V8. You must explicitly specify
 the context in which you want any JavaScript code to be run.
 }
 \details{
-The \code{context$eval} function evaluates a string of raw code in the same way
+The \code{ct$eval} method evaluates a string of raw code in the same way
 as \code{eval} would do in JavaScript. It returns a string with console output.
-The \code{context$get}, \code{context$assign} and \code{context$call} functions
+The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions
 on the other hand automatically convert arguments and return value from/to JSON,
-unless an argument has been wrapped in \code{I()} (see examples).
-The \code{context$validate} function is used to test if a piece of code is valid
-JavaScript syntax, and always returns TRUE or FALSE.
+unless an argument has been wrapped in \code{I()}, see examples.
+The \code{ct$validate} function is used to test if a piece of code is valid
+JavaScript syntax within the context, and always returns TRUE or FALSE.
 
 JSON is used for all data interchange beteen R and JavaScript. Therefore you can
 (and should) only exchange data types that have a sensible JSON representation.
