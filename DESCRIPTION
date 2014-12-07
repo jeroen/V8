@@ -5,11 +5,9 @@ Version: 0.1
 Date: 2014-12-07
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
-Description: V8 is an open source JavaScript engine developed by Google. It is
-    used in many popular systems and applications including Chrome, Node, and
-    MongoDB.
+Description: V8 is an open source JavaScript engine developed by Google.
 License: MIT + file LICENSE
-URL: http://github.com/jeroenooms/V8
+URL: http://github.com/jeroenooms/V8, https://code.google.com/p/v8/
 BugReports: http://github.com/jeroenooms/V8/issues
 SystemRequirements: V8 (~3.14): libv8-dev (deb), v8-devel (rpm)
 NeedsCompilation: yes
