@@ -11,6 +11,13 @@ A \emph{context} is an execution environment that allows separate, unrelated,
 JavaScript code to run in a single instance of V8. You must explicitly specify
 the context in which you want any JavaScript code to be run.
 }
+\details{
+JSON is used for all data interchange beteen R and JavaScript. Therefore you can
+(and should) only exchange data types that have a sensible JSON representation.
+All aguments and objects are automatically converted according to the mapping
+described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
+by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
+}
 \examples{
 # Create a new context
 ct <- new_context();
@@ -33,10 +40,19 @@ ct$validate("function foo(x){2*x}") #TRUE
 ct$validate("foo = function(x){2*x}") #TRUE
 ct$validate("function(x){2*x}") #FALSE
 
-# Load a JavaScript library
+# Use a JavaScript library (example from underscore manual)
 ct$source(system.file("js/underscore.js", package="V8"))
+ct$eval("_.templateSettings = {interpolate: /\\\\{\\\\{(.+?)\\\\}\\\\}/g}")
+ct$eval("var template = _.template('Hello {{ name }}!')")
+ct$call("template", list(name = "Mustache"))
 
 # Call a function
-ct$call("function(x){return x*2}", 123)
+ct$call("function(x, y){return x[0] * y[0]}", 123, 3)
+
+# Remove triggers cleanup
+rm(ct)
+}
+\references{
+A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 }
 

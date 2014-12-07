@@ -4,6 +4,13 @@
 #' JavaScript code to run in a single instance of V8. You must explicitly specify
 #' the context in which you want any JavaScript code to be run.
 #'
+#' JSON is used for all data interchange beteen R and JavaScript. Therefore you can
+#' (and should) only exchange data types that have a sensible JSON representation.
+#' All aguments and objects are automatically converted according to the mapping
+#' described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
+#' by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
+#'
+#' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 #' @export
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
@@ -30,13 +37,17 @@
 #' ct$validate("foo = function(x){2*x}") #TRUE
 #' ct$validate("function(x){2*x}") #FALSE
 #'
-#' # Load a JavaScript library
+#' # Use a JavaScript library (example from underscore manual)
 #' ct$source(system.file("js/underscore.js", package="V8"))
+#' ct$eval("_.templateSettings = {interpolate: /\\{\\{(.+?)\\}\\}/g}")
+#' ct$eval("var template = _.template('Hello {{ name }}!')")
+#' ct$call("template", list(name = "Mustache"))
 #'
 #' # Call a function
-#' ct$call("function(x){return x*2}", 123)
+#' ct$call("function(x, y){return x[0] * y[0]}", 123, 3)
 #'
-#'
+#' # Remove triggers cleanup
+#' rm(ct)
 new_context <- function() {
   this <- environment();
   context <- make_context();
@@ -50,8 +61,11 @@ new_context <- function() {
   call <- function(fun, ...){
     stopifnot(is.character(fun))
     stopifnot(this$validate(paste0("fun=", fun)));
-    jsargs <- toJSON(unname(list(...)), auto_unbox=T);
-    src <- paste0("fun=", fun, ";JSON.stringify(fun.apply(this,", jsargs, "));");
+    jsargs <- list(...);
+    if(!is.null(names(jsargs))){
+      stop("Named arguments are not supported in JavaScript.")
+    }
+    src <- paste0("JSON.stringify((", fun ,").apply(this,", toJSON(jsargs), "));");
     out <- this$eval(src)
     get_json_output(out)
   }
@@ -59,14 +73,18 @@ new_context <- function() {
     this$eval(readLines(file, warn = FALSE))
   }
   get <- function(name){
+    stopifnot(is.character(name))
     get_json_output(this$eval(c("JSON.stringify(", name, ")")))
   }
-  assign <- function(x, value){
-    invisible(this$eval(c(x, "=", toJSON(value))))
+  assign <- function(name, value){
+    stopifnot(is.character(name))
+    invisible(this$eval(c(name, "=", toJSON(value))))
   }
   lockEnvironment(this, TRUE)
   #reg.finalizer(this, function(e){}, TRUE)
-  structure(this, class="V8")
+
+  # Need to add 'environment' class to make autocomplete work
+  structure(this, class=c("V8", "environment"))
 }
 
 get_json_output <- function(json){
@@ -95,6 +113,9 @@ get_str_output <- function(str){
 
 #' @export
 `[[.V8` <- `$.V8`
+
+#' @export
+`[.V8` <- `$.V8`
 
 #' @export
 print.V8 <- function(x, ...){
