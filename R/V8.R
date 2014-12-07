@@ -55,10 +55,16 @@
 #' ct$call("template", list(name = "Mustache"))
 #'
 #' # Call anonymous function
-#' ct$call("function(x, y){return x[0] * y[0]}", 123, 3)
+#' ct$call("function(x, y){return x * y}", 123, 3)
 #'
-#' # Remove triggers cleanup
-#' rm(ct)
+#' \dontrun{fun with CoffeeScript
+#' ct2 <- new_context()
+#' ct2$source("http://coffeescript.org/extras/coffee-script.js")
+#' jscode <- ct2$call("CoffeeScript.", "square = (x) -> x * x", list(bare = TRUE))
+#' ct2$eval(jscode)
+#' ct2$call("square", 9)
+#' }
+#'
 new_context <- function() {
   this <- environment();
   context <- make_context();
@@ -80,7 +86,8 @@ new_context <- function() {
       if(is.atomic(x) && is(x, "AsIs")){
         as.character(x)
       } else {
-        toJSON(x)
+        # To box or not. I'm not sure.
+        toJSON(x, auto_unbox = TRUE)
       }
     }, character(1));
     jsargs <- paste(jsargs, collapse=",")
@@ -104,6 +111,10 @@ new_context <- function() {
 
   # Need to add 'environment' class to make autocomplete work
   structure(this, class=c("V8", "environment"))
+}
+
+make_closure <- function(src){
+  paste("(function() {", src, "}).call(this)", sep = "\n")
 }
 
 get_json_output <- function(json){

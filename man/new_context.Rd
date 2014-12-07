@@ -58,10 +58,15 @@ ct$eval("var template = _.template('Hello {{ name }}!')")
 ct$call("template", list(name = "Mustache"))
 
 # Call anonymous function
-ct$call("function(x, y){return x[0] * y[0]}", 123, 3)
+ct$call("function(x, y){return x * y}", 123, 3)
 
-# Remove triggers cleanup
-rm(ct)
+\dontrun{fun with CoffeeScript
+ct2 <- new_context()
+ct2$source("http://coffeescript.org/extras/coffee-script.js")
+jscode <- ct2$call("CoffeeScript.", "square = (x) -> x * x", list(bare = TRUE))
+ct2$eval(jscode)
+ct2$call("square", 9)
+}
 }
 \references{
 A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
