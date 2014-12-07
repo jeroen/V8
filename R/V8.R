@@ -7,7 +7,8 @@
 #' The \code{context$eval} function evaluates a string of raw code in the same way
 #' as \code{eval} would do in JavaScript. It returns a string with console output.
 #' The \code{context$get}, \code{context$assign} and \code{context$call} functions
-#' on the other hand automatically convert arguments and return value from/to JSON.
+#' on the other hand automatically convert arguments and return value from/to JSON,
+#' unless an argument has been wrapped in \code{I()} (see examples).
 #' The \code{context$validate} function is used to test if a piece of code is valid
 #' JavaScript syntax, and always returns TRUE or FALSE.
 #'
@@ -44,8 +45,11 @@
 #' ct$validate("foo = function(x){2*x}") #TRUE
 #' ct$validate("function(x){2*x}") #FALSE
 #'
-#' # Use a JavaScript library (example from underscore manual)
+#' # Use a JavaScript library
 #' ct$source(system.file("js/underscore.js", package="V8"))
+#' ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
+#'
+#' # Example from underscore manual
 #' ct$eval("_.templateSettings = {interpolate: /\\{\\{(.+?)\\}\\}/g}")
 #' ct$eval("var template = _.template('Hello {{ name }}!')")
 #' ct$call("template", list(name = "Mustache"))
@@ -72,7 +76,15 @@ new_context <- function() {
     if(!is.null(names(jsargs))){
       stop("Named arguments are not supported in JavaScript.")
     }
-    src <- paste0("JSON.stringify((", fun ,").apply(this,", toJSON(jsargs), "));");
+    jsargs <- vapply(jsargs, function(x){
+      if(is.atomic(x) && is(x, "AsIs")){
+        as.character(x)
+      } else {
+        toJSON(x)
+      }
+    }, character(1));
+    jsargs <- paste(jsargs, collapse=",")
+    src <- paste0("JSON.stringify((", fun ,")(", jsargs, "));");
     out <- this$eval(src)
     get_json_output(out)
   }
