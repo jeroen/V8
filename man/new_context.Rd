@@ -63,7 +63,7 @@ ct$call("function(x, y){return x * y}", 123, 3)
 \dontrun{fun with CoffeeScript
 ct2 <- new_context()
 ct2$source("http://coffeescript.org/extras/coffee-script.js")
-jscode <- ct2$call("CoffeeScript.", "square = (x) -> x * x", list(bare = TRUE))
+jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 ct2$eval(jscode)
 ct2$call("square", 9)
 }
