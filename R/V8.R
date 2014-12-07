@@ -149,7 +149,11 @@ get_str_output <- function(str){
 
 #' @export
 print.V8 <- function(x, ...){
-  cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n")
+  if(identical(x$context, new("externalptr"))){
+    cat("This context has been disposed.")
+  } else {
+    cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n")
+  }
 }
 
 # Override default call argument.
