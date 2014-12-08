@@ -9,7 +9,7 @@ Description: V8 is an open source JavaScript engine developed by Google.
 License: MIT + file LICENSE
 URL: http://github.com/jeroenooms/V8, https://code.google.com/p/v8/
 BugReports: http://github.com/jeroenooms/V8/issues
-SystemRequirements: V8 (~3.14): libv8-dev (deb), v8-devel (rpm)
+SystemRequirements: V8 development library: libv8-dev (deb), v8-devel (rpm)
 NeedsCompilation: yes
 Imports:
     Rcpp,
