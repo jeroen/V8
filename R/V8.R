@@ -67,13 +67,11 @@
 #'
 new_context <- function() {
   # Internal variables
-  this = NULL
   context <- make_context();
   created <- Sys.time();
 
   # Exported variables
-  local({
-    this <<- environment();
+  this <- local({
     eval <- function(src){
       get_str_output(context_eval(paste(src, collapse="\n"), context));
     }
@@ -111,12 +109,10 @@ new_context <- function() {
       stopifnot(is.character(name))
       invisible(this$eval(c(name, "=", toJSON(value))))
     }
+    #reg.finalizer(environment(), function(e){}, TRUE)
+    lockEnvironment(environment(), TRUE)
+    structure(environment(), class=c("V8", "environment"))
   })
-  #reg.finalizer(this, function(e){}, TRUE)
-  lockEnvironment(this, TRUE)
-
-  # Need to add 'environment' class to make autocomplete work
-  structure(this, class=c("V8", "environment"))
 }
 
 make_closure <- function(src){
