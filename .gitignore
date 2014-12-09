@@ -5,4 +5,5 @@ homebrew
 src/*.o
 src/*.so
 src/*.dll
+src/Makevars
 .DS_Store
