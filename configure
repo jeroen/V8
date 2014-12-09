@@ -14,7 +14,7 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
 
   # First try is the libv8 gem is installed
   V8GEMDIR=$(echo /Library/Ruby/Gems/2.0.0/gems/libv8-*)
-  if [ -e "$V8GEMDIR/vendor/v8/include/v8.h" ]; then
+  if [ -r "$V8GEMDIR/vendor/v8/include/v8.h" ]; then
     echo "libv8 gem found in $V8GEMDIR"
     echo "PKG_CXXFLAGS= -I$V8GEMDIR/vendor/v8/include" > src/Makevars
     echo "PKG_LIBS=-L$V8GEMDIR/vendor/v8/out/x64.release -lv8_{base,snapshot}" >> src/Makevars
@@ -24,15 +24,16 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
   # Use system 'brew' if available
   if [ $(command -v brew) ]; then
     V8BREWDIR=$(brew --prefix)/opt/v8-3.14.5;
-    if [ -e $V8BREWDIR ]; then
-      echo "libv8 found in $V8BREWDIR";
-    else
+    if [ ! -r "$V8BREWDIR/include/v8.h" ]; then
       echo "Building V8... (this may take a few minutes, but only has to be done once) ";
       brew install ./tools/v8-3.14.5.rb;
     fi
-    echo "PKG_CPPFLAGS= -I$V8BREWDIR/include" > src/Makevars
-    echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
-    exit 0;
+    if [ -r "$V8BREWDIR/include/v8.h" ]; then
+      echo "libv8 found in $V8BREWDIR";
+      echo "PKG_CPPFLAGS= -I$V8BREWDIR/include" > src/Makevars
+      echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
+      exit 0;
+    fi
   fi
 
   # Try brewing locally
@@ -43,7 +44,7 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
   if [ ! -r "$V8LOCAL/opt/v8-3.14.5/include/v8.h" ]; then
      HOMEBREW_CACHE="/tmp" $V8LOCAL/bin/brew install ./tools/v8-3.14.5.rb
   fi
-  if [ -e "$V8LOCAL/opt/v8-3.14.5/include/v8.h" ]; then
+  if [ -r "$V8LOCAL/opt/v8-3.14.5/include/v8.h" ]; then
     echo "PKG_CPPFLAGS= -I../$V8LOCAL/opt/v8-3.14.5/include/" > src/Makevars
     echo "PKG_LIBS= -L../$V8LOCAL/opt/v8-3.14.5/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
     exit 0;
