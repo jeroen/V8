@@ -5,7 +5,9 @@ Version: 0.1.99
 Date: 2014-12-07
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
-Description: V8 is an open source JavaScript engine developed by Google.
+Description: V8 is Google's open source, high performance JavaScript engine. It
+    is written in C++ and implements ECMAScript as specified in ECMA-262, 5th
+    edition.
 License: MIT + file LICENSE
 URL: http://github.com/jeroenooms/v8, https://code.google.com/p/v8/
 BugReports: http://github.com/jeroenooms/v8/issues
