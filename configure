@@ -1,4 +1,5 @@
 # Check for a custom include dir
+echo "PKG_LIBS= -lv8" > src/Makevars
 if [ "$V8_INCLUDES" ]; then
   echo "PKG_CPPFLAGS= -I$V8_INCLUDES" >> src/Makevars
   if [ ! -r "$V8_INCLUDES/v8.h" ]; then
