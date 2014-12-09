@@ -107,7 +107,12 @@ new_context <- function() {
     }
     assign <- function(name, value){
       stopifnot(is.character(name))
-      invisible(this$eval(c(name, "=", toJSON(value))))
+      obj <- if(is(value, "AsIs")){
+        as.character(value)
+      } else {
+        toJSON(value)
+      }
+      invisible(this$eval(c(name, "=", obj)))
     }
     #reg.finalizer(environment(), function(e){}, TRUE)
     lockEnvironment(environment(), TRUE)
@@ -128,7 +133,7 @@ get_json_output <- function(json){
 }
 
 get_str_output <- function(str){
-  if(str == "undefined"){
+  if(identical(str, "undefined")){
     invisible(str)
   } else {
     return(str)
