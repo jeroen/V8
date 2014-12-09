@@ -13,3 +13,7 @@ context_validate <- function(src, ctx) {
     .Call('V8_context_validate', PACKAGE = 'V8', src, ctx)
 }
 
+context_null <- function(ctx) {
+    .Call('V8_context_null', PACKAGE = 'V8', ctx)
+}
+

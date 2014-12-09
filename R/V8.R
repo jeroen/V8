@@ -23,7 +23,7 @@
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom Rcpp sourceCpp
-#' @useDynLib V8 V8_context_eval V8_make_context V8_context_validate
+#' @useDynLib V8
 #' @examples # Create a new context
 #' ct <- new_context();
 #'
@@ -156,7 +156,7 @@ get_str_output <- function(str){
 
 #' @export
 print.V8 <- function(x, ...){
-  if(identical(get("context", x), new("externalptr"))){
+  if(context_null(get("context", x))){
     cat("This context has been disposed.")
   } else {
     cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n")

@@ -95,3 +95,9 @@ bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> >
   Handle<Script> script = compile_source(src);
   return !script.IsEmpty();
 }
+
+// [[Rcpp::export]]
+bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+  // Test if context still exists
+  return(!ctx);
+}
