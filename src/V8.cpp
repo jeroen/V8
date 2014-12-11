@@ -1,6 +1,8 @@
 /*
  R bindings to V8. Copyright 2014, Jeroen Ooms.
 
+ Note: Rcpp completely ignores character encodings, so need to convert manually.
+
  V8 source parsing:
  http://stackoverflow.com/questions/16613828/how-to-convert-stdstring-to-v8s-localstring
 
@@ -47,8 +49,7 @@ ctxptr make_context(){
 }
 
 // [[Rcpp::export]]
-std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
-
+std::string context_eval(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("Context has been disposed.");
@@ -59,7 +60,7 @@ std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context
 
   // Compile source code
   TryCatch trycatch;
-  Handle<Script> script = compile_source(src);
+  Handle<Script> script = compile_source(Rf_translateCharUTF8(Rf_asChar(src)));
   if(script.IsEmpty()) {
     Local<Value> exception = trycatch.Exception();
     String::AsciiValue exception_str(exception);
@@ -80,7 +81,7 @@ std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context
 }
 
 // [[Rcpp::export]]
-bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+bool context_validate(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
 
   // Test if context still exists
   if(!ctx)
@@ -92,7 +93,7 @@ bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> >
 
   // Try to compile, catch errors
   TryCatch trycatch;
-  Handle<Script> script = compile_source(src);
+  Handle<Script> script = compile_source(Rf_translateCharUTF8(Rf_asChar(src)));
   return !script.IsEmpty();
 }
 

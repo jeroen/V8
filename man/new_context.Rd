@@ -43,7 +43,12 @@ ct$eval("(function(x){return x+1;})(123)")
 ct$assign("mydata", mtcars)
 ct$get("mydata")
 
-# Validate syntax without evaluating
+# Assign JavaScript
+ct$assign("foo", I("function(x){return x*x}"))
+ct$assign("bar", I("foo(9)"))
+ct$get("bar")
+
+# Validate script without evaluating
 ct$validate("function foo(x){2*x}") #TRUE
 ct$validate("foo = function(x){2*x}") #TRUE
 ct$validate("function(x){2*x}") #FALSE

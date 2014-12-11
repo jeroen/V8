@@ -40,7 +40,12 @@
 #' ct$assign("mydata", mtcars)
 #' ct$get("mydata")
 #'
-#' # Validate syntax without evaluating
+#' # Assign JavaScript
+#' ct$assign("foo", I("function(x){return x*x}"))
+#' ct$assign("bar", I("foo(9)"))
+#' ct$get("bar")
+#'
+#' # Validate script without evaluating
 #' ct$validate("function foo(x){2*x}") #TRUE
 #' ct$validate("foo = function(x){2*x}") #TRUE
 #' ct$validate("function(x){2*x}") #FALSE
@@ -73,14 +78,14 @@ new_context <- function() {
   # Exported variables
   this <- local({
     eval <- function(src){
-      get_str_output(context_eval(paste(src, collapse="\n"), context));
+      get_str_output(context_eval(join(src), context));
     }
     validate <- function(src){
-      context_validate(paste(src, collapse="\n"), context)
+      context_validate(join(src), context)
     }
     call <- function(fun, ...){
       stopifnot(is.character(fun))
-      stopifnot(this$validate(paste0("fun=", fun)));
+      stopifnot(this$validate(c("fun=", fun)));
       jsargs <- list(...);
       if(!is.null(names(jsargs))){
         stop("Named arguments are not supported in JavaScript.")
@@ -120,10 +125,6 @@ new_context <- function() {
   })
 }
 
-make_closure <- function(src){
-  paste("(function() {", src, "}).call(this)", sep = "\n")
-}
-
 get_json_output <- function(json){
   if(identical(json,"undefined")){
     invisible()
@@ -161,6 +162,10 @@ print.V8 <- function(x, ...){
   } else {
     cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n")
   }
+}
+
+join <- function (str){
+  paste(str, collapse="\n")
 }
 
 # Override default call argument.
