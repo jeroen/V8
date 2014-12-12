@@ -78,7 +78,10 @@ new_context <- function() {
   # Exported variables
   this <- local({
     eval <- function(src){
-      get_str_output(context_eval_safe(join(src), context));
+      if(length(src) > 1){
+        src <- join(src)
+      }
+      get_str_output(context_eval_safe(src, context));
     }
     validate <- function(src){
       context_validate_safe(join(src), context)
@@ -113,11 +116,10 @@ new_context <- function() {
     assign <- function(name, value){
       stopifnot(is.character(name))
       obj <- if(is(value, "AsIs")){
-        as.character(value)
+        invisible(this$eval(paste(name, "=", value)))
       } else {
-        toJSON(value)
+        invisible(this$eval(paste(name, "=", toJSON(value))))
       }
-      invisible(this$eval(c(name, "=", obj)))
     }
     #reg.finalizer(environment(), function(e){}, TRUE)
     lockEnvironment(environment(), TRUE)
