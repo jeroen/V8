@@ -5,8 +5,8 @@
 .Rhistory
 ^.*\.Rproj$
 ^\.Rproj\.user$
-windows
-homebrew
-old
-README.md
-src/Makevars
+^windows/
+^homebrew/
+^old/
+^README.md$
+^src/Makevars$
