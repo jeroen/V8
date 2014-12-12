@@ -80,6 +80,7 @@ std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context
   return *utf8;
 }
 
+
 // [[Rcpp::export]]
 bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
 
@@ -101,4 +102,26 @@ bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> >
 bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
   // Test if context still exists
   return(!ctx);
+}
+
+/*
+Rcpp does not deal well with UTF8 on windows.
+Workaround below (hopefully temporary)
+*/
+
+// [[Rcpp::export]]
+SEXP context_eval_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+  std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
+  std::string out = context_eval(str, ctx);
+  SEXP res = PROTECT(Rf_allocVector(STRSXP, 1));
+  SET_STRING_ELT(res, 0, Rf_mkCharCE(out.c_str(), CE_UTF8));
+  UNPROTECT(1);
+  return res;
+}
+
+
+// [[Rcpp::export]]
+bool context_validate_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+  std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
+  return context_validate(str, ctx);
 }

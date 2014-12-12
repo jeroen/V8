@@ -78,10 +78,10 @@ new_context <- function() {
   # Exported variables
   this <- local({
     eval <- function(src){
-      get_str_output(context_eval(join(src), context));
+      get_str_output(context_eval_safe(join(src), context));
     }
     validate <- function(src){
-      context_validate(join(src), context)
+      context_validate_safe(join(src), context)
     }
     call <- function(fun, ...){
       stopifnot(is.character(fun))
