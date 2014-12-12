@@ -14,6 +14,6 @@ BugReports: http://github.com/jeroenooms/v8/issues
 SystemRequirements: V8 library: libv8-dev (deb), v8-devel (rpm)
 NeedsCompilation: yes
 Imports:
-    Rcpp,
+    Rcpp (>= 0.11.0),
     jsonlite
 LinkingTo: Rcpp
