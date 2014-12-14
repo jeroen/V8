@@ -121,6 +121,9 @@ new_context <- function() {
         invisible(this$eval(paste(name, "=", toJSON(value))))
       }
     }
+    reset <- function(){
+      context <<- make_context();
+    }
     #reg.finalizer(environment(), function(e){}, TRUE)
     lockEnvironment(environment(), TRUE)
     structure(environment(), class=c("V8", "environment"))
@@ -162,7 +165,7 @@ print.V8 <- function(x, ...){
   if(context_null(get("context", x))){
     cat("This context has been disposed.")
   } else {
-    cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n")
+    cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n  $reset()\n")
   }
 }
 
