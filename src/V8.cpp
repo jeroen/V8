@@ -49,6 +49,11 @@ ctxptr make_context(){
 }
 
 // [[Rcpp::export]]
+std::string version(){
+  return v8::V8::GetVersion();
+}
+
+// [[Rcpp::export]]
 std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   // Test if context still exists
   if(!ctx)

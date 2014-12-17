@@ -5,6 +5,10 @@ make_context <- function() {
     .Call('V8_make_context', PACKAGE = 'V8')
 }
 
+version <- function() {
+    .Call('V8_version', PACKAGE = 'V8')
+}
+
 context_eval <- function(src, ctx) {
     .Call('V8_context_eval', PACKAGE = 'V8', src, ctx)
 }

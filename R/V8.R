@@ -125,17 +125,18 @@ new_context <- function() {
       context <<- make_context();
     }
     console <- function(){
+      message("This is V8 version ", V8:::version(), ". Press ESC or CTRL+C to exit.")
       buffer <- character();
       repeat {
         prompt <- ifelse(length(buffer), "  ", "~ ")
         if(nchar(line <- readline(prompt))){
           buffer <- c(buffer, line)
         }
-        if(!nchar(line) || this$validate(buffer)){
+        if(length(buffer) && (this$validate(buffer) || !nchar(line))){
           tryCatch(
-            cat(paste(this$eval(buffer))),
+            cat(this$eval(buffer), "\n"),
             error = function(e){
-              message("V8:", e$message)
+              message(e$message)
             }
           )
           buffer <- character();
