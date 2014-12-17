@@ -126,13 +126,23 @@ new_context <- function() {
     }
     console <- function(){
       message("This is V8 version ", V8:::version(), ". Press ESC or CTRL+C to exit.")
+      savehistory()
+      on.exit(loadhistory())
       buffer <- character();
+      histfile <- ".V8history"
+      if(file.exists(histfile)){
+        loadhistory(histfile)
+      } else {
+        file.create(histfile)
+      }
       repeat {
         prompt <- ifelse(length(buffer), "  ", "~ ")
         if(nchar(line <- readline(prompt))){
           buffer <- c(buffer, line)
         }
         if(length(buffer) && (this$validate(buffer) || !nchar(line))){
+          write(buffer, histfile, append = TRUE)
+          loadhistory(histfile)
           tryCatch(
             cat(this$eval(buffer), "\n"),
             error = function(e){
@@ -184,7 +194,7 @@ print.V8 <- function(x, ...){
   if(context_null(get("context", x))){
     cat("This context has been disposed.")
   } else {
-    cat("V8 context methods:\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n  $reset()\n")
+    cat("V8 context methods:\n  $console()\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n  $reset()\n")
   }
 }
 
