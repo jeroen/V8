@@ -126,14 +126,20 @@ new_context <- function() {
     }
     console <- function(){
       message("This is V8 version ", V8:::version(), ". Press ESC or CTRL+C to exit.")
-      savehistory()
-      on.exit(loadhistory())
+      on.exit(message("Exiting V8 console."))
       buffer <- character();
-      histfile <- ".V8history"
-      if(file.exists(histfile)){
-        loadhistory(histfile)
-      } else {
-        file.create(histfile)
+
+      # OSX R.app does not support savehistory
+      has_history <- !is(try(savehistory(tempfile()), silent=T), "try-error")
+      if(has_history){
+        savehistory()
+        on.exit(loadhistory(), add = TRUE)
+        histfile <- ".V8history"
+        if(file.exists(histfile)){
+          loadhistory(histfile)
+        } else {
+          file.create(histfile)
+        }
       }
       repeat {
         prompt <- ifelse(length(buffer), "  ", "~ ")
@@ -141,8 +147,10 @@ new_context <- function() {
           buffer <- c(buffer, line)
         }
         if(length(buffer) && (this$validate(buffer) || !nchar(line))){
-          write(buffer, histfile, append = TRUE)
-          loadhistory(histfile)
+          if(has_history){
+            write(buffer, histfile, append = TRUE)
+            loadhistory(histfile)
+          }
           tryCatch(
             cat(this$eval(buffer), "\n"),
             error = function(e){
