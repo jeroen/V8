@@ -3,6 +3,7 @@
 .git
 .gitignore
 .Rhistory
+.V8history
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^windows/
