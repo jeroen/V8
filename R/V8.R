@@ -71,11 +71,11 @@
 #' }
 #'
 new_context <- function() {
-  # Internal variables
+  # Fields
   context <- make_context();
   created <- Sys.time();
 
-  # Exported variables
+  # Public methods
   this <- local({
     eval <- function(src){
       if(length(src) > 1){
@@ -123,6 +123,24 @@ new_context <- function() {
     }
     reset <- function(){
       context <<- make_context();
+    }
+    console <- function(){
+      buffer <- character();
+      repeat {
+        prompt <- ifelse(length(buffer), "  ", "~ ")
+        if(nchar(line <- readline(prompt))){
+          buffer <- c(buffer, line)
+        }
+        if(!nchar(line) || this$validate(buffer)){
+          tryCatch(
+            cat(paste(this$eval(buffer))),
+            error = function(e){
+              message("V8:", e$message)
+            }
+          )
+          buffer <- character();
+        }
+      }
     }
     #reg.finalizer(environment(), function(e){}, TRUE)
     lockEnvironment(environment(), TRUE)
