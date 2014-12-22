@@ -6,7 +6,7 @@
 .V8history
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^windows/
+^windows
 ^homebrew/
 ^old/
 ^README.md$
