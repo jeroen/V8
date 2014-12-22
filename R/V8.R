@@ -125,6 +125,7 @@ new_context <- function() {
       context <<- make_context();
     }
     console <- function(){
+      this$eval("")
       message("This is V8 version ", V8:::version(), ". Press ESC or CTRL+C to exit.")
       on.exit(message("Exiting V8 console."))
       buffer <- character();
