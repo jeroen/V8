@@ -118,7 +118,7 @@ new_context <- function() {
       obj <- if(is(value, "AsIs")){
         invisible(this$eval(paste(name, "=", value)))
       } else {
-        invisible(this$eval(paste(name, "=", toJSON(value))))
+        invisible(this$eval(paste(name, "=", toJSON(value, auto_unbox = TRUE))))
       }
     }
     reset <- function(){
