@@ -153,7 +153,7 @@ new_context <- function() {
             loadhistory(histfile)
           }
           tryCatch(
-            cat(this$eval(buffer), "\n"),
+            cat(undefined_to_null(this$eval(buffer))),
             error = function(e){
               message(e$message)
             }
@@ -168,9 +168,17 @@ new_context <- function() {
   })
 }
 
+undefined_to_null <- function(str){
+  if(identical(str,"undefined")){
+    invisible()
+  } else {
+    paste0(str, "\n")
+  }
+}
+
 get_json_output <- function(json){
   if(identical(json,"undefined")){
-    invisible()
+    invisible(NULL)
   } else {
     fromJSON(json)
   }
