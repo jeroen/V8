@@ -63,13 +63,20 @@
 #' # Call anonymous function
 #' ct$call("function(x, y){return x * y}", 123, 3)
 #'
-#' \dontrun{fun with CoffeeScript
+#' \dontrun{CoffeeScript
 #' ct2 <- new_context()
 #' ct2$source("http://coffeescript.org/extras/coffee-script.js")
 #' jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 #' ct2$eval(jscode)
 #' ct2$call("square", 9)
-#' }
+#'
+#' # Interactive console
+#' ct3 <- new_context()
+#' ct3$console()
+#' //this is JavaScript
+#' var test = [1,2,3]
+#' JSON.stringify(test)
+#' exit}
 #'
 new_context <- function() {
   # Fields
@@ -152,6 +159,7 @@ new_context <- function() {
         if(nchar(line <- readline(prompt))){
           buffer <- c(buffer, line)
         }
+        if(identical(buffer, "exit")) break;
         if(length(buffer) && (this$validate(buffer) || !nchar(line))){
           if(has_history){
             write(buffer, histfile, append = TRUE)

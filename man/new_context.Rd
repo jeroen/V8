@@ -66,13 +66,20 @@ ct$call("template", list(name = "Mustache"))
 # Call anonymous function
 ct$call("function(x, y){return x * y}", 123, 3)
 
-\dontrun{fun with CoffeeScript
+\dontrun{CoffeeScript
 ct2 <- new_context()
 ct2$source("http://coffeescript.org/extras/coffee-script.js")
 jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 ct2$eval(jscode)
 ct2$call("square", 9)
-}
+
+# Interactive console
+ct3 <- new_context()
+ct3$console()
+//this is JavaScript
+var test = [1,2,3]
+JSON.stringify(test)
+exit}
 }
 \references{
 A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
