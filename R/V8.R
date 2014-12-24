@@ -22,6 +22,7 @@
 #' @export
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
+#' @importFrom curl curl
 #' @importFrom Rcpp sourceCpp
 #' @useDynLib V8
 #' @examples # Create a new context
@@ -107,6 +108,10 @@ new_context <- function() {
       get_json_output(out)
     }
     source <- function(file){
+      if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
+        file <- curl(file)
+        on.exit(close(file))
+      }
       this$eval(readLines(file, warn = FALSE))
     }
     get <- function(name){
