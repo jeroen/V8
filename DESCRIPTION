@@ -15,5 +15,6 @@ SystemRequirements: V8: libv8-dev (deb), v8-devel (rpm)
 NeedsCompilation: yes
 Imports:
     Rcpp (>= 0.11.0),
-    jsonlite
+    jsonlite,
+    curl
 LinkingTo: Rcpp
