@@ -39,9 +39,46 @@ Handle<Script> compile_source( std::string src ){
   return script;
 }
 
+/* console.log */
+static Handle<Value> ConsoleLog(const Arguments& args) {
+  for (int i=0; i < args.Length(); i++) {
+    String::AsciiValue str(args[i]->ToString());
+    Rprintf("%s", *str);
+  }
+  Rprintf("\n");
+  return v8::Undefined();
+}
+
+/* console.warn */
+static Handle<Value> ConsoleWarn(const Arguments& args) {
+  for (int i=0; i < args.Length(); i++) {
+    String::AsciiValue str(args[i]->ToString());
+    Rf_warningcall_immediate(R_NilValue, *str);
+  }
+  return v8::Undefined();
+}
+
+/* console.error */
+static Handle<Value> ConsoleError(const Arguments& args) {
+  if(args.Length()){
+    return v8::ThrowException(args[0]);
+  }
+  return v8::Undefined();
+}
+
 // [[Rcpp::export]]
 ctxptr make_context(){
-  lstail->context = Context::New();
+  /* setup console.log */
+  HandleScope handle_scope;
+  Handle<ObjectTemplate> global = ObjectTemplate::New();
+  Handle<ObjectTemplate> console = ObjectTemplate::New();
+  global->Set(String::NewSymbol("console"), console);
+  console->Set(String::NewSymbol("log"), FunctionTemplate::New(ConsoleLog));
+  console->Set(String::NewSymbol("warn"), FunctionTemplate::New(ConsoleWarn));
+  console->Set(String::NewSymbol("error"), FunctionTemplate::New(ConsoleError));
+
+  /* initialize the context */
+  lstail->context = Context::New(NULL, global);
   ctxptr ptr(&(lstail->context));
   lstail->next = new node;
   lstail = lstail->next;
