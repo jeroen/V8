@@ -116,7 +116,7 @@ new_context <- function() {
     }
     source <- function(file){
       if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
-        file <- curl(file)
+        file <- curl(file, open = "r")
         on.exit(close(file))
       }
       this$eval(readLines(file, warn = FALSE))
