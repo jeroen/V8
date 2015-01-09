@@ -139,7 +139,27 @@ ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter
 ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
 ```
 
-## Syntax validation
+## The Global Namespace
+
+Unlike what you might be used to from Node or your browser, the global namespace is empty when you start a new context. The global namespace does not have a name either (no `window` object), but you can evaluate `this` in the top scope to access it.
+
+```{r}
+ct2 <- new_context()
+ct2$assign("cars", cars)
+ct2$eval("var foo = 123")
+ct2$eval("function test(x){x+1}")
+ct2$get(I("Object.keys(this)"))
+```
+
+Hence to assign or get an object explicitly from the global namespace you could use something like:
+
+```{r}
+ct2$eval("var _global = this")
+ct2$eval("(function(){var bar = [1,2,3,4]; _global.bar = bar; })()")
+ct2$get("bar")
+```
+
+## Syntax Validation
 
 V8 also allows for validating JavaScript syntax, without actually evaluating it.
 
