@@ -19,3 +19,5 @@ Imports:
     curl (>= 0.4)
 LinkingTo:
     Rcpp
+Suggests:
+    knitr

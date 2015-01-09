@@ -1,0 +1,152 @@
+---
+title: "Introduction to V8 for R"
+author: "Jeroen Ooms"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Introduction to V8 for R}
+output:
+  knitr:::html_vignette:
+    toc: yes
+---
+
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(comment = "")
+library(V8)
+```
+
+## What is V8
+
+V8 is Google’s open source, high performance JavaScript engine. It is written in C++ and implements ECMAScript as specified in ECMA-262, 5th edition. The V8 R package builds on C++ library to provide a completely standalone JavaScript engine within R:
+
+```{r}
+# Create a new context
+ct <- new_context();
+
+# Evaluate some code
+ct$eval("var foo=123")
+ct$eval("var bar=456")
+ct$eval("foo+bar")
+```
+
+A major advantage over the other foreign language interfaces is that V8 requires no compilers, external executables or other run-time dependencies to execute JavaScript. The entire engine is contained within a 6MB R package (2MB when zipped) and works on all major platforms.
+
+```{r}
+cat(ct$eval("JSON.stringify({x:Math.random()})"))
+ct$eval("(function(x){return x+1;})(123)")
+```
+
+However note that V8 by itself is just the naked JavaScript engine. Currently, there is no DOM (i.e. no *window* object), no network or disk IO, not even an event loop. Which is fine because we already have all of those in R. In this sense V8 resembles other foreign language interfaces such as Rcpp or rJava, but then for JavaScript.
+
+## Loading JavaScript Libraries
+
+The `ct$source` method is a convenience function for loading JavaScript libraries from a file or url.
+
+```{r, results='hide'}
+ct$source(system.file("js/underscore.js", package="V8"))
+ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
+```
+
+## Data Interchange
+
+By default all data interchange between R and JavaScript happens via JSON using the bidirectional mapping implemented in the [jsonlite](http://arxiv.org/abs/1403.2805) package.
+
+```{r}
+ct$assign("mydata", mtcars)
+ct$get("mydata")
+```
+
+Alternatively use `I()` to assign the value of a JavaScript expression:
+
+```{r}
+ct$assign("foo", I("function(x){return x*x}"))
+ct$assign("bar", I("foo(9)"))
+ct$get("bar")
+```
+
+## Function Calls
+
+The `ct$call` method calls a JavaScript function, automatically converting objects (arguments and return value) between R and JavaScript:
+
+```{r}
+ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
+```
+
+It looks a bit like `.Call` but then for JavaScript instead of C.
+
+## Interactive JavaScript Console
+
+A fun way to learn JavaScript or debug a session is by entering the interactive console:
+
+```{r, eval=FALSE}
+# Load some data
+data(diamonds, package="ggplot2")
+ct$assign("diamonds", diamonds)
+ct$console()
+```
+
+From here you can interactively work in JavaScript without typing `ct$eval` every time:
+
+```javascript
+var cf = crossfilter(diamonds)
+var price = cf.dimension(function(x){return x.price})
+var depth = cf.dimension(function(x){return x.depth})
+price.filter([2000, 3000])
+output = depth.top(10)
+```
+
+To exit the console, either press `ESC` or type `exit`. Afterwards you can retrieve the objects back into R:
+
+```{r, eval=FALSE}
+output <- ct$get("output")
+print(output)
+```
+
+
+## Conditions (warnings, errors and console.log)
+
+Evaluating invalid JavaScript code results in a SyntaxError:
+
+```{r, error=TRUE}
+ct$eval('var foo <- 123;')
+```
+
+JavaScript runtime exceptions are automatically propagated into R errors:
+
+```{r, error=TRUE}
+ct$eval("123 + doesnotexit")
+```
+
+Within JavaScript we can also call back to the R console manually using `console.log`, `console.warn` and `console.error`. This allows for explicilty generating output, warnings or errors from within a JavaScript application.
+
+```{r}
+ct$eval('console.log("this is a message")')
+ct$eval('console.warn("Heads up!")')
+ct$eval('console.log("Oh no! An error!")')
+```
+
+A simple useful example:
+
+```{r, results='hide'}
+ct <- new_context()
+ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
+ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
+```
+
+## Syntax validation
+
+V8 also allows for validating JavaScript syntax, without actually evaluating it.
+
+```{r}
+ct$validate("function foo(x){2*x}")
+ct$validate("foo = function(x){2*x}")
+```
+
+Note that JavaScript does not allow for defining anonymous functions in the global scope
+
+```{r}
+ct$validate("function(x){2*x}")
+```
+
+
+

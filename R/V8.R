@@ -128,9 +128,9 @@ new_context <- function() {
     assign <- function(name, value){
       stopifnot(is.character(name))
       obj <- if(is(value, "AsIs")){
-        invisible(this$eval(paste(name, "=", value)))
+        invisible(this$eval(paste("var", name, "=", value)))
       } else {
-        invisible(this$eval(paste(name, "=", toJSON(value, auto_unbox = TRUE))))
+        invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = TRUE))))
       }
     }
     reset <- function(){
