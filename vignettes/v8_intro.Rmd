@@ -5,6 +5,7 @@ date: "`r Sys.Date()`"
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Introduction to V8 for R}
+  \usepackage[utf8]{inputenc} 
 output:
   knitr:::html_vignette:
     toc: yes
@@ -17,22 +18,25 @@ library(V8)
 
 ## What is V8
 
-V8 is Google’s open source, high performance JavaScript engine. It is written in C++ and implements ECMAScript as specified in ECMA-262, 5th edition. The V8 R package builds on C++ library to provide a completely standalone JavaScript engine within R:
+V8 is Google’s open source, high performance JavaScript engine. It is written in C++ and implements ECMAScript as specified in ECMA-262, 5th edition. The V8 R package builds on the C++ library to provide a completely standalone JavaScript engine within R:
 
 ```{r}
 # Create a new context
 ct <- new_context();
 
 # Evaluate some code
-ct$eval("var foo=123")
-ct$eval("var bar=456")
-ct$eval("foo+bar")
+ct$eval("var foo = 123")
+ct$eval("var bar = 456")
+ct$eval("foo + bar")
 ```
 
-A major advantage over the other foreign language interfaces is that V8 requires no compilers, external executables or other run-time dependencies to execute JavaScript. The entire engine is contained within a 6MB R package (2MB when zipped) and works on all major platforms.
+A major advantage over the other foreign language interfaces is that V8 requires no compilers, external executables or other run-time dependencies. The entire engine is contained within a 6MB package (2MB zipped) and works on all major platforms.
 
 ```{r}
+# Create some JSON
 cat(ct$eval("JSON.stringify({x:Math.random()})"))
+
+# Simple closure
 ct$eval("(function(x){return x+1;})(123)")
 ```
 
@@ -56,7 +60,7 @@ ct$assign("mydata", mtcars)
 ct$get("mydata")
 ```
 
-Alternatively use `I()` to assign the value of a JavaScript expression:
+Alternatively use `I()` to assign the value of a JavaScript expression (without converting to JSON):
 
 ```{r}
 ct$assign("foo", I("function(x){return x*x}"))
@@ -80,7 +84,7 @@ A fun way to learn JavaScript or debug a session is by entering the interactive 
 
 ```{r, eval=FALSE}
 # Load some data
-data(diamonds, package="ggplot2")
+data(diamonds, package = "ggplot2")
 ct$assign("diamonds", diamonds)
 ct$console()
 ```
@@ -107,25 +111,27 @@ print(output)
 
 Evaluating invalid JavaScript code results in a SyntaxError:
 
-```{r, error=TRUE}
+```{r, error=TRUE, purl = FALSE}
+# A common typo
 ct$eval('var foo <- 123;')
 ```
 
 JavaScript runtime exceptions are automatically propagated into R errors:
 
-```{r, error=TRUE}
+```{r, error=TRUE, purl = FALSE}
+# Runtime errors
 ct$eval("123 + doesnotexit")
 ```
 
 Within JavaScript we can also call back to the R console manually using `console.log`, `console.warn` and `console.error`. This allows for explicilty generating output, warnings or errors from within a JavaScript application.
 
-```{r}
+```{r, error = TRUE, purl = FALSE}
 ct$eval('console.log("this is a message")')
 ct$eval('console.warn("Heads up!")')
-ct$eval('console.log("Oh no! An error!")')
+ct$eval('console.error("Oh no! An error!")')
 ```
 
-A simple useful example:
+A example of using `console.error` is to verify that external resources were loaded:
 
 ```{r, results='hide'}
 ct <- new_context()
@@ -142,11 +148,8 @@ ct$validate("function foo(x){2*x}")
 ct$validate("foo = function(x){2*x}")
 ```
 
-Note that JavaScript does not allow for defining anonymous functions in the global scope
+This might be useful for all those R libraries that generate browser graphics via templated JavaScript. Note that JavaScript does not allow for defining anonymous functions in the global scope:
 
 ```{r}
 ct$validate("function(x){2*x}")
 ```
-
-
-
