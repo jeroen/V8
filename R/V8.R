@@ -18,8 +18,15 @@
 #' described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
 #' by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
 #'
+#' The name of the global object (i.e. \code{global} in node and \code{window}
+#' in browsers) can be set with the global argument. A context always have a global
+#' scope, even when no name is set. When a context is initiated with \code{global = NULL},
+#' the global environment can be reached by evaluating \code{this} in the global scope,
+#' for example: \code{ct$eval("Object.keys(this)")}.
+#'
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 #' @export
+#' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
@@ -78,10 +85,15 @@
 #' JSON.stringify(test)
 #' exit}
 #'
-new_context <- function() {
+new_context <- function(global = "global") {
   # Fields
   context <- make_context();
   created <- Sys.time();
+
+  # Set 'global' name
+  if(length(global)){
+    context_eval_safe(paste("var", global, "= this;", collapse = "\n"), context)
+  }
 
   # Public methods
   this <- local({

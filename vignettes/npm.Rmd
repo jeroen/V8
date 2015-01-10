@@ -58,12 +58,14 @@ npm install -g browserify
 
 ```bash
 npm install js-beautify
-echo "_global.beautify = require('js-beautify').js_beautify" > in.js
+echo "_global.beautify = require('js-beautify')" > in.js
 browserify in.js -o beautify.js
 ```
 
 The first line will install js-beautify in a the current dir under `node_modules`.
-The second line creates our input file. It is adapted from the documentation in the [package homepage](https://www.npmjs.com/package/js-beautify) to assign to the `_global` variable (which we will create later). The third line runs browserify and saves the output to a new file `beautify.js`.
+The second line creates the input file for browserify. 
+In this case it consists of a single line that assigns the js-beautify library to a global object `beautify`.
+The third line runs browserify and saves the output to a new file `beautify.js`.
 
 We now have a file that we can load in V8. Assuming you ran the above commands in your Desktop directory:
 
@@ -93,7 +95,7 @@ See the [package homepage](https://www.npmjs.com/package/js-beautify) for a full
 
 ```{r}
 test <- "(function(x,y){x = x || 1; y = y || 1; return y * x;})(4, 9)"
-pretty_test <- ct$call("beautify", test, list(indent_size = 2))
+pretty_test <- ct$call("beautify.js_beautify", test, list(indent_size = 2))
 cat(pretty_test)
 
 ```

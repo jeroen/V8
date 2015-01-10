@@ -5,7 +5,10 @@
 \alias{new_context}
 \title{Run JavaScript in a V8 context}
 \usage{
-new_context()
+new_context(global = "global")
+}
+\arguments{
+\item{global}{character vector indicating name(s) of the global environment. Use NULL for no name.}
 }
 \description{
 A \emph{context} is an execution environment that allows separate, unrelated,
@@ -26,6 +29,12 @@ JSON is used for all data interchange beteen R and JavaScript. Therefore you can
 All aguments and objects are automatically converted according to the mapping
 described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
 by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
+
+The name of the global object (i.e. \code{global} in node and \code{window}
+in browsers) can be set with the global argument. A context always have a global
+scope, even when no name is set. When a context is initiated with \code{global = NULL},
+the global environment can be reached by evaluating \code{this} in the global scope,
+for example: \code{ct$eval("Object.keys(this)")}.
 }
 \examples{
 # Create a new context
