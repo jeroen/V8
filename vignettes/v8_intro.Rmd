@@ -141,21 +141,30 @@ ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
 
 ## The Global Namespace
 
-Unlike what you might be used to from Node or your browser, the global namespace is empty when you start a new context. The global namespace does not have a name either (no `window` object), but you can evaluate `this` in the top scope to access it.
+Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains two objects: `global` (a refence to itself) and `console` (for `console.log` and friends)
 
 ```{r}
-ct2 <- new_context()
+ct <- new_context();
+ct$get(I("Object.keys(global)"))
+```
+
+It is even possible to create a context with a completely blank global. A context always have a global scope, even when no name is set. When a context is initiated with `global = NULL`, it can still be reached by evaluating the `this` keyword within the global scope:
+
+```{r}
+ct2 <- new_context(global = NULL, console = FALSE)
+ct2$get(I("Object.keys(this).length"))
 ct2$assign("cars", cars)
 ct2$eval("var foo = 123")
 ct2$eval("function test(x){x+1}")
+ct2$get(I("Object.keys(this).length"))
 ct2$get(I("Object.keys(this)"))
 ```
 
-Hence to assign or get an object explicitly from the global namespace you could use something like:
+To create your own global you could use something like:
 
 ```{r}
-ct2$eval("var _global = this")
-ct2$eval("(function(){var bar = [1,2,3,4]; _global.bar = bar; })()")
+ct2$eval("var __global__ = this")
+ct2$eval("(function(){var bar = [1,2,3,4]; __global__.bar = bar; })()")
 ct2$get("bar")
 ```
 

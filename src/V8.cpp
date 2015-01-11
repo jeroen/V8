@@ -67,16 +67,17 @@ static Handle<Value> ConsoleError(const Arguments& args) {
 }
 
 // [[Rcpp::export]]
-ctxptr make_context(){
+ctxptr make_context(bool set_console){
   /* setup console.log */
   HandleScope handle_scope;
   Handle<ObjectTemplate> global = ObjectTemplate::New();
+  if(set_console){
   Handle<ObjectTemplate> console = ObjectTemplate::New();
-  global->Set(String::NewSymbol("console"), console);
-  console->Set(String::NewSymbol("log"), FunctionTemplate::New(ConsoleLog));
-  console->Set(String::NewSymbol("warn"), FunctionTemplate::New(ConsoleWarn));
-  console->Set(String::NewSymbol("error"), FunctionTemplate::New(ConsoleError));
-
+    global->Set(String::NewSymbol("console"), console);
+    console->Set(String::NewSymbol("log"), FunctionTemplate::New(ConsoleLog));
+    console->Set(String::NewSymbol("warn"), FunctionTemplate::New(ConsoleWarn));
+    console->Set(String::NewSymbol("error"), FunctionTemplate::New(ConsoleError));
+  }
   /* initialize the context */
   lstail->context = Context::New(NULL, global);
   ctxptr ptr(&(lstail->context));

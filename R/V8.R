@@ -27,6 +27,7 @@
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 #' @export
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
+#' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
@@ -85,17 +86,13 @@
 #' JSON.stringify(test)
 #' exit}
 #'
-new_context <- function(global = "global") {
-  # Fields
-  context <- make_context();
+new_context <- function(global = "global", console = TRUE) {
+  # Private fields
+  context <- NULL;
   created <- Sys.time();
 
-  # Set 'global' name
-  if(length(global)){
-    context_eval_safe(paste("var", global, "= this;", collapse = "\n"), context)
-  }
-
   # Public methods
+  fields <- environment();
   this <- local({
     eval <- function(src){
       if(length(src) > 1){
@@ -146,7 +143,11 @@ new_context <- function(global = "global") {
       }
     }
     reset <- function(){
-      context <<- make_context();
+      context <<- make_context(fields$console);
+      if(length(global)){
+        context_eval_safe(paste("var", global, "= this;", collapse = "\n"), context)
+      }
+      invisible()
     }
     console <- function(){
       this$eval("")
@@ -189,6 +190,7 @@ new_context <- function(global = "global") {
     }
     #reg.finalizer(environment(), function(e){}, TRUE)
     lockEnvironment(environment(), TRUE)
+    reset()
     structure(environment(), class=c("V8", "environment"))
   })
 }

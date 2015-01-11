@@ -7,13 +7,14 @@
 using namespace Rcpp;
 
 // make_context
-ctxptr make_context();
-RcppExport SEXP V8_make_context() {
+ctxptr make_context(bool set_console);
+RcppExport SEXP V8_make_context(SEXP set_consoleSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        ctxptr __result = make_context();
+        Rcpp::traits::input_parameter< bool >::type set_console(set_consoleSEXP );
+        ctxptr __result = make_context(set_console);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

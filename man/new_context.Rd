@@ -5,10 +5,12 @@
 \alias{new_context}
 \title{Run JavaScript in a V8 context}
 \usage{
-new_context(global = "global")
+new_context(global = "global", console = TRUE)
 }
 \arguments{
 \item{global}{character vector indicating name(s) of the global environment. Use NULL for no name.}
+
+\item{console}{expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).}
 }
 \description{
 A \emph{context} is an execution environment that allows separate, unrelated,

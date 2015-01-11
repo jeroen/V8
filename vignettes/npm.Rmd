@@ -54,50 +54,53 @@ npm install -g browserify
 
 ## Example: beautify-js
 
-[Beautify-js](https://www.npmjs.com/package/js-beautify) is an npm package to prettify or minify JavaScript. To bundle it up, run these three lines in a shell:
+[Beautify-js](https://www.npmjs.com/package/js-beautify) is a simple npm package to fix linebreaks and indentation in JavaScript, HTML or CSS code. To bundle it up, run these three lines in a shell:
 
 ```bash
 npm install js-beautify
-echo "_global.beautify = require('js-beautify')" > in.js
-browserify in.js -o beautify.js
+echo "global.beautify = require('js-beautify');" > in.js
+browserify in.js -o bundle.js
 ```
 
 The first line will install js-beautify in a the current dir under `node_modules`.
-The second line creates the input file for browserify. 
-In this case it consists of a single line that assigns the js-beautify library to a global object `beautify`.
-The third line runs browserify and saves the output to a new file `beautify.js`.
+The second line creates the input file for browserify. In this case it consists of only
+one line that imports the js-beautify library and exports it to the global environment.
+The third line runs browserify and saves the output to a new file `bundle.js`.
 
 We now have a file that we can load in V8. Assuming you ran the above commands in your Desktop directory:
 
 ```{r eval=FALSE}
 ct <- new_context()
-ct$eval("_global = this")
-ct$source("~/Desktop/beautify.js")
+ct$source("~/Desktop/bundle.js")
 ```
 
 ```{r echo=FALSE, results='hide'}
 ct <- new_context()
-ct$eval("_global = this")
 ct$source("beautify.js")
 ```
 
 Let's see whats in our global environment now:
 
 ```{r}
-ct$get(I('Object.keys(this)'))
+ct$get(I('Object.keys(global)'))
 ```
 
-The `beautify` function is available now.
+The `beautify` library is available now.
 
 ## Lets beautify stuff
 
-See the [package homepage](https://www.npmjs.com/package/js-beautify) for a full list of options.
+To beautify JavaScript we need to use the `js_beautify` function. See the [package homepage](https://www.npmjs.com/package/js-beautify) for a full list of options.
 
 ```{r}
 test <- "(function(x,y){x = x || 1; y = y || 1; return y * x;})(4, 9)"
 pretty_test <- ct$call("beautify.js_beautify", test, list(indent_size = 2))
 cat(pretty_test)
-
 ```
 
+The package also includes functions to beautify css and html:
+
+```{r}
+html <- "<ul><li>one</li><li>two</li><li>three</li></ul>"
+cat(ct$call("beautify.html", html))
+```
 
