@@ -96,10 +96,10 @@ new_context <- function(global = "global", console = TRUE) {
       if(length(src) > 1){
         src <- join(src)
       }
-      get_str_output(context_eval_safe(src, context));
+      get_str_output(context_eval_safe(src, private$context));
     }
     validate <- function(src){
-      context_validate_safe(join(src), context)
+      context_validate_safe(join(src), private$context)
     }
     call <- function(fun, ...){
       stopifnot(is.character(fun))
@@ -144,7 +144,7 @@ new_context <- function(global = "global", console = TRUE) {
       private$context <- make_context(private$console);
       private$created <- Sys.time();
       if(length(global)){
-        context_eval_safe(paste("var", global, "= this;", collapse = "\n"), context)
+        context_eval_safe(paste("var", global, "= this;", collapse = "\n"), private$context)
       }
       invisible()
     }
