@@ -43,8 +43,8 @@ for example: \code{ct$eval("Object.keys(this)")}.
 ct <- new_context();
 
 # Evaluate some code
-ct$eval("foo=123")
-ct$eval("bar=456")
+ct$eval("var foo = 123")
+ct$eval("var bar = 456")
 ct$eval("foo+bar")
 
 # Functions and closures

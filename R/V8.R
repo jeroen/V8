@@ -37,8 +37,8 @@
 #' ct <- new_context();
 #'
 #' # Evaluate some code
-#' ct$eval("foo=123")
-#' ct$eval("bar=456")
+#' ct$eval("var foo = 123")
+#' ct$eval("var bar = 456")
 #' ct$eval("foo+bar")
 #'
 #' # Functions and closures
@@ -88,11 +88,9 @@
 #'
 new_context <- function(global = "global", console = TRUE) {
   # Private fields
-  context <- NULL;
-  created <- Sys.time();
+  private <- environment();
 
   # Public methods
-  fields <- environment();
   this <- local({
     eval <- function(src){
       if(length(src) > 1){
@@ -143,7 +141,8 @@ new_context <- function(global = "global", console = TRUE) {
       }
     }
     reset <- function(){
-      context <<- make_context(fields$console);
+      private$context <- make_context(private$console);
+      private$created <- Sys.time();
       if(length(global)){
         context_eval_safe(paste("var", global, "= this;", collapse = "\n"), context)
       }
