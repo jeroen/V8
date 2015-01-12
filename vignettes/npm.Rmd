@@ -26,11 +26,11 @@ V8 is Google's JavaScript engine that is used in Chrome, Node and other tools. H
 | Node    | ✔      | ✔        | ✔    | ✔       | -   |
 | V8      | ✔      | -         | -    | -       | -   |
 
-Currently the R package is just V8. Perhaps more will be added later, although everything requires an event-loop, which disqualifies the simple eval-and-return pattern. In that case it would work more like a server (similar to the httpuv package). But for now we will be working with plain V8 and rely on R for everything else.
+Currently the R package is just V8. Perhaps more will be added later, although both IO and DOM would require an event-loop, which disqualifies the simple eval-and-return pattern. In that case it would work more like a server (similar to the httpuv package). But for now we will be working with plain V8 and rely on R for I/O.
 
 ## Can we use NPM?
 
-Yes! Well, some of it. Most libraries in [npm](https://www.npmjs.com) are primarely written for Node or the browser. Obviously, anything that requires internet access, graphics or files is not going to work in plain V8. But there is quite a lot of stuff that does work.
+Yes! But not all packages will work. Most libraries in [npm](https://www.npmjs.com) are primarely written for Node or the browser. Obviously, anything that requires internet access, graphics or files is not going to work in plain V8. But there is quite a lot of stuff that does work.
 
 Some general purpose libraries like underscore or crossfilter will work natively in V8:
 
@@ -101,6 +101,6 @@ The package also includes functions to beautify css and html:
 
 ```{r}
 html <- "<ul><li>one</li><li>two</li><li>three</li></ul>"
-cat(ct$call("beautify.html", html))
+cat(ct$call("beautify.html_beautify", html))
 ```
 

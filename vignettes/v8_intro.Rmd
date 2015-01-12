@@ -148,7 +148,7 @@ ct <- new_context();
 ct$get(I("Object.keys(global)"))
 ```
 
-It is even possible to create a context with a completely blank global. A context always have a global scope, even when no name is set. When a context is initiated with `global = NULL`, it can still be reached by evaluating the `this` keyword within the global scope:
+A context always has a global scope, even when no name is set. When a context is initiated with `global = NULL`, it can still be reached by evaluating the `this` keyword within the global scope:
 
 ```{r}
 ct2 <- new_context(global = NULL, console = FALSE)
@@ -181,4 +181,10 @@ This might be useful for all those R libraries that generate browser graphics vi
 
 ```{r}
 ct$validate("function(x){2*x}")
+```
+
+To check if an anonymous function is syntactically valid, prefix it with `!` or wrap in `()`. These are OK:
+```{r}
+ct$validate("(function(x){2*x})")
+ct$validate("!function(x){2*x}")
 ```
