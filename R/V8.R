@@ -188,8 +188,8 @@ new_context <- function(global = "global", console = TRUE) {
       }
     }
     #reg.finalizer(environment(), function(e){}, TRUE)
-    lockEnvironment(environment(), TRUE)
     reset()
+    lockEnvironment(environment(), TRUE)
     structure(environment(), class=c("V8", "environment"))
   })
 }
