@@ -1,10 +1,12 @@
 /*
  R bindings to V8. Copyright 2014, Jeroen Ooms.
 
- Note: Rcpp completely ignores character encodings, so need to convert manually.
+ Notes:
+ - Rcpp completely ignores character encodings, so need to convert manually.
+ - Implementation of Typed Arrays taken from node v0.6.21
 
  V8 source parsing:
- http://stackoverflow.com/questions/16613828/how-to-convert-stdstring-to-v8s-localstring
+ - http://stackoverflow.com/questions/16613828/how-to-convert-stdstring-to-v8s-localstring
 
  Xptr examples:
  - https://github.com/RcppCore/Rcpp/blob/master/inst/unitTests/cpp/XPtr.cpp
@@ -13,6 +15,7 @@
 
 #include <v8.h>
 #include <Rcpp.h>
+#include "v8_typed_array.h"
 using namespace v8;
 
 /* a linked list keeping track of running contexts */
@@ -72,7 +75,7 @@ ctxptr make_context(bool set_console){
   HandleScope handle_scope;
   Handle<ObjectTemplate> global = ObjectTemplate::New();
   if(set_console){
-  Handle<ObjectTemplate> console = ObjectTemplate::New();
+    Handle<ObjectTemplate> console = ObjectTemplate::New();
     global->Set(String::NewSymbol("console"), console);
     console->Set(String::NewSymbol("log"), FunctionTemplate::New(ConsoleLog));
     console->Set(String::NewSymbol("warn"), FunctionTemplate::New(ConsoleWarn));
@@ -167,4 +170,12 @@ SEXP context_eval_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
 bool context_validate_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
   return context_validate(str, ctx);
+}
+
+// [[Rcpp::export]]
+bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8_typed_array::AttachBindings((*ctx)->Global());
+  return true;
 }

@@ -114,3 +114,18 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// context_enable_typed_arrays
+bool context_enable_typed_arrays(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+RcppExport SEXP V8_context_enable_typed_arrays(SEXP ctxSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP );
+        bool __result = context_enable_typed_arrays(ctx);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

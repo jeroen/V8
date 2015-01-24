@@ -86,7 +86,7 @@
 #' JSON.stringify(test)
 #' exit}
 #'
-new_context <- function(global = "global", console = TRUE) {
+new_context <- function(global = "global", console = TRUE, typed_arrays = FALSE) {
   # Private fields
   private <- environment();
 
@@ -145,6 +145,9 @@ new_context <- function(global = "global", console = TRUE) {
       private$created <- Sys.time();
       if(length(global)){
         context_eval_safe(paste("var", global, "= this;", collapse = "\n"), private$context)
+      }
+      if(isTRUE(typed_arrays)){
+        context_enable_typed_arrays(private$context)
       }
       invisible()
     }

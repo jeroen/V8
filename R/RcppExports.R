@@ -29,3 +29,7 @@ context_validate_safe <- function(src, ctx) {
     .Call('V8_context_validate_safe', PACKAGE = 'V8', src, ctx)
 }
 
+context_enable_typed_arrays <- function(ctx) {
+    .Call('V8_context_enable_typed_arrays', PACKAGE = 'V8', ctx)
+}
+
