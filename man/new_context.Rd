@@ -5,12 +5,14 @@
 \alias{new_context}
 \title{Run JavaScript in a V8 context}
 \usage{
-new_context(global = "global", console = TRUE)
+new_context(global = "global", console = TRUE, typed_arrays = FALSE)
 }
 \arguments{
 \item{global}{character vector indicating name(s) of the global environment. Use NULL for no name.}
 
 \item{console}{expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).}
+
+\item{typed_arrays}{enable support for typed arrays (part of ECMA6)}
 }
 \description{
 A \emph{context} is an execution environment that allows separate, unrelated,

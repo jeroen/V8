@@ -28,6 +28,7 @@
 #' @export
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
+#' @param typed_arrays enable support for typed arrays (part of ECMA6)
 #' @aliases V8
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
