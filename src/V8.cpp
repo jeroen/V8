@@ -90,6 +90,14 @@ ctxptr make_context(bool set_console){
 }
 
 // [[Rcpp::export]]
+bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8_typed_array::AttachBindings((*ctx)->Global());
+  return true;
+}
+
+// [[Rcpp::export]]
 std::string version(){
   return v8::V8::GetVersion();
 }
@@ -125,7 +133,6 @@ std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context
   String::Utf8Value utf8(result);
   return *utf8;
 }
-
 
 // [[Rcpp::export]]
 bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
@@ -165,17 +172,8 @@ SEXP context_eval_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   return res;
 }
 
-
 // [[Rcpp::export]]
 bool context_validate_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
   return context_validate(str, ctx);
-}
-
-// [[Rcpp::export]]
-bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
-  HandleScope handle_scope;
-  Context::Scope context_scope(*ctx);
-  v8_typed_array::AttachBindings((*ctx)->Global());
-  return true;
 }

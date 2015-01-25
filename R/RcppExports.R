@@ -5,6 +5,10 @@ make_context <- function(set_console) {
     .Call('V8_make_context', PACKAGE = 'V8', set_console)
 }
 
+context_enable_typed_arrays <- function(ctx) {
+    .Call('V8_context_enable_typed_arrays', PACKAGE = 'V8', ctx)
+}
+
 version <- function() {
     .Call('V8_version', PACKAGE = 'V8')
 }
@@ -27,9 +31,5 @@ context_eval_safe <- function(src, ctx) {
 
 context_validate_safe <- function(src, ctx) {
     .Call('V8_context_validate_safe', PACKAGE = 'V8', src, ctx)
-}
-
-context_enable_typed_arrays <- function(ctx) {
-    .Call('V8_context_enable_typed_arrays', PACKAGE = 'V8', ctx)
 }
 
