@@ -80,6 +80,9 @@ ctxptr make_context(bool set_console){
     console->Set(String::NewSymbol("log"), FunctionTemplate::New(ConsoleLog));
     console->Set(String::NewSymbol("warn"), FunctionTemplate::New(ConsoleWarn));
     console->Set(String::NewSymbol("error"), FunctionTemplate::New(ConsoleError));
+
+    /* emscripted assumes a print function */
+    global->Set(String::NewSymbol("print"), FunctionTemplate::New(ConsoleLog));
   }
   /* initialize the context */
   lstail->context = Context::New(NULL, global);
