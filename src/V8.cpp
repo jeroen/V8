@@ -155,6 +155,23 @@ bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> >
 }
 
 // [[Rcpp::export]]
+bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("Context has been disposed.");
+
+  // Create scope
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8::Handle<v8::Object> global = (*ctx)->Global();
+
+  // In JavaScript binaries are strings.
+  global->Set(String::NewSymbol(name.c_str()), v8::String::New((const char*) RAW(data), data.length()));
+  return true;
+}
+
+// [[Rcpp::export]]
 bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
   // Test if context still exists
   return(!ctx);
