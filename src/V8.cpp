@@ -168,6 +168,14 @@ bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::
 
   // In JavaScript binaries are strings.
   global->Set(String::NewSymbol(name.c_str()), v8::String::New((const char*) RAW(data), data.length()));
+  std::string jsscript(
+    name +
+    " = (function(str) {var buf = new ArrayBuffer(str.length); var bufView = new Uint8Array(buf); for (var i=0; i<str.length; i++) {bufView[i] = str.charCodeAt(i);} return buf;})(" +
+    name +
+    ");"
+  );
+
+  context_eval(jsscript, ctx);
   return true;
 }
 
