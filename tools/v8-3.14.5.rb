@@ -20,7 +20,6 @@ class V83145 < Formula
     prefix.install 'include'
     cd 'out/native' do
       lib.install Dir['lib*']
-      bin.install 'd8', 'lineprocessor', 'mksnapshot', 'preparser', 'process', 'shell' => 'v8'
     end
   end
 end
