@@ -1,8 +1,8 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript Engine
-Version: 0.4.99
-Date: 2015-01-08
+Version: 0.5
+Date: 2015-02-02
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
 Description: V8 is Google's open source, high performance JavaScript engine. It
