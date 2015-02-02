@@ -37,7 +37,7 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
   fi
 
   # Try brewing locally
-  V8LOCAL="homebrew"
+  V8LOCAL="/tmp/homebrew"
   if [ ! -r "$V8LOCAL/bin/brew" ]; then
      mkdir -p $V8LOCAL && curl -fsSL https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C $V8LOCAL
   fi
@@ -45,8 +45,8 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
      HOMEBREW_CACHE="/tmp" $V8LOCAL/bin/brew install ./tools/v8-3.14.5.rb
   fi
   if [ -r "$V8LOCAL/opt/v8-3.14.5/include/v8.h" ]; then
-    echo "PKG_CPPFLAGS= -I../$V8LOCAL/opt/v8-3.14.5/include/" > src/Makevars
-    echo "PKG_LIBS= -L../$V8LOCAL/opt/v8-3.14.5/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
+    echo "PKG_CPPFLAGS= -I$V8LOCAL/opt/v8-3.14.5/include/" > src/Makevars
+    echo "PKG_LIBS= -L$V8LOCAL/opt/v8-3.14.5/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
     exit 0;
   fi
 
