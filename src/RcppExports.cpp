@@ -82,23 +82,6 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// context_assign_bin
-bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_assign_bin(SEXP nameSEXP, SEXP dataSEXP, SEXP ctxSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< std::string >::type name(nameSEXP );
-        Rcpp::traits::input_parameter< Rcpp::RawVector >::type data(dataSEXP );
-        Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP );
-        bool __result = context_assign_bin(name, data, ctx);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
 // context_null
 bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
 RcppExport SEXP V8_context_null(SEXP ctxSEXP) {
@@ -140,6 +123,39 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< SEXP >::type src(srcSEXP );
         Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP );
         bool __result = context_validate_safe(src, ctx);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// context_assign_bin
+bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+RcppExport SEXP V8_context_assign_bin(SEXP nameSEXP, SEXP dataSEXP, SEXP ctxSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< std::string >::type name(nameSEXP );
+        Rcpp::traits::input_parameter< Rcpp::RawVector >::type data(dataSEXP );
+        Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP );
+        bool __result = context_assign_bin(name, data, ctx);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// context_get_bin
+Rcpp::RawVector context_get_bin(std::string name, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+RcppExport SEXP V8_context_get_bin(SEXP nameSEXP, SEXP ctxSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< std::string >::type name(nameSEXP );
+        Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP );
+        Rcpp::RawVector __result = context_get_bin(name, ctx);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

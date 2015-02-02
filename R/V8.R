@@ -137,11 +137,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
     assign <- function(name, value){
       stopifnot(is.character(name))
       obj <- if(is(value, "AsIs")){
-        if(is.raw(value)){
-          invisible(context_assign_bin(name, value, private$context))
-        } else {
-          invisible(this$eval(paste("var", name, "=", value)))
-        }
+        invisible(this$eval(paste("var", name, "=", value)))
       } else {
         invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = TRUE))))
       }

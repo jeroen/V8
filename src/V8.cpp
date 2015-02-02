@@ -155,31 +155,6 @@ bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> >
 }
 
 // [[Rcpp::export]]
-bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
-
-  // Test if context still exists
-  if(!ctx)
-    throw std::runtime_error("Context has been disposed.");
-
-  // Create scope
-  HandleScope handle_scope;
-  Context::Scope context_scope(*ctx);
-  v8::Handle<v8::Object> global = (*ctx)->Global();
-
-  // In JavaScript binaries are strings.
-  global->Set(String::NewSymbol(name.c_str()), v8::String::New((const char*) RAW(data), data.length()));
-  std::string jsscript(
-    name +
-    " = (function(str) {var buf = new ArrayBuffer(str.length); var bufView = new Uint8Array(buf); for (var i=0; i<str.length; i++) {bufView[i] = str.charCodeAt(i);} return buf;})(" +
-    name +
-    ");"
-  );
-
-  context_eval(jsscript, ctx);
-  return true;
-}
-
-// [[Rcpp::export]]
 bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
   // Test if context still exists
   return(!ctx);
@@ -204,4 +179,45 @@ SEXP context_eval_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
 bool context_validate_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
   return context_validate(str, ctx);
+}
+
+/*
+Method below does not work because null bytes get lost when converting to strings.
+Should use ArrayBuffer types instead, e.g. Uint8Array.
+*/
+
+// [[Rcpp::export]]
+bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("Context has been disposed.");
+
+  // Create scope
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8::Handle<v8::Object> global = (*ctx)->Global();
+
+  // Currently converts raw vectors to strings. Better would be ArrayBuffer (Uint8Array specifically)
+  Local<v8::String> mystring = v8::String::New((const char*) RAW(data), data.length());
+  global->Set(String::NewSymbol(name.c_str()), mystring);
+  return true;
+}
+
+// [[Rcpp::export]]
+Rcpp::RawVector context_get_bin(std::string name, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("Context has been disposed.");
+
+  // Create scope
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8::Handle<v8::Object> global = (*ctx)->Global();
+
+  //find the string
+  Local<v8::String> mystring = global->Get(String::NewSymbol(name.c_str()))->ToString();
+  Rcpp::RawVector res(mystring->Length());
+  mystring->WriteAscii((char*) res.begin());
+  return res;
 }
