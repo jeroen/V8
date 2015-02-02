@@ -15,9 +15,7 @@ class V83145 < Formula
     system 'make dependencies'
     system 'make', 'native',
                    "-j#{ENV.make_jobs}",
-                   "library=shared",
-                   "snapshot=on",
-                   "console=readline"
+                   "snapshot=on"
 
     prefix.install 'include'
     cd 'out/native' do
