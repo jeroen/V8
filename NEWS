@@ -1,5 +1,5 @@
 0.6
- - ct$src() now always assumes UTF-8 data, even on Windows.
+ - ct$source() now always assumes UTF-8 data, even on Windows.
 
 0.5
  - Add support for Typed Arrays
