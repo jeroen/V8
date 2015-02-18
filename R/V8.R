@@ -128,7 +128,8 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
         file <- curl(file, open = "r")
         on.exit(close(file))
       }
-      this$eval(readLines(file, warn = FALSE))
+      # Always assume UTF8, even on Windows.
+      this$eval(readLines(file, encoding = "UTF-8", warn = FALSE))
     }
     get <- function(name){
       stopifnot(is.character(name))
