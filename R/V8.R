@@ -131,16 +131,20 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
       # Always assume UTF8, even on Windows.
       this$eval(readLines(file, encoding = "UTF-8", warn = FALSE))
     }
-    get <- function(name){
+    get <- function(name, ...){
       stopifnot(is.character(name))
-      get_json_output(this$eval(c("JSON.stringify(", name, ")")))
+      get_json_output(this$eval(c("JSON.stringify(", name, ")")), ...)
     }
-    assign <- function(name, value){
+    assign <- function(name, value, ...){
       stopifnot(is.character(name))
       obj <- if(is(value, "AsIs")){
         invisible(this$eval(paste("var", name, "=", value)))
       } else {
-        invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = TRUE))))
+        if (length(list(...))){
+          invisible(this$eval(paste("var", name, "=", toJSON(value, ...))))
+        } else{
+          invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = TRUE))))
+        }
       }
     }
     reset <- function(){
@@ -208,11 +212,11 @@ undefined_to_null <- function(str){
   }
 }
 
-get_json_output <- function(json){
+get_json_output <- function(json, ...){
   if(identical(json,"undefined")){
     invisible(NULL)
   } else {
-    fromJSON(json)
+    fromJSON(json, ...)
   }
 }
 
