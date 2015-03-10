@@ -17,7 +17,7 @@ SystemRequirements: V8: libv8-dev (deb), v8-devel (rpm)
 NeedsCompilation: yes
 VignetteBuilder: knitr
 Imports:
-    Rcpp (>= 0.11.0),
+    Rcpp (>= 0.11.5),
     jsonlite (>= 0.9.14),
     curl (>= 0.5)
 LinkingTo:
