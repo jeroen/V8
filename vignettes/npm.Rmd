@@ -37,7 +37,7 @@ Some general purpose libraries like underscore or crossfilter will work natively
 ```{r}
 ct <- new_context()
 ct$source(system.file("js/underscore.js", package="V8"))
-ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
+ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 ```
 
 However NPM assumes disk access to resolve dependencies. How is that going to work?
@@ -82,7 +82,7 @@ ct$source("beautify.js")
 Let's see whats in our global environment now:
 
 ```{r}
-ct$get(I('Object.keys(global)'))
+ct$get(JS('Object.keys(global)'))
 ```
 
 The `beautify` library is available now.
