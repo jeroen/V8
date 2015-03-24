@@ -172,6 +172,14 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
           file.create(histfile)
         }
       }
+
+      # Set custom tab completer
+      rc.options(custom.completer = function(env){
+        env$comps <- tab_complete(ct, env$token)
+      })
+      on.exit({rc.options(custom.completer = NULL)}, add = TRUE)
+
+      # REPL
       repeat {
         prompt <- ifelse(length(buffer), "  ", "~ ")
         if(nchar(line <- readline(prompt))){
