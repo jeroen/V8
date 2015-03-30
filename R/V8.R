@@ -8,7 +8,7 @@
 #' as \code{eval} would do in JavaScript. It returns a string with console output.
 #' The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions
 #' on the other hand automatically convert arguments and return value from/to JSON,
-#' unless an argument has been wrapped in \code{I()}, see examples.
+#' unless an argument has been wrapped in \code{JS()}, see examples.
 #' The \code{ct$validate} function is used to test if a piece of code is valid
 #' JavaScript syntax within the context, and always returns TRUE or FALSE.
 #'
@@ -52,8 +52,8 @@
 #' ct$get("mydata")
 #'
 #' # Assign JavaScript
-#' ct$assign("foo", I("function(x){return x*x}"))
-#' ct$assign("bar", I("foo(9)"))
+#' ct$assign("foo", JS("function(x){return x*x}"))
+#' ct$assign("bar", JS("foo(9)"))
 #' ct$get("bar")
 #'
 #' # Validate script without evaluating
@@ -63,7 +63,7 @@
 #'
 #' # Use a JavaScript library
 #' ct$source(system.file("js/underscore.js", package="V8"))
-#' ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
+#' ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 #'
 #' # Example from underscore manual
 #' ct$eval("_.templateSettings = {interpolate: /\\{\\{(.+?)\\}\\}/g}")
@@ -111,7 +111,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
         stop("Named arguments are not supported in JavaScript.")
       }
       jsargs <- vapply(jsargs, function(x){
-        if(is.atomic(x) && is(x, "AsIs")){
+        if(is.atomic(x) && any(is(x, "JS_EVAL"), is(x, "AsIs"))){
           as.character(x)
         } else {
           # To box or not. I'm not sure.
@@ -137,7 +137,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
     }
     assign <- function(name, value){
       stopifnot(is.character(name))
-      obj <- if(is(value, "AsIs")){
+      obj <- if(any(is(value, "JS_EVAL"), is(value, "AsIs"))){
         invisible(this$eval(paste("var", name, "=", value)))
       } else {
         invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = TRUE))))
@@ -172,6 +172,14 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
           file.create(histfile)
         }
       }
+
+      # Set custom tab completer
+      rc.options(custom.completer = function(env){
+        env$comps <- tab_complete(ct, env$token)
+      })
+      on.exit({rc.options(custom.completer = NULL)}, add = TRUE)
+
+      # REPL
       repeat {
         prompt <- ifelse(length(buffer), "  ", "~ ")
         if(nchar(line <- readline(prompt))){

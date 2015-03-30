@@ -1,7 +1,7 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript Engine
-Version: 0.5.99
+Version: 0.5.9000
 Date: 2015-02-02
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
@@ -19,7 +19,8 @@ VignetteBuilder: knitr
 Imports:
     Rcpp (>= 0.11.5),
     jsonlite (>= 0.9.14),
-    curl (>= 0.5)
+    curl (>= 0.5),
+    utils
 LinkingTo:
     Rcpp
 Suggests:

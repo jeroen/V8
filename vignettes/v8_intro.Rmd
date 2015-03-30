@@ -65,11 +65,11 @@ ct$assign("mydata", mtcars)
 ct$get("mydata")
 ```
 
-Alternatively use `I()` to assign the value of a JavaScript expression (without converting to JSON):
+Alternatively use `JS()` to assign the value of a JavaScript expression (without converting to JSON):
 
 ```{r}
-ct$assign("foo", I("function(x){return x*x}"))
-ct$assign("bar", I("foo(9)"))
+ct$assign("foo", JS("function(x){return x*x}"))
+ct$assign("bar", JS("foo(9)"))
 ct$get("bar")
 ```
 
@@ -78,7 +78,7 @@ ct$get("bar")
 The `ct$call` method calls a JavaScript function, automatically converting objects (arguments and return value) between R and JavaScript:
 
 ```{r}
-ct$call("_.filter", mtcars, I("function(x){return x.mpg < 15}"))
+ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 ```
 
 It looks a bit like `.Call` but then for JavaScript instead of C.
@@ -150,26 +150,26 @@ Unlike what you might be used to from Node or your browser, the global namespace
 
 ```{r}
 ct <- new_context(typed_arrays = FALSE);
-ct$get(I("Object.keys(global)"))
+ct$get(JS("Object.keys(global)"))
 ```
 
 If typed arrays are enabled it contains some additional functions:
 
 ```{r}
 ct <- new_context(typed_arrays = TRUE);
-ct$get(I("Object.keys(global)"))
+ct$get(JS("Object.keys(global)"))
 ```
 
 A context always has a global scope, even when no name is set. When a context is initiated with `global = NULL`, it can still be reached by evaluating the `this` keyword within the global scope:
 
 ```{r}
 ct2 <- new_context(global = NULL, console = FALSE)
-ct2$get(I("Object.keys(this).length"))
+ct2$get(JS("Object.keys(this).length"))
 ct2$assign("cars", cars)
 ct2$eval("var foo = 123")
 ct2$eval("function test(x){x+1}")
-ct2$get(I("Object.keys(this).length"))
-ct2$get(I("Object.keys(this)"))
+ct2$get(JS("Object.keys(this).length"))
+ct2$get(JS("Object.keys(this)"))
 ```
 
 To create your own global you could use something like:
