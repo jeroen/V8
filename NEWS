@@ -1,6 +1,8 @@
 0.6
+ - Breaking change: use JS() instead of I() to mark strings as literal JavaScript.
  - ct$source() now always assumes UTF-8 data, even on Windows.
  - Use the new V8_types.h feature from Rcpp 0.11.5
+ - Start with custom code completion within ct$console() for R 3.2.0
 
 0.5
  - Add support for Typed Arrays
