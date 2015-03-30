@@ -103,7 +103,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
     validate <- function(src){
       context_validate_safe(join(src), private$context)
     }
-    call <- function(fun, ...){
+    call <- function(fun, ..., auto_unbox = TRUE){
       stopifnot(is.character(fun))
       stopifnot(this$validate(c("fun=", fun)));
       jsargs <- list(...);
@@ -115,7 +115,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
           as.character(x)
         } else {
           # To box or not. I'm not sure.
-          toJSON(x, auto_unbox = TRUE)
+          toJSON(x, auto_unbox = auto_unbox)
         }
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
@@ -135,16 +135,13 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
       stopifnot(is.character(name))
       get_json_output(this$eval(c("JSON.stringify(", name, ")")), ...)
     }
-    assign <- function(name, value, ...){
+    assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
+      value <- paste(value, collapse = "\n")
       obj <- if(any(is(value, "JS_EVAL"), is(value, "AsIs"))){
         invisible(this$eval(paste("var", name, "=", value)))
       } else {
-        if (length(list(...))){
-          invisible(this$eval(paste("var", name, "=", toJSON(value, ...))))
-        } else{
-          invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = TRUE))))
-        }
+        invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = auto_unbox, ...))))
       }
     }
     reset <- function(){
