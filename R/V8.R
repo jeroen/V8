@@ -137,7 +137,6 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
     }
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
-      value <- paste(value, collapse = "\n")
       obj <- if(any(is(value, "JS_EVAL"), is(value, "AsIs"))){
         invisible(this$eval(paste("var", name, "=", value)))
       } else {
