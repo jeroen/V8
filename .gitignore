@@ -8,4 +8,3 @@ src/*.so
 src/*.dll
 src/Makevars
 .DS_Store
-inst/doc

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Jeroen Ooms" />
+
+<meta name="date" content="2015-04-02" />
+
+<title>Introduction to V8 for R</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<link href="data:text/css,body%20%7B%0A%20%20background%2Dcolor%3A%20%23fff%3B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20max%2Dwidth%3A%20800px%3B%0A%20%20overflow%3A%20visible%3B%0A%20%20padding%2Dleft%3A%202em%3B%0A%20%20padding%2Dright%3A%202em%3B%0A%20%20font%2Dfamily%3A%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0A%20%20font%2Dsize%3A%2014px%3B%0A%20%20line%2Dheight%3A%2020px%3B%0A%7D%0A%0A%23header%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0A%0A%23TOC%20%7B%0A%20%20clear%3A%20both%3B%0A%20%20margin%3A%200%200%2010px%200%3B%0A%20%20padding%3A%204px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20border%2Dradius%3A%205px%3B%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20font%2Dsize%3A%2013px%3B%0A%20%20line%2Dheight%3A%201%2E3%3B%0A%7D%0A%20%20%23TOC%20%2Etoctitle%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%20%20font%2Dsize%3A%2015px%3B%0A%20%20%20%20margin%2Dleft%3A%205px%3B%0A%20%20%7D%0A%0A%20%20%23TOC%20ul%20%7B%0A%20%20%20%20padding%2Dleft%3A%2040px%3B%0A%20%20%20%20margin%2Dleft%3A%20%2D1%2E5em%3B%0A%20%20%20%20margin%2Dtop%3A%205px%3B%0A%20%20%20%20margin%2Dbottom%3A%205px%3B%0A%20%20%7D%0A%20%20%23TOC%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dleft%3A%20%2D2em%3B%0A%20%20%7D%0A%20%20%23TOC%20li%20%7B%0A%20%20%20%20line%2Dheight%3A%2016px%3B%0A%20%20%7D%0A%0Atable%20%7B%0A%20%20margin%3A%20auto%3B%0A%20%20min%2Dwidth%3A%2040%25%3B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dcolor%3A%20%23DDDDDD%3B%0A%20%20border%2Dstyle%3A%20outset%3B%0A%20%20border%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%5Bsummary%3D%22R%20argblock%22%5D%20%7B%0A%20%20width%3A%20100%25%3B%0A%20%20border%3A%20none%3B%0A%7D%0Atable%20th%20%7B%0A%20%20border%2Dwidth%3A%202px%3B%0A%20%20padding%3A%205px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%20%20line%2Dheight%3A%2018px%3B%0A%20%20padding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0A%20%20border%2Dleft%2Dstyle%3A%20none%3B%0A%20%20border%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20tr%2Eodd%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Ap%20%7B%0A%20%20margin%3A%200%2E5em%200%3B%0A%7D%0A%0Ablockquote%20%7B%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20padding%3A%2013px%3B%0A%20%20padding%2Dbottom%3A%201px%3B%0A%7D%0A%0Ahr%20%7B%0A%20%20border%2Dstyle%3A%20solid%3B%0A%20%20border%3A%20none%3B%0A%20%20border%2Dtop%3A%201px%20solid%20%23777%3B%0A%20%20margin%3A%2028px%200%3B%0A%7D%0A%0Adl%20%7B%0A%20%20margin%2Dleft%3A%200%3B%0A%7D%0A%20%20dl%20dd%20%7B%0A%20%20%20%20margin%2Dbottom%3A%2013px%3B%0A%20%20%20%20margin%2Dleft%3A%2013px%3B%0A%20%20%7D%0A%20%20dl%20dt%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%7D%0A%0Aul%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%7D%0A%20%20ul%20li%20%7B%0A%20%20%20%20list%2Dstyle%3A%20circle%20outside%3B%0A%20%20%7D%0A%20%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dbottom%3A%200%3B%0A%20%20%7D%0A%0Apre%2C%20code%20%7B%0A%20%20background%2Dcolor%3A%20%23f5f5f5%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20color%3A%20%23333%3B%0A%7D%0Apre%20%7B%0A%20%20overflow%2Dx%3A%20auto%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20margin%3A%205px%200px%2010px%200px%3B%0A%20%20padding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0A%20%20background%2Dcolor%3A%20white%3B%0A%20%20border%3A%20%23f5f5f5%201px%20solid%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20code%20%7B%0A%20%20color%3A%20%23444%3B%0A%20%20background%2Dcolor%3A%20white%3B%0A%7D%0Acode%20%7B%0A%20%20font%2Dfamily%3A%20monospace%3B%0A%20%20font%2Dsize%3A%2090%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0A%20%20padding%3A%202px%204px%3B%0A%20%20color%3A%20%23d14%3B%0A%20%20border%3A%201px%20solid%20%23e1e1e8%3B%0A%20%20white%2Dspace%3A%20inherit%3B%0A%7D%0Adiv%2Efigure%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0Atable%20%3E%20caption%2C%20div%2Efigure%20p%2Ecaption%20%7B%0A%20%20font%2Dstyle%3A%20italic%3B%0A%7D%0Atable%20%3E%20caption%20span%2C%20div%2Efigure%20p%2Ecaption%20span%20%7B%0A%20%20font%2Dstyle%3A%20normal%3B%0A%20%20font%2Dweight%3A%20bold%3B%0A%7D%0Ap%20%7B%0A%20%20margin%3A%200%200%2010px%3B%0A%7D%0Atable%20%7B%0A%20%20margin%3A%20auto%20auto%2010px%20auto%3B%0A%7D%0A%0Aimg%20%7B%0A%20%20background%2Dcolor%3A%20%23FFFFFF%3B%0A%20%20padding%3A%202px%3B%0A%20%20border%3A%201px%20solid%20%23DDDDDD%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20margin%3A%200%205px%3B%0A%20%20max%2Dwidth%3A%20100%25%3B%0A%7D%0A%0Ah1%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%20%20font%2Dsize%3A%2035px%3B%0A%20%20line%2Dheight%3A%2040px%3B%0A%7D%0A%0Ah2%20%7B%0A%20%20border%2Dbottom%3A%204px%20solid%20%23f5f5f5%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20padding%2Dbottom%3A%202px%3B%0A%20%20font%2Dsize%3A%20145%25%3B%0A%7D%0A%0Ah3%20%7B%0A%20%20border%2Dbottom%3A%202px%20solid%20%23f5f5f5%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20font%2Dsize%3A%20120%25%3B%0A%7D%0A%0Ah4%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23f5f5f5%3B%0A%20%20margin%2Dleft%3A%208px%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Ah5%2C%20h6%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23ccc%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Aa%20%7B%0A%20%20color%3A%20%230033dd%3B%0A%20%20text%2Ddecoration%3A%20none%3B%0A%7D%0A%20%20a%3Ahover%20%7B%0A%20%20%20%20color%3A%20%236666ff%3B%20%7D%0A%20%20a%3Avisited%20%7B%0A%20%20%20%20color%3A%20%23800080%3B%20%7D%0A%20%20a%3Avisited%3Ahover%20%7B%0A%20%20%20%20color%3A%20%23BB00BB%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%0Adiv%2Er%2Dhelp%2Dpage%20%7B%0A%20%20background%2Dcolor%3A%20%23f9f9f9%3B%0A%20%20border%2Dbottom%3A%20%23ddd%201px%20solid%3B%0A%20%20margin%2Dbottom%3A%2010px%3B%0A%20%20padding%3A%2010px%3B%0A%7D%0Adiv%2Er%2Dhelp%2Dpage%3Ahover%20%7B%0A%20%20background%2Dcolor%3A%20%23f4f4f4%3B%0A%7D%0A%0A%2F%2A%20Class%20described%20in%20https%3A%2F%2Fbenjeffrey%2Ecom%2Fposts%2Fpandoc%2Dsyntax%2Dhighlighting%2Dcss%0A%20%20%20Colours%20from%20https%3A%2F%2Fgist%2Egithub%2Ecom%2Frobsimmons%2F1172277%20%2A%2F%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Keyword%20%2A%2F%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%2F%2A%20DataType%20%2A%2F%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%2F%2A%20DecVal%20%28decimal%20values%29%20%2A%2F%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20BaseN%20%2A%2F%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Float%20%2A%2F%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Char%20%2A%2F%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20String%20%2A%2F%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%2F%2A%20Comment%20%2A%2F%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%2F%2A%20OtherToken%20%2A%2F%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20AlertToken%20%2A%2F%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Function%20calls%20%2A%2F%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%2F%2A%20ErrorTok%20%2A%2F%0A%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+<div id="header">
+<h1 class="title">Introduction to V8 for R</h1>
+<h4 class="author"><em>Jeroen Ooms</em></h4>
+<h4 class="date"><em>2015-04-02</em></h4>
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#what-is-v8">What is V8</a></li>
+<li><a href="#loading-javascript-libraries">Loading JavaScript Libraries</a></li>
+<li><a href="#data-interchange">Data Interchange</a></li>
+<li><a href="#function-calls">Function Calls</a></li>
+<li><a href="#interactive-javascript-console">Interactive JavaScript Console</a></li>
+<li><a href="#conditions-warnings-errors-and-console.log">Conditions (warnings, errors and console.log)</a></li>
+<li><a href="#the-global-namespace">The Global Namespace</a></li>
+<li><a href="#syntax-validation">Syntax Validation</a></li>
+</ul>
+</div>
+
+<div id="what-is-v8" class="section level2">
+<h2>What is V8</h2>
+<p>V8 is Google’s open source, high performance JavaScript engine. It is written in C++ and implements ECMAScript as specified in ECMA-262, 5th edition. The V8 R package builds on the C++ library to provide a completely standalone JavaScript engine within R:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create a new context</span>
+ct &lt;-<span class="st"> </span><span class="kw">new_context</span>();
+
+<span class="co"># Evaluate some code</span>
+ct$<span class="kw">eval</span>(<span class="st">&quot;var foo = 123&quot;</span>)
+ct$<span class="kw">eval</span>(<span class="st">&quot;var bar = 456&quot;</span>)
+ct$<span class="kw">eval</span>(<span class="st">&quot;foo + bar&quot;</span>)</code></pre>
+<pre><code>[1] &quot;579&quot;</code></pre>
+<p>A major advantage over the other foreign language interfaces is that V8 requires no compilers, external executables or other run-time dependencies. The entire engine is contained within a 6MB package (2MB zipped) and works on all major platforms.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create some JSON</span>
+<span class="kw">cat</span>(ct$<span class="kw">eval</span>(<span class="st">&quot;JSON.stringify({x:Math.random()})&quot;</span>))</code></pre>
+<pre><code>{&quot;x&quot;:0.3905785926617682}</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Simple closure</span>
+ct$<span class="kw">eval</span>(<span class="st">&quot;(function(x){return x+1;})(123)&quot;</span>)</code></pre>
+<pre><code>[1] &quot;124&quot;</code></pre>
+<p>However note that V8 by itself is just the naked JavaScript engine. Currently, there is no DOM (i.e. no <em>window</em> object), no network or disk IO, not even an event loop. Which is fine because we already have all of those in R. In this sense V8 resembles other foreign language interfaces such as Rcpp or rJava, but then for JavaScript.</p>
+</div>
+<div id="loading-javascript-libraries" class="section level2">
+<h2>Loading JavaScript Libraries</h2>
+<p>The <code>ct$source</code> method is a convenience function for loading JavaScript libraries from a file or url.</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">source</span>(<span class="kw">system.file</span>(<span class="st">&quot;js/underscore.js&quot;</span>, <span class="dt">package=</span><span class="st">&quot;V8&quot;</span>))
+ct$<span class="kw">source</span>(<span class="st">&quot;https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js&quot;</span>)</code></pre>
+</div>
+<div id="data-interchange" class="section level2">
+<h2>Data Interchange</h2>
+<p>By default all data interchange between R and JavaScript happens via JSON using the bidirectional mapping implemented in the <a href="http://arxiv.org/abs/1403.2805">jsonlite</a> package.</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">assign</span>(<span class="st">&quot;mydata&quot;</span>, mtcars)
+ct$<span class="kw">get</span>(<span class="st">&quot;mydata&quot;</span>)</code></pre>
+<pre><code>                     mpg cyl  disp  hp drat    wt  qsec vs am gear carb
+Mazda RX4           21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
+Mazda RX4 Wag       21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
+Datsun 710          22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
+Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
+Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
+Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
+Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4
+Merc 240D           24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
+Merc 230            22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2
+Merc 280            19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
+Merc 280C           17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4
+Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3
+Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3
+Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3
+Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
+Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
+Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4
+Fiat 128            32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1
+Honda Civic         30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2
+Toyota Corolla      33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1
+Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1
+Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2
+AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2
+Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4
+Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2
+Fiat X1-9           27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1
+Porsche 914-2       26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2
+Lotus Europa        30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2
+Ford Pantera L      15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4
+Ferrari Dino        19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6
+Maserati Bora       15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8
+Volvo 142E          21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2</code></pre>
+<p>Alternatively use <code>JS()</code> to assign the value of a JavaScript expression (without converting to JSON):</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">assign</span>(<span class="st">&quot;foo&quot;</span>, <span class="kw">JS</span>(<span class="st">&quot;function(x){return x*x}&quot;</span>))
+ct$<span class="kw">assign</span>(<span class="st">&quot;bar&quot;</span>, <span class="kw">JS</span>(<span class="st">&quot;foo(9)&quot;</span>))
+ct$<span class="kw">get</span>(<span class="st">&quot;bar&quot;</span>)</code></pre>
+<pre><code>[1] 81</code></pre>
+</div>
+<div id="function-calls" class="section level2">
+<h2>Function Calls</h2>
+<p>The <code>ct$call</code> method calls a JavaScript function, automatically converting objects (arguments and return value) between R and JavaScript:</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">call</span>(<span class="st">&quot;_.filter&quot;</span>, mtcars, <span class="kw">JS</span>(<span class="st">&quot;function(x){return x.mpg &lt; 15}&quot;</span>))</code></pre>
+<pre><code>                     mpg cyl disp  hp drat    wt  qsec vs am gear carb
+Duster 360          14.3   8  360 245 3.21 3.570 15.84  0  0    3    4
+Cadillac Fleetwood  10.4   8  472 205 2.93 5.250 17.98  0  0    3    4
+Lincoln Continental 10.4   8  460 215 3.00 5.424 17.82  0  0    3    4
+Chrysler Imperial   14.7   8  440 230 3.23 5.345 17.42  0  0    3    4
+Camaro Z28          13.3   8  350 245 3.73 3.840 15.41  0  0    3    4</code></pre>
+<p>It looks a bit like <code>.Call</code> but then for JavaScript instead of C.</p>
+</div>
+<div id="interactive-javascript-console" class="section level2">
+<h2>Interactive JavaScript Console</h2>
+<p>A fun way to learn JavaScript or debug a session is by entering the interactive console:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Load some data</span>
+<span class="kw">data</span>(diamonds, <span class="dt">package =</span> <span class="st">&quot;ggplot2&quot;</span>)
+ct$<span class="kw">assign</span>(<span class="st">&quot;diamonds&quot;</span>, diamonds)
+ct$<span class="kw">console</span>()</code></pre>
+<p>From here you can interactively work in JavaScript without typing <code>ct$eval</code> every time:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">var</span> cf = <span class="fu">crossfilter</span>(diamonds)
+<span class="kw">var</span> price = <span class="ot">cf</span>.<span class="fu">dimension</span>(<span class="kw">function</span>(x){<span class="kw">return</span> <span class="ot">x</span>.<span class="fu">price</span>})
+<span class="kw">var</span> depth = <span class="ot">cf</span>.<span class="fu">dimension</span>(<span class="kw">function</span>(x){<span class="kw">return</span> <span class="ot">x</span>.<span class="fu">depth</span>})
+<span class="ot">price</span>.<span class="fu">filter</span>([<span class="dv">2000</span>, <span class="dv">3000</span>])
+output = <span class="ot">depth</span>.<span class="fu">top</span>(<span class="dv">10</span>)</code></pre>
+<p>To exit the console, either press <code>ESC</code> or type <code>exit</code>. Afterwards you can retrieve the objects back into R:</p>
+<pre class="sourceCode r"><code class="sourceCode r">output &lt;-<span class="st"> </span>ct$<span class="kw">get</span>(<span class="st">&quot;output&quot;</span>)
+<span class="kw">print</span>(output)</code></pre>
+</div>
+<div id="conditions-warnings-errors-and-console.log" class="section level2">
+<h2>Conditions (warnings, errors and console.log)</h2>
+<p>Evaluating invalid JavaScript code results in a SyntaxError:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># A common typo</span>
+ct$<span class="kw">eval</span>(<span class="st">'var foo &lt;- 123;'</span>)</code></pre>
+<pre><code>Error in eval(expr, envir, enclos): SyntaxError: Unexpected token &lt;</code></pre>
+<p>JavaScript runtime exceptions are automatically propagated into R errors:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Runtime errors</span>
+ct$<span class="kw">eval</span>(<span class="st">&quot;123 + doesnotexit&quot;</span>)</code></pre>
+<pre><code>Error in eval(expr, envir, enclos): ReferenceError: doesnotexit is not defined</code></pre>
+<p>Within JavaScript we can also call back to the R console manually using <code>console.log</code>, <code>console.warn</code> and <code>console.error</code>. This allows for explicilty generating output, warnings or errors from within a JavaScript application.</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">eval</span>(<span class="st">'console.log(&quot;this is a message&quot;)'</span>)</code></pre>
+<pre><code>this is a message</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">eval</span>(<span class="st">'console.warn(&quot;Heads up!&quot;)'</span>)</code></pre>
+<pre><code>Warning: Heads up!</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">eval</span>(<span class="st">'console.error(&quot;Oh no! An error!&quot;)'</span>)</code></pre>
+<pre><code>Error in eval(expr, envir, enclos): Oh no! An error!</code></pre>
+<p>A example of using <code>console.error</code> is to verify that external resources were loaded:</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">new_context</span>()
+ct$<span class="kw">source</span>(<span class="st">&quot;https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js&quot;</span>)
+ct$<span class="kw">eval</span>(<span class="st">'var cf = crossfilter || console.error(&quot;failed to load crossfilter!&quot;)'</span>)</code></pre>
+</div>
+<div id="the-global-namespace" class="section level2">
+<h2>The Global Namespace</h2>
+<p>Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains only a few objects: <code>global</code> (a refence to itself), <code>console</code> (for <code>console.log</code> and friends) and <code>print</code> (an alias of console.log needed by some JavaScript libraries)</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">new_context</span>(<span class="dt">typed_arrays =</span> <span class="ot">FALSE</span>);
+ct$<span class="kw">get</span>(<span class="kw">JS</span>(<span class="st">&quot;Object.keys(global)&quot;</span>))</code></pre>
+<pre><code>[1] &quot;console&quot; &quot;print&quot;   &quot;global&quot; </code></pre>
+<p>If typed arrays are enabled it contains some additional functions:</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct &lt;-<span class="st"> </span><span class="kw">new_context</span>(<span class="dt">typed_arrays =</span> <span class="ot">TRUE</span>);
+ct$<span class="kw">get</span>(<span class="kw">JS</span>(<span class="st">&quot;Object.keys(global)&quot;</span>))</code></pre>
+<pre><code> [1] &quot;console&quot;      &quot;print&quot;        &quot;global&quot;       &quot;ArrayBuffer&quot; 
+ [5] &quot;Int8Array&quot;    &quot;Uint8Array&quot;   &quot;Int16Array&quot;   &quot;Uint16Array&quot; 
+ [9] &quot;Int32Array&quot;   &quot;Uint32Array&quot;  &quot;Float32Array&quot; &quot;Float64Array&quot;
+[13] &quot;DataView&quot;    </code></pre>
+<p>A context always has a global scope, even when no name is set. When a context is initiated with <code>global = NULL</code>, it can still be reached by evaluating the <code>this</code> keyword within the global scope:</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct2 &lt;-<span class="st"> </span><span class="kw">new_context</span>(<span class="dt">global =</span> <span class="ot">NULL</span>, <span class="dt">console =</span> <span class="ot">FALSE</span>)
+ct2$<span class="kw">get</span>(<span class="kw">JS</span>(<span class="st">&quot;Object.keys(this).length&quot;</span>))</code></pre>
+<pre><code>[1] 10</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">ct2$<span class="kw">assign</span>(<span class="st">&quot;cars&quot;</span>, cars)
+ct2$<span class="kw">eval</span>(<span class="st">&quot;var foo = 123&quot;</span>)
+ct2$<span class="kw">eval</span>(<span class="st">&quot;function test(x){x+1}&quot;</span>)
+ct2$<span class="kw">get</span>(<span class="kw">JS</span>(<span class="st">&quot;Object.keys(this).length&quot;</span>))</code></pre>
+<pre><code>[1] 13</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">ct2$<span class="kw">get</span>(<span class="kw">JS</span>(<span class="st">&quot;Object.keys(this)&quot;</span>))</code></pre>
+<pre><code> [1] &quot;ArrayBuffer&quot;  &quot;Int8Array&quot;    &quot;Uint8Array&quot;   &quot;Int16Array&quot;  
+ [5] &quot;Uint16Array&quot;  &quot;Int32Array&quot;   &quot;Uint32Array&quot;  &quot;Float32Array&quot;
+ [9] &quot;Float64Array&quot; &quot;DataView&quot;     &quot;cars&quot;         &quot;foo&quot;         
+[13] &quot;test&quot;        </code></pre>
+<p>To create your own global you could use something like:</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct2$<span class="kw">eval</span>(<span class="st">&quot;var __global__ = this&quot;</span>)
+ct2$<span class="kw">eval</span>(<span class="st">&quot;(function(){var bar = [1,2,3,4]; __global__.bar = bar; })()&quot;</span>)
+ct2$<span class="kw">get</span>(<span class="st">&quot;bar&quot;</span>)</code></pre>
+<pre><code>[1] 1 2 3 4</code></pre>
+</div>
+<div id="syntax-validation" class="section level2">
+<h2>Syntax Validation</h2>
+<p>V8 also allows for validating JavaScript syntax, without actually evaluating it.</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">validate</span>(<span class="st">&quot;function foo(x){2*x}&quot;</span>)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">validate</span>(<span class="st">&quot;foo = function(x){2*x}&quot;</span>)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<p>This might be useful for all those R libraries that generate browser graphics via templated JavaScript. Note that JavaScript does not allow for defining anonymous functions in the global scope:</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">validate</span>(<span class="st">&quot;function(x){2*x}&quot;</span>)</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<p>To check if an anonymous function is syntactically valid, prefix it with <code>!</code> or wrap in <code>()</code>. These are OK:</p>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">validate</span>(<span class="st">&quot;(function(x){2*x})&quot;</span>)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">ct$<span class="kw">validate</span>(<span class="st">&quot;!function(x){2*x}&quot;</span>)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+</div>
+
+<script type="text/javascript">
+window.onload = function() {
+  var i, fig = 1, caps = document.getElementsByClassName('caption');
+  for (i = 0; i < caps.length; i++) {
+    var cap = caps[i];
+    if (cap.parentElement.className !== 'figure' || cap.nodeName !== 'P')
+      continue;
+    cap.innerHTML = '<span>Figure ' + fig + ':</span> ' + cap.innerHTML;
+    fig++;
+  }
+  fig = 1;
+  caps = document.getElementsByTagName('caption');
+  for (i = 0; i < caps.length; i++) {
+    var cap = caps[i];
+    if (cap.parentElement.nodeName !== 'TABLE') continue;
+    cap.innerHTML = '<span>Table ' + fig + ':</span> ' + cap.innerHTML;
+    fig++;
+  }
+}
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
