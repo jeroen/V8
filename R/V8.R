@@ -175,7 +175,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
 
       # Set custom tab completer
       rc.options(custom.completer = function(env){
-        env$comps <- tab_complete(ct, env$token)
+        env$comps <- tab_complete(this, env$token)
       })
       on.exit({rc.options(custom.completer = NULL)}, add = TRUE)
 
