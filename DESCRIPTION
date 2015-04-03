@@ -5,11 +5,10 @@ Version: 0.6
 Date: 2015-04-02
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
-Description: V8 is Google's open source, high performance JavaScript engine. It
-    is written in C++ and implements ECMAScript as specified in ECMA-262, 5th
-    edition. In addition, this package implements typed arrays as specified in
-    ECMA 6 in order to support high-performance computing and libraries compiled
-    with 'emscripten'.
+Description: An R interface to Google's open source, high performance JavaScript engine.
+    V8 is written in C++ and implements ECMAScript as specified in ECMA-262, 5th edition.
+    In addition, this package implements typed arrays as specified in ECMA 6 in order to
+    support high-performance computing and libraries compiled with 'emscripten'.
 License: MIT + file LICENSE
 URL: https://github.com/jeroenooms/v8, https://code.google.com/p/v8/
 BugReports: https://github.com/jeroenooms/v8/issues
