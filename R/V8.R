@@ -111,7 +111,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
         stop("Named arguments are not supported in JavaScript.")
       }
       jsargs <- vapply(jsargs, function(x){
-        if(is.atomic(x) && any(is(x, "JS_EVAL"), is(x, "AsIs"))){
+        if(is.atomic(x) && is(x, "JS_EVAL")){
           as.character(x)
         } else {
           # To box or not. I'm not sure.
@@ -137,7 +137,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
     }
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
-      obj <- if(any(is(value, "JS_EVAL"), is(value, "AsIs"))){
+      obj <- if(is(value, "JS_EVAL")){
         invisible(this$eval(paste("var", name, "=", value)))
       } else {
         invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = auto_unbox, ...))))
