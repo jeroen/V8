@@ -1,3 +1,6 @@
+0.7
+ - Support for I() removed.
+
 0.6
  - Breaking change: use JS() instead of I() to mark strings as literal JavaScript.
  - ct$source() now always assumes UTF-8 data, even on Windows.
