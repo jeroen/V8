@@ -20,4 +20,4 @@ This package depends on libv8 around 3.14 or 3.16, which is the version included
 
 Unfortunately the developers of libv8 do not care about backward compatibility and therefore recent branches of V8 (such as 3.22 or 4.xx) will not work. For this reason most distributions are unlikely to upgrade any time soon because it would break everything downstream (node, mongodb, etc).
 
-The only distribution I am aware of that does not include a compatible version of v8 is OpenSUSE. So on this system you'll have to pull an older version from [rpmfind](http://www.rpmfind.net/linux/rpm2html/search.php?query=v8&system=opensuse) or something.
+The only distribution I am aware of that does not include a compatible version of v8 is OpenSUSE. So on this system you'll have to pull an older version from [rpmfind](http://www.rpmfind.net/linux/rpm2html/search.php?query=v8&system=opensuse) [ruby gem](https://rubygems.org/gems/libv8/versions/3.16.14.7) or something.
