@@ -247,6 +247,11 @@ get_str_output <- function(str){
 `[.V8` <- `$.V8`
 
 #' @export
+names.V8 <- function(x, ...){
+  ls(x, ...)
+}
+
+#' @export
 print.V8 <- function(x, ...){
   if(context_null(get("context", x))){
     cat("This context has been disposed.")
