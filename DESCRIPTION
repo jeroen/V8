@@ -23,4 +23,5 @@ Imports:
 LinkingTo:
     Rcpp
 Suggests:
-    knitr
+    knitr,
+    rmarkdown
