@@ -1,6 +1,6 @@
 PKG_CPPFLAGS= -I../windows/libv8-3.14.5/include -Wall -pedantic
 
-PKG_LIBS= -L../windows/libv8-3.14.5/lib${R_ARCH} -lv8_base -lv8_nosnapshot -lws2_32 -lwinmm
+PKG_LIBS= -L../windows/libv8-3.14.5/lib${R_ARCH} -lv8_base -lv8_nosnapshot -lws2_32 -lwinmm -lmsvcr100
 
 SOURCES = $(wildcard *.cpp)
 
