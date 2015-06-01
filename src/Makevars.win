@@ -2,6 +2,11 @@ PKG_CPPFLAGS= -I../windows/libv8-3.14.5/include -Wall -pedantic
 
 PKG_LIBS= -L../windows/libv8-3.14.5/lib${R_ARCH} -lv8_base -lv8_nosnapshot -lws2_32 -lwinmm
 
+# Hack for windows XP
+ifeq "$(ALLUSERSPROFILE)" "C:\Documents and Settings\All Users"
+PKG_LIBS += -lmsvcr100
+endif
+
 SOURCES = $(wildcard *.cpp)
 
 OBJECTS = $(SOURCES:.cpp=.o)
