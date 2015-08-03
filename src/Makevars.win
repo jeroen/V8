@@ -1,5 +1,12 @@
 PKG_CPPFLAGS= -I../windows/libv8-3.14.5.10/include
-PKG_LIBS= -L../windows/libv8-3.14.5.10/lib${R_ARCH} -lv8_base -lpreparser_lib -lv8_snapshot -lws2_32 -lwinmm
+
+ifeq "${R_ARCH}" "/i386"
+SNAPSHOTLIB= v8_nosnapshot
+else
+SNAPSHOTLIB= v8_snapshot
+endif
+
+PKG_LIBS= -L../windows/libv8-3.14.5.10/lib${R_ARCH} -lv8_base -lpreparser_lib -l$(SNAPSHOTLIB) -lws2_32 -lwinmm
 
 all: clean winlibs $(OBJECTS)
 
