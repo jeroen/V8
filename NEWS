@@ -1,5 +1,7 @@
 0.7
  - Support for I() removed.
+ - Update libv8 on windows to v3.14.5.10
+ - On win32 use libv8_nosnapshot to prevent segfaults.
 
 0.6
  - Breaking change: use JS() instead of I() to mark strings as literal JavaScript.
