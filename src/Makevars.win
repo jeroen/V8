@@ -1,5 +1,5 @@
-PKG_CPPFLAGS= -I../windows/libv8-3.14.5/include
-PKG_LIBS= -L../windows/libv8-3.14.5/lib${R_ARCH} -lv8_base -lv8_nosnapshot -lws2_32 -lwinmm
+PKG_CPPFLAGS= -I../windows/libv8-3.14.5.10/include
+PKG_LIBS= -L../windows/libv8-3.14.5.10/lib${R_ARCH} -lv8_base -lpreparser_lib -lv8_snapshot -lws2_32 -lwinmm
 
 all: clean winlibs $(OBJECTS)
 
@@ -11,7 +11,7 @@ winlibs:
 	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/winlibs.R"
 
 copydll:
-		cp ../windows/libv8-3.14.5/lib${R_ARCH}/*.dll .
+		cp ../windows/libv8-3.14.5.10/lib${R_ARCH}/*.dll .
 
 # Hack for windows XP
 # The msvcr100.dll file is in: Microsoft Visual C++ 2010 Redistributable
