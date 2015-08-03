@@ -31,7 +31,11 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
     if [ -r "$V8BREWDIR/include/v8.h" ]; then
       echo "libv8 found in $V8BREWDIR";
       echo "PKG_CPPFLAGS= -I$V8BREWDIR/include" > src/Makevars
-      echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot} -lpreparser_lib" >> src/Makevars
+      if [ -r "$V8BREWDIR/lib/libpreparser_lib.a" ]; then
+        echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot} -lpreparser_lib" >> src/Makevars
+      else
+        echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
+      fi
       exit 0;
     fi
   fi
