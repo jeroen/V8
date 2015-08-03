@@ -31,7 +31,7 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
     if [ -r "$V8BREWDIR/include/v8.h" ]; then
       echo "libv8 found in $V8BREWDIR";
       echo "PKG_CPPFLAGS= -I$V8BREWDIR/include" > src/Makevars
-      echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
+      echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot} -lpreparser_lib" >> src/Makevars
       exit 0;
     fi
   fi
@@ -46,7 +46,7 @@ if [ $(echo "$OSTYPE" | grep "darwin") ]; then
   fi
   if [ -r "$V8LOCAL/opt/v8-3.14.5/include/v8.h" ]; then
     echo "PKG_CPPFLAGS= -I$V8LOCAL/opt/v8-3.14.5/include/" > src/Makevars
-    echo "PKG_LIBS= -L$V8LOCAL/opt/v8-3.14.5/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
+    echo "PKG_LIBS= -L$V8LOCAL/opt/v8-3.14.5/lib -stdlib=libstdc++ -lv8_{base,snapshot} -lpreparser_lib" >> src/Makevars
     exit 0;
   fi
 
