@@ -11,3 +11,4 @@
 ^old/
 ^README.md$
 ^src/Makevars$
+^src/gcc_version.txt$

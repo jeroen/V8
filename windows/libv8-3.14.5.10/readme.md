@@ -13,11 +13,9 @@ Notes from Jeroen
 
 Update (Aug 2015): rebuild of v8 version 3.14.5.10:
 
-- ia32 version was built with Rtools gcc 4.6.3-pre
-- x64 version was built with x86_64-4.9.2-release-win32-sjlj-rt_v3-rev1
-
-Looks like this build works with newer versions of Rtools.
-
+- lib/i386-old was built with Rtools gcc 4.6.3-pre
+- lib/i386 was built with i686-4.9.2-release-win32-sjlj
+- lib/x64 was built with x86_64-4.9.2-release-win32-sjlj
 
 Required Tools
 --------------
