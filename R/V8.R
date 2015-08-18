@@ -34,6 +34,7 @@
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
 #' @importFrom Rcpp sourceCpp
+#' @importFrom utils head loadhistory savehistory tail
 #' @useDynLib V8
 #' @examples # Create a new context
 #' ct <- new_context();
@@ -111,7 +112,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
         stop("Named arguments are not supported in JavaScript.")
       }
       jsargs <- vapply(jsargs, function(x){
-        if(is.atomic(x) && is(x, "JS_EVAL")){
+        if(is.atomic(x) && inherits(x, "JS_EVAL")){
           as.character(x)
         } else {
           # To box or not. I'm not sure.
@@ -137,7 +138,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
     }
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
-      obj <- if(is(value, "JS_EVAL")){
+      obj <- if(inherits(value, "JS_EVAL")){
         invisible(this$eval(paste("var", name, "=", value)))
       } else {
         invisible(this$eval(paste("var", name, "=", toJSON(value, auto_unbox = auto_unbox, ...))))
@@ -161,7 +162,7 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
       buffer <- character();
 
       # OSX R.app does not support savehistory
-      has_history <- !is(try(savehistory(tempfile()), silent=T), "try-error")
+      has_history <- !inherits(try(savehistory(tempfile()), silent=T), "try-error")
       if(has_history){
         savehistory()
         on.exit(loadhistory(), add = TRUE)
