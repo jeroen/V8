@@ -18,7 +18,7 @@ PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
 
 # Use autobrew on CRAN builder
 if [ -z "$NOT_CRAN" ] && [ $(echo "$OSTYPE" | grep "darwin") ]; then
-  AUTOBREW="./tools/v8-315.rb"
+  AUTOBREW=true
 fi
 
 # Use pkg-config if available
