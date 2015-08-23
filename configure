@@ -65,8 +65,8 @@ echo "#include $PKG_TEST_HEADER" | ${CC} ${CPPFLAGS} ${PKG_CFLAGS} ${CFLAGS} -E 
 if [ $R_CONFIG_ERROR ]; then
   echo "------------------------- ANTICONF ERROR ---------------------------"
   echo "Configuration failed because $PKG_CONFIG_NAME was not found. Try installing:"
-  echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu, etc)"
-  echo " * rpm: $PKG_RPM_NAME (Fedora, CentOS, RHEL)"
+  echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu)"
+  echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
   echo " * brew: $PKG_BREW_NAME (OSX)"
   echo " * csw: $PKG_CSW_NAME (Solaris)"
   echo "If $PKG_CONFIG_NAME is already installed, check that 'pkg-config' is in your"
