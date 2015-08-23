@@ -1,6 +1,8 @@
 0.7
- - Support for I() removed.
- - Update libv8 on windows to v3.14.5.10
+ - Deprecated support for I() removed. Use JS() instead
+ - Refactored configure script to use pkg-config if available.
+ - Updated libv8 brew script on OSX to v8-3.15
+ - Update libv8 static builds on windows to v3.14.5.10
  - Ship separate libraries for win32 for more recent compilers
 
 0.6
