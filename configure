@@ -1,72 +1,84 @@
-# Check for a custom include dir
-echo "PKG_LIBS= -lv8" > src/Makevars
-if [ "$V8_INCLUDES" ]; then
-  echo "PKG_CPPFLAGS= -I$V8_INCLUDES" >> src/Makevars
-  if [ ! -r "$V8_INCLUDES/v8.h" ]; then
-    echo "File $V8_INCLUDES/v8.h not found."
-    exit 1
-  fi
-  exit 0
+#!/bin/bash
+# Anticonf (tm) script by Jeroen Ooms (2015)
+# This script will query 'pkg-config' for the required cflags and ldflags.
+# If pkg-config is unavailable or does not find the library, try setting
+# INCLUDE_DIR and LIB_DIR manually via e.g:
+# R CMD INSTALL --configure-vars='INCLUDE_DIR=/.../include LIB_DIR=/.../lib'
+
+# Library settings
+PKG_CONFIG_NAME="libv8"
+PKG_DEB_NAME="libv8-3.14-dev (or libv8-dev)"
+PKG_RPM_NAME="libv8-devel"
+PKG_CSW_NAME="libv8_dev"
+PKG_BREW_NAME="v8-315 (NOT regular v8)"
+PKG_TEST_HEADER="<v8.h>"
+PKG_LIBS="-L/usr/local/opt/v8-315/lib -lv8"
+PKG_CFLAGS="-I/usr/local/opt/v8-315/include"
+PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
+
+# Use autobrew on CRAN builder
+if [ -z "$NOT_CRAN" ] && [ $(echo "$OSTYPE" | grep "darwin") ]; then
+  AUTOBREW="./tools/v8-315.rb"
 fi
 
-# Static linking on OSX
-if [ $(echo "$OSTYPE" | grep "darwin") ]; then
+# Use pkg-config if available
+PKGCONFIG=$(command -v pkg-config)
+if [ "$PKGCONFIG" ]; then
+  PKGCONFIG_CFLAGS=$(pkg-config --cflags ${PKG_CONFIG_NAME})
+  PKGCONFIG_LIBS=$(pkg-config --libs ${PKG_CONFIG_NAME})
+fi
 
-  # First try is the libv8 gem is installed
-  V8GEMDIR=$(echo /Library/Ruby/Gems/2.0.0/gems/libv8-*)
-  if [ -r "$V8GEMDIR/vendor/v8/include/v8.h" ]; then
-    echo "libv8 gem found in $V8GEMDIR"
-    echo "PKG_CXXFLAGS= -I$V8GEMDIR/vendor/v8/include" > src/Makevars
-    echo "PKG_LIBS=-L$V8GEMDIR/vendor/v8/out/x64.release -lv8_{base,snapshot}" >> src/Makevars
-    exit 0;
+# Note that cflags may be empty in case of success
+if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
+  echo "Found INCLUDE_DIR and/or LIB_DIR!"
+  PKG_CFLAGS="-I$INCLUDE_DIR $PKG_CFLAGS"
+  PKG_LIBS="-L$LIB_DIR $PKG_LIBS"
+elif [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
+  echo "Found pkg-config cflags and libs!"
+  PKG_CFLAGS=${PKGCONFIG_CFLAGS}
+  PKG_LIBS=${PKGCONFIG_LIBS}
+elif [ "$AUTOBREW" ]; then
+  echo "Brewing $PKG_BREW_NAME..."
+  BREWDIR="/tmp/homebrew"
+  if [ ! -r "$BREWDIR/bin/brew" ]; then
+     mkdir -p $BREWDIR && curl -fsSL https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C $BREWDIR
   fi
+  HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew install $AUTOBREW
+  PKG_CFLAGS="-I$BREWDIR/opt/v8-315/include"
+  PKG_LIBS="-L$BREWDIR/opt/v8-315/lib $PKG_LIBS_STATIC"
+  rm -f $BREWDIR/opt/v8-315/lib/*.dylib
+fi
 
-  # Use system 'brew' if available
-  if [ $(command -v brew) ]; then
-    V8BREWDIR=$(brew --prefix)/opt/v8-3.14.5;
-    if [ ! -r "$V8BREWDIR/include/v8.h" ]; then
-      echo "Building V8... (this may take a few minutes, but only has to be done once) ";
-      brew install ./tools/v8-3.14.5.rb;
-    fi
-    if [ -r "$V8BREWDIR/include/v8.h" ]; then
-      echo "libv8 found in $V8BREWDIR";
-      echo "PKG_CPPFLAGS= -I$V8BREWDIR/include" > src/Makevars
-      if [ -r "$V8BREWDIR/lib/libpreparser_lib.a" ]; then
-        echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot} -lpreparser_lib" >> src/Makevars
-      else
-        echo "PKG_LIBS= -L$V8BREWDIR/lib -stdlib=libstdc++ -lv8_{base,snapshot}" >> src/Makevars
-      fi
-      exit 0;
-    fi
-  fi
+# For debugging
+echo "Using PKG_CFLAGS=$PKG_CFLAGS"
+echo "Using PKG_LIBS=$PKG_LIBS"
 
-  # Try brewing locally
-  V8LOCAL="/tmp/homebrew"
-  if [ ! -r "$V8LOCAL/bin/brew" ]; then
-     mkdir -p $V8LOCAL && curl -fsSL https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C $V8LOCAL
-  fi
-  if [ ! -r "$V8LOCAL/opt/v8-3.14.5/include/v8.h" ]; then
-     HOMEBREW_CACHE="/tmp" $V8LOCAL/bin/brew install ./tools/v8-3.14.5.rb
-  fi
-  if [ -r "$V8LOCAL/opt/v8-3.14.5/include/v8.h" ]; then
-    echo "PKG_CPPFLAGS= -I$V8LOCAL/opt/v8-3.14.5/include/" > src/Makevars
-    echo "PKG_LIBS= -L$V8LOCAL/opt/v8-3.14.5/lib -stdlib=libstdc++ -lv8_{base,snapshot} -lpreparser_lib" >> src/Makevars
-    exit 0;
-  fi
+# Find compiler
+CC=$(${R_HOME}/bin/R CMD config CC)
+CFLAGS=$(${R_HOME}/bin/R CMD config CFLAGS)
+CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
 
-  # If nothing works
-  echo "-------------------------------------------------------"
-  echo "| Neither libv8 nor Homebrew was found on the system. |"
-  echo "| Please do either one of the following:              |"
-  echo "| To install precompiled V8 libraries, run:           |"
-  echo "|   sudo gem install libv8 -- --with-system-v8        |"
-  echo "| OR: install Homebrew from: http://brew.sh           |"
-  echo "-------------------------------------------------------"
+# Test configuration
+echo "#include $PKG_TEST_HEADER" | ${CC} ${CPPFLAGS} ${PKG_CFLAGS} ${CFLAGS} -E -xc - >/dev/null 2>&1 || R_CONFIG_ERROR=1;
+
+# Customize the error
+if [ $R_CONFIG_ERROR ]; then
+  echo "------------------------- ANTICONF ERROR ---------------------------"
+  echo "Configuration failed because $PKG_CONFIG_NAME was not found. Try installing:"
+  echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu, etc)"
+  echo " * rpm: $PKG_RPM_NAME (Fedora, CentOS, RHEL)"
+  echo " * brew: $PKG_BREW_NAME (OSX)"
+  echo " * csw: $PKG_CSW_NAME (Solaris)"
+  echo "If $PKG_CONFIG_NAME is already installed, check that 'pkg-config' is in your"
+  echo "PATH and PKG_CONFIG_PATH contains a $PKG_CONFIG_NAME.pc file. If pkg-config"
+  echo "is unavailable you can set INCLUDE_DIR and LIB_DIR manually via:"
+  echo "R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
+  echo "--------------------------------------------------------------------"
   exit 1;
 fi
 
-# Linux et al
-if [ ! -r "/usr/include/v8.h" ] && [ ! -r "/usr/local/include/v8.h" ]; then
-  echo "libv8 not found. Make sure the V8 development library is installed, e.g. libv8-dev (deb) or v8-devel (rpm)."
-  exit 1
-fi
+# Write to Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/Makevars.in > src/Makevars
+
+# Success
+exit 0
