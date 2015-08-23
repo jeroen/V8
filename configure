@@ -44,8 +44,8 @@ elif [ "$AUTOBREW" ]; then
   if [ ! -r "$BREWDIR/bin/brew" ]; then
      mkdir -p $BREWDIR && curl -fsSL https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C $BREWDIR
   fi
-  $BREWDIR/bin/brew tap homebrew/versions
-  $BREWDIR/bin/brew install $PKG_BREW_NAME
+  $BREWDIR/bin/brew tap homebrew/versions 2>&1 | sed 's/Warning/Note/g' #for CMD check
+  $BREWDIR/bin/brew install $PKG_BREW_NAME 2>&1 | sed 's/Warning/Note/g'
   PKG_CFLAGS="-I$BREWDIR/opt/$PKG_BREW_NAME/include"
   PKG_LIBS="-L$BREWDIR/opt/$PKG_BREW_NAME/lib $PKG_LIBS_STATIC"
   rm -f $BREWDIR/opt/$PKG_BREW_NAME/lib/*.dylib
