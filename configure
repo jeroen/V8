@@ -17,7 +17,7 @@ PKG_CFLAGS="-I/usr/local/opt/v8-315/include"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
 
 # Use autobrew on CRAN builder
-if [ -z "$NOT_CRAN" ] && [ $(echo "$OSTYPE" | grep "darwin") ]; then
+if [ -z "$OT_CRAN" ] && [ $(echo "$OSTYPE" | grep "darwin") ]; then
   AUTOBREW="./tools/v8-315.rb"
 fi
 
@@ -40,11 +40,12 @@ elif [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
 elif [ "$AUTOBREW" ]; then
   echo "Brewing $PKG_BREW_NAME..."
   BREWDIR="/tmp/homebrew"
+  HOMEBREW_CACHE="/tmp"
   if [ ! -r "$BREWDIR/bin/brew" ]; then
      mkdir -p $BREWDIR && curl -fsSL https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C $BREWDIR
   fi
-  HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew tap homebrew/versions
-  HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew install $PKG_BREW_NAME
+  $BREWDIR/bin/brew tap homebrew/versions
+  $BREWDIR/bin/brew install $PKG_BREW_NAME
   PKG_CFLAGS="-I$BREWDIR/opt/v8-315/include"
   PKG_LIBS="-L$BREWDIR/opt/v8-315/lib $PKG_LIBS_STATIC"
   rm -f $BREWDIR/opt/v8-315/lib/*.dylib
