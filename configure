@@ -10,7 +10,7 @@ PKG_CONFIG_NAME="libv8"
 PKG_DEB_NAME="libv8-3.14-dev (or libv8-dev)"
 PKG_RPM_NAME="v8-devel"
 PKG_CSW_NAME="libv8_dev"
-PKG_BREW_NAME="v8-315 (NOT regular v8)"
+PKG_BREW_NAME="v8-315"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-L/usr/local/opt/v8-315/lib -lv8"
 PKG_CFLAGS="-I/usr/local/opt/v8-315/include"
@@ -43,7 +43,8 @@ elif [ "$AUTOBREW" ]; then
   if [ ! -r "$BREWDIR/bin/brew" ]; then
      mkdir -p $BREWDIR && curl -fsSL https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C $BREWDIR
   fi
-  HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew install $AUTOBREW
+  HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew tap homebrew/versions
+  HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew install $PKG_BREW_NAME
   PKG_CFLAGS="-I$BREWDIR/opt/v8-315/include"
   PKG_LIBS="-L$BREWDIR/opt/v8-315/lib $PKG_LIBS_STATIC"
   rm -f $BREWDIR/opt/v8-315/lib/*.dylib
@@ -67,7 +68,7 @@ if [ $R_CONFIG_ERROR ]; then
   echo "Configuration failed because $PKG_CONFIG_NAME was not found. Try installing:"
   echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu)"
   echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
-  echo " * brew: $PKG_BREW_NAME (OSX)"
+  echo " * brew: $PKG_BREW_NAME (OSX) -- NOT regular v8! Tap from homebrew/versions"
   echo " * csw: $PKG_CSW_NAME (Solaris)"
   echo "If $PKG_CONFIG_NAME is already installed, check that 'pkg-config' is in your"
   echo "PATH and PKG_CONFIG_PATH contains a $PKG_CONFIG_NAME.pc file. If pkg-config"
