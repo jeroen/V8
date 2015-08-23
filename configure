@@ -8,7 +8,7 @@
 # Library settings
 PKG_CONFIG_NAME="libv8"
 PKG_DEB_NAME="libv8-3.14-dev (or libv8-dev)"
-PKG_RPM_NAME="libv8-devel"
+PKG_RPM_NAME="v8-devel"
 PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8-315 (NOT regular v8)"
 PKG_TEST_HEADER="<v8.h>"
