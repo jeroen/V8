@@ -16,7 +16,7 @@ This package depends on libv8 around 3.14 or 3.16, which is the version included
  - Debian: [libv8-3.14-dev](https://packages.debian.org/sid/libv8-3.14-dev)
  - Fedora/EPEL: [v8-devel](https://apps.fedoraproject.org/packages/v8-devel)
  - Arch: [v8-3.14](https://aur.archlinux.org/packages/v8-3.14/)
- - OSX: [Ruby gem](https://rubygems.org/gems/libv8/versions/) (`gem install libv8`) or [Homebrew](https://github.com/Homebrew/homebrew-versions/blob/master/v8-315.rb) (`brew install v8-315`)
+ - OSX: [v8-315](https://github.com/Homebrew/homebrew-versions/blob/master/v8-315.rb) (`brew tap homebrew/versions; brewbrew install v8-315`)
 
 Unfortunately the developers of libv8 do not care about backward compatibility and therefore recent branches of V8 (such as 3.22 or 4.xx) will not work. For this reason most distributions are unlikely to upgrade any time soon because it would break everything downstream (node, mongodb, etc).
 
