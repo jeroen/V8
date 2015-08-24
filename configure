@@ -28,7 +28,7 @@ fi
 # Use pkg-config if available
 PKGCONFIG=$(command -v pkg-config)
 if [ "$PKGCONFIG" ]; then
-  PKGCONFIG_CFLAGS=$(pkg-config --cflags ${PKG_CONFIG_NAME})
+  PKGCONFIG_CFLAGS=$(pkg-config --cflags --silence-errors ${PKG_CONFIG_NAME})
   PKGCONFIG_LIBS=$(pkg-config --libs ${PKG_CONFIG_NAME})
 fi
 
