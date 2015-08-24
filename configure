@@ -12,13 +12,18 @@ PKG_RPM_NAME="v8-devel"
 PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8-315"
 PKG_TEST_HEADER="<v8.h>"
-PKG_LIBS="-L/usr/local/opt/v8-315/lib -lv8"
-PKG_CFLAGS="-I/usr/local/opt/v8-315/include"
+PKG_LIBS="-lv8"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
 
 # Use autobrew on CRAN builder
-if [ -z "$NOT_CRAN" ] && [ $(echo "$OSTYPE" | grep "darwin") ]; then
-  AUTOBREW=true
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  if [ $(command -v brew) ]; then
+    BREWDIR=$(brew --prefix)
+    PKG_CFLAGS="-I$BREWDIR/opt/$PKG_BREW_NAME/include"
+    PKG_LIBS="-L$BREWDIR/opt/$PKG_BREW_NAME/lib $PKG_LIBS"
+  else
+    AUTOBREW=true
+  fi
 fi
 
 # Use pkg-config if available
