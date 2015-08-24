@@ -11,7 +11,6 @@ PKG_DEB_NAME="libv8-3.14-dev (or libv8-dev)"
 PKG_RPM_NAME="v8-devel"
 PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8-315"
-PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
 
