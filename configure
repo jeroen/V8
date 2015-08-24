@@ -14,17 +14,6 @@ PKG_BREW_NAME="v8-315"
 PKG_LIBS="-lv8"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
 
-# Use autobrew on CRAN builder
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  if [ $(command -v brew) ]; then
-    BREWDIR=$(brew --prefix)
-    PKG_CFLAGS="-I$BREWDIR/opt/$PKG_BREW_NAME/include"
-    PKG_LIBS="-L$BREWDIR/opt/$PKG_BREW_NAME/lib $PKG_LIBS"
-  else
-    AUTOBREW=true
-  fi
-fi
-
 # Use pkg-config if available
 if [ $(command -v pkg-config) ]; then
   PKGCONFIG_CFLAGS=$(pkg-config --cflags --silence-errors ${PKG_CONFIG_NAME})
@@ -40,18 +29,23 @@ elif [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
   echo "Found pkg-config cflags and libs!"
   PKG_CFLAGS=${PKGCONFIG_CFLAGS}
   PKG_LIBS=${PKGCONFIG_LIBS}
-elif [ "$AUTOBREW" ]; then
-  echo "Brewing $PKG_BREW_NAME..."
-  BREWDIR="/tmp/homebrew"
-  HOMEBREW_CACHE="/tmp"
-  if [ ! -r "$BREWDIR/bin/brew" ]; then
-     mkdir -p $BREWDIR && curl -fsSL https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C $BREWDIR
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  if [ $(command -v brew) ]; then
+    BREWDIR=$(brew --prefix)
+  else
+    echo "Auto-brewing $PKG_BREW_NAME..."
+    BREWDIR="/tmp/homebrew"
+    HOMEBREW_CACHE="/tmp"
+    if [ ! -r "$BREWDIR/bin/brew" ]; then
+       mkdir -p $BREWDIR && curl -fsSL https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C $BREWDIR
+    fi
+    $BREWDIR/bin/brew tap homebrew/versions 2>&1 | sed 's/Warning/Note/g' #for CMD check
+    $BREWDIR/bin/brew install $PKG_BREW_NAME 2>&1 | sed 's/Warning/Note/g'
+    rm -f $BREWDIR/opt/$PKG_BREW_NAME/lib/*.dylib
+    PKG_LIBS="$PKG_LIBS_STATIC"
   fi
-  $BREWDIR/bin/brew tap homebrew/versions 2>&1 | sed 's/Warning/Note/g' #for CMD check
-  $BREWDIR/bin/brew install $PKG_BREW_NAME 2>&1 | sed 's/Warning/Note/g'
   PKG_CFLAGS="-I$BREWDIR/opt/$PKG_BREW_NAME/include"
-  PKG_LIBS="-L$BREWDIR/opt/$PKG_BREW_NAME/lib $PKG_LIBS_STATIC"
-  rm -f $BREWDIR/opt/$PKG_BREW_NAME/lib/*.dylib
+  PKG_LIBS="-L$BREWDIR/opt/$PKG_BREW_NAME/lib $PKG_LIBS"
 fi
 
 # For debugging
