@@ -1,4 +1,5 @@
 PKG_CPPFLAGS= -I../windows/libv8-3.14.5.10/include
+PKG_CXXFLAGS=-DV8_DISABLE_DEPRECATIONS
 PKG_LIBS= -L../windows/libv8-3.14.5.10/lib${R_ARCH} -lv8_base -lpreparser_lib -lv8_snapshot -lws2_32 -lwinmm
 
 all: clean winlibs $(OBJECTS)
