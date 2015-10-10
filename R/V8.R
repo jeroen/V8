@@ -4,6 +4,9 @@
 #' JavaScript code to run in a single instance of V8. You must explicitly specify
 #' the context in which you want any JavaScript code to be run.
 #'
+#' The \code{v8} function is an alias for \code{new_context}, they do exactly the
+#' same thing.
+#'
 #' The \code{ct$eval} method evaluates a string of raw code in the same way
 #' as \code{eval} would do in JavaScript. It returns a string with console output.
 #' The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions
@@ -31,6 +34,8 @@
 #' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
 #' functions to the global namespace.
 #' @aliases V8
+#' @rdname v8
+#' @name Context
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
 #' @importFrom Rcpp sourceCpp
@@ -89,7 +94,7 @@
 #' JSON.stringify(test)
 #' exit}
 #'
-new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
+v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Private fields
   private <- environment();
 
@@ -208,6 +213,10 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
     structure(environment(), class=c("V8", "environment"))
   })
 }
+
+#' @export
+#' @rdname v8
+new_context <- v8
 
 undefined_to_null <- function(str){
   if(identical(str,"undefined")){
