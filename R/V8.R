@@ -6,6 +6,10 @@
 #' The \code{v8} function is an alias for \code{new_context}, they do exactly the
 #' same thing.
 #'
+#' V8 contexts cannot be serialized but creating a new contexts and sourcing code
+#' is very cheap. You can run as many parallel v8 contexts as you want. R packages
+#' that use V8 can use a separate V8 context for each object or function call.
+#'
 #' The \code{ct$eval} method evaluates a string of raw code in the same way
 #' as \code{eval} would do in JavaScript. It returns a string with console output.
 #' The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions
@@ -51,42 +55,42 @@
 #' @importFrom utils head loadhistory savehistory tail
 #' @useDynLib V8
 #' @examples # Create a new context
-#' ct <- new_context();
+#' ctx <- v8();
 #'
 #' # Evaluate some code
-#' ct$eval("var foo = 123")
-#' ct$eval("var bar = 456")
-#' ct$eval("foo+bar")
+#' ctx$eval("var foo = 123")
+#' ctx$eval("var bar = 456")
+#' ctx$eval("foo+bar")
 #'
 #' # Functions and closures
-#' ct$eval("JSON.stringify({x:Math.random()})")
-#' ct$eval("(function(x){return x+1;})(123)")
+#' ctx$eval("JSON.stringify({x:Math.random()})")
+#' ctx$eval("(function(x){return x+1;})(123)")
 #'
 #' # Objects (via JSON only)
-#' ct$assign("mydata", mtcars)
-#' ct$get("mydata")
+#' ctx$assign("mydata", mtcars)
+#' ctx$get("mydata")
 #'
 #' # Assign JavaScript
-#' ct$assign("foo", JS("function(x){return x*x}"))
-#' ct$assign("bar", JS("foo(9)"))
-#' ct$get("bar")
+#' ctx$assign("foo", JS("function(x){return x*x}"))
+#' ctx$assign("bar", JS("foo(9)"))
+#' ctx$get("bar")
 #'
 #' # Validate script without evaluating
-#' ct$validate("function foo(x){2*x}") #TRUE
-#' ct$validate("foo = function(x){2*x}") #TRUE
-#' ct$validate("function(x){2*x}") #FALSE
+#' ctx$validate("function foo(x){2*x}") #TRUE
+#' ctx$validate("foo = function(x){2*x}") #TRUE
+#' ctx$validate("function(x){2*x}") #FALSE
 #'
 #' # Use a JavaScript library
-#' ct$source(system.file("js/underscore.js", package="V8"))
-#' ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
+#' ctx$source(system.file("js/underscore.js", package="V8"))
+#' ctx$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 #'
 #' # Example from underscore manual
-#' ct$eval("_.templateSettings = {interpolate: /\\{\\{(.+?)\\}\\}/g}")
-#' ct$eval("var template = _.template('Hello {{ name }}!')")
-#' ct$call("template", list(name = "Mustache"))
+#' ctx$eval("_.templateSettings = {interpolate: /\\{\\{(.+?)\\}\\}/g}")
+#' ctx$eval("var template = _.template('Hello {{ name }}!')")
+#' ctx$call("template", list(name = "Mustache"))
 #'
 #' # Call anonymous function
-#' ct$call("function(x, y){return x * y}", 123, 3)
+#' ctx$call("function(x, y){return x * y}", 123, 3)
 #'
 #' \dontrun{CoffeeScript
 #' ct2 <- new_context()
