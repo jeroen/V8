@@ -34,7 +34,7 @@
 #' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
 #' functions to the global namespace.
 #' @aliases V8
-#' @rdname v8
+#' @rdname V8
 #' @name Context
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
@@ -94,7 +94,7 @@
 #' JSON.stringify(test)
 #' exit}
 #'
-v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
+V8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Private fields
   private <- environment();
 
@@ -215,8 +215,8 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
 }
 
 #' @export
-#' @rdname v8
-new_context <- v8
+#' @rdname V8
+new_context <- V8
 
 undefined_to_null <- function(str){
   if(identical(str,"undefined")){
