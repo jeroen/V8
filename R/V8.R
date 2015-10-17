@@ -1,10 +1,9 @@
 #' Run JavaScript in a V8 context
 #'
 #' A \emph{context} is an execution environment that allows separate, unrelated,
-#' JavaScript code to run in a single instance of V8. You must explicitly specify
-#' the context in which you want any JavaScript code to be run.
+#' JavaScript code to run in a single instance of V8, like a tab in a browser.
 #'
-#' The \code{V8} function is an alias for \code{new_context}, they do exactly the
+#' The \code{v8} function is an alias for \code{new_context}, they do exactly the
 #' same thing.
 #'
 #' The \code{ct$eval} method evaluates a string of raw code in the same way
@@ -26,14 +25,24 @@
 #' scope, even when no name is set. When a context is initiated with \code{global = NULL},
 #' the global environment can be reached by evaluating \code{this} in the global scope,
 #' for example: \code{ct$eval("Object.keys(this)")}.
-#'
+#' @section Methods:
+#' \describe{
+#'   \item{\code{console()}}{ starts an interactive console}
+#'   \item{\code{eval(src)}}{ evaluates a string with JavaScript source code}
+#'   \item{\code{validate(src)}}{ test if a string of JavaScript code is syntactically valid}
+#'   \item{\code{source(file)}}{ evaluates a file with JavaScript code}
+#'   \item{\code{get(name)}}{ convert a JavaScript to R via JSON}
+#'   \item{\code{assign(name, value)}}{ copy an R object to JavaScript via JSON}
+#'   \item{\code{call(fun, ...)}}{ call a JavaScript function with arguments \code{...}. Arguments which are not wrapped in \code{JS()} automatically get converted to JSON}
+#'   \item{\code{reset()}}{ resets the context (removes all objects)}
+#' }
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 #' @export
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
 #' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
 #' functions to the global namespace.
-#' @aliases V8 new_context
+#' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name Context
 #' @importFrom jsonlite fromJSON toJSON
@@ -94,7 +103,7 @@
 #' JSON.stringify(test)
 #' exit}
 #'
-V8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
+v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Private fields
   private <- environment();
 
@@ -216,7 +225,7 @@ V8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
 
 #' @export
 #' @rdname V8
-new_context <- V8
+new_context <- v8
 
 undefined_to_null <- function(str){
   if(identical(str,"undefined")){

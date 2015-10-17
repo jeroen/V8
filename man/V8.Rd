@@ -4,9 +4,10 @@
 \alias{Context}
 \alias{V8}
 \alias{new_context}
+\alias{v8}
 \title{Run JavaScript in a V8 context}
 \usage{
-V8(global = "global", console = TRUE, typed_arrays = TRUE)
+v8(global = "global", console = TRUE, typed_arrays = TRUE)
 
 new_context(global = "global", console = TRUE, typed_arrays = TRUE)
 }
@@ -20,11 +21,10 @@ functions to the global namespace.}
 }
 \description{
 A \emph{context} is an execution environment that allows separate, unrelated,
-JavaScript code to run in a single instance of V8. You must explicitly specify
-the context in which you want any JavaScript code to be run.
+JavaScript code to run in a single instance of V8, like a tab in a browser.
 }
 \details{
-The \code{V8} function is an alias for \code{new_context}, they do exactly the
+The \code{v8} function is an alias for \code{new_context}, they do exactly the
 same thing.
 
 The \code{ct$eval} method evaluates a string of raw code in the same way
@@ -46,6 +46,19 @@ in browsers) can be set with the global argument. A context always have a global
 scope, even when no name is set. When a context is initiated with \code{global = NULL},
 the global environment can be reached by evaluating \code{this} in the global scope,
 for example: \code{ct$eval("Object.keys(this)")}.
+}
+\section{Methods}{
+
+\describe{
+  \item{\code{console()}}{ starts an interactive console}
+  \item{\code{eval(src)}}{ evaluates a string with JavaScript source code}
+  \item{\code{validate(src)}}{ test if a string of JavaScript code is syntactically valid}
+  \item{\code{source(file)}}{ evaluates a file with JavaScript code}
+  \item{\code{get(name)}}{ convert a JavaScript to R via JSON}
+  \item{\code{assign(name, value)}}{ copy an R object to JavaScript via JSON}
+  \item{\code{call(fun, ...)}}{ call a JavaScript function with arguments \code{...}. Arguments which are not wrapped in \code{JS()} automatically get converted to JSON}
+  \item{\code{reset()}}{ resets the context (removes all objects)}
+}
 }
 \examples{
 # Create a new context

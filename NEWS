@@ -1,6 +1,6 @@
 0.8
  - Fix configure script for OSX
- - Add 'V8' as a more descriptive alias for 'new_context'
+ - Add 'v8' as a more descriptive alias for 'new_context'
 
 0.7
  - Deprecated support for I() removed. Use JS() instead
