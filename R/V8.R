@@ -4,7 +4,7 @@
 #' JavaScript code to run in a single instance of V8. You must explicitly specify
 #' the context in which you want any JavaScript code to be run.
 #'
-#' The \code{v8} function is an alias for \code{new_context}, they do exactly the
+#' The \code{V8} function is an alias for \code{new_context}, they do exactly the
 #' same thing.
 #'
 #' The \code{ct$eval} method evaluates a string of raw code in the same way
@@ -33,7 +33,7 @@
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
 #' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
 #' functions to the global namespace.
-#' @aliases V8
+#' @aliases V8 new_context
 #' @rdname V8
 #' @name Context
 #' @importFrom jsonlite fromJSON toJSON
