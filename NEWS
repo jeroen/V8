@@ -1,6 +1,14 @@
+0.9
+ - Fix for OSX cran builder
+ - Add 'v8' as a more descriptive alias for 'new_context'
+ - Update libv8 on Windows to 3.15
+ - Add support for the new windows tool chain
+
 0.8
  - Fix configure script for OSX
  - Add 'v8' as a more descriptive alias for 'new_context'
+ - Update libv8 on Windows to 3.15
+ - Add support for the new windows tool chain
 
 0.7
  - Deprecated support for I() removed. Use JS() instead
