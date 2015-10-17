@@ -9,3 +9,4 @@ src/*.dll
 src/Makevars
 .DS_Store
 src/gcc_version.txt
+windows
