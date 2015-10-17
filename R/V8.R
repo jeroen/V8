@@ -1,8 +1,14 @@
 #' Run JavaScript in a V8 context
 #'
 #' A \emph{context} is an execution environment that allows separate, unrelated,
-#' JavaScript code to run in a single instance of V8. You must explicitly specify
-#' the context in which you want any JavaScript code to be run.
+#' JavaScript code to run in a single instance of V8, like a tab in a browser.
+#'
+#' The \code{v8} function is an alias for \code{new_context}, they do exactly the
+#' same thing.
+#'
+#' V8 contexts cannot be serialized but creating a new contexts and sourcing code
+#' is very cheap. You can run as many parallel v8 contexts as you want. R packages
+#' that use V8 can use a separate V8 context for each object or function call.
 #'
 #' The \code{ct$eval} method evaluates a string of raw code in the same way
 #' as \code{eval} would do in JavaScript. It returns a string with console output.
@@ -23,56 +29,68 @@
 #' scope, even when no name is set. When a context is initiated with \code{global = NULL},
 #' the global environment can be reached by evaluating \code{this} in the global scope,
 #' for example: \code{ct$eval("Object.keys(this)")}.
-#'
+#' @section Methods:
+#' \describe{
+#'   \item{\code{console()}}{ starts an interactive console}
+#'   \item{\code{eval(src)}}{ evaluates a string with JavaScript source code}
+#'   \item{\code{validate(src)}}{ test if a string of JavaScript code is syntactically valid}
+#'   \item{\code{source(file)}}{ evaluates a file with JavaScript code}
+#'   \item{\code{get(name)}}{ convert a JavaScript to R via JSON}
+#'   \item{\code{assign(name, value)}}{ copy an R object to JavaScript via JSON}
+#'   \item{\code{call(fun, ...)}}{ call a JavaScript function with arguments \code{...}. Arguments which are not wrapped in \code{JS()} automatically get converted to JSON}
+#'   \item{\code{reset()}}{ resets the context (removes all objects)}
+#' }
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 #' @export
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
 #' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
 #' functions to the global namespace.
-#' @aliases V8
+#' @aliases V8 v8 new_context
+#' @rdname V8
+#' @name Context
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
 #' @importFrom Rcpp sourceCpp
 #' @importFrom utils head loadhistory savehistory tail
 #' @useDynLib V8
 #' @examples # Create a new context
-#' ct <- new_context();
+#' ctx <- v8();
 #'
 #' # Evaluate some code
-#' ct$eval("var foo = 123")
-#' ct$eval("var bar = 456")
-#' ct$eval("foo+bar")
+#' ctx$eval("var foo = 123")
+#' ctx$eval("var bar = 456")
+#' ctx$eval("foo+bar")
 #'
 #' # Functions and closures
-#' ct$eval("JSON.stringify({x:Math.random()})")
-#' ct$eval("(function(x){return x+1;})(123)")
+#' ctx$eval("JSON.stringify({x:Math.random()})")
+#' ctx$eval("(function(x){return x+1;})(123)")
 #'
 #' # Objects (via JSON only)
-#' ct$assign("mydata", mtcars)
-#' ct$get("mydata")
+#' ctx$assign("mydata", mtcars)
+#' ctx$get("mydata")
 #'
 #' # Assign JavaScript
-#' ct$assign("foo", JS("function(x){return x*x}"))
-#' ct$assign("bar", JS("foo(9)"))
-#' ct$get("bar")
+#' ctx$assign("foo", JS("function(x){return x*x}"))
+#' ctx$assign("bar", JS("foo(9)"))
+#' ctx$get("bar")
 #'
 #' # Validate script without evaluating
-#' ct$validate("function foo(x){2*x}") #TRUE
-#' ct$validate("foo = function(x){2*x}") #TRUE
-#' ct$validate("function(x){2*x}") #FALSE
+#' ctx$validate("function foo(x){2*x}") #TRUE
+#' ctx$validate("foo = function(x){2*x}") #TRUE
+#' ctx$validate("function(x){2*x}") #FALSE
 #'
 #' # Use a JavaScript library
-#' ct$source(system.file("js/underscore.js", package="V8"))
-#' ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
+#' ctx$source(system.file("js/underscore.js", package="V8"))
+#' ctx$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 #'
 #' # Example from underscore manual
-#' ct$eval("_.templateSettings = {interpolate: /\\{\\{(.+?)\\}\\}/g}")
-#' ct$eval("var template = _.template('Hello {{ name }}!')")
-#' ct$call("template", list(name = "Mustache"))
+#' ctx$eval("_.templateSettings = {interpolate: /\\{\\{(.+?)\\}\\}/g}")
+#' ctx$eval("var template = _.template('Hello {{ name }}!')")
+#' ctx$call("template", list(name = "Mustache"))
 #'
 #' # Call anonymous function
-#' ct$call("function(x, y){return x * y}", 123, 3)
+#' ctx$call("function(x, y){return x * y}", 123, 3)
 #'
 #' \dontrun{CoffeeScript
 #' ct2 <- new_context()
@@ -89,7 +107,7 @@
 #' JSON.stringify(test)
 #' exit}
 #'
-new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
+v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Private fields
   private <- environment();
 
@@ -208,6 +226,10 @@ new_context <- function(global = "global", console = TRUE, typed_arrays = TRUE) 
     structure(environment(), class=c("V8", "environment"))
   })
 }
+
+#' @export
+#' @rdname V8
+new_context <- v8
 
 undefined_to_null <- function(str){
   if(identical(str,"undefined")){
