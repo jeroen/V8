@@ -1,3 +1,6 @@
+0.10
+ - Add the console.r callback JavaScript api
+
 0.9
  - Fix for OSX cran builder
  - Add 'v8' as a more descriptive alias for 'new_context'
