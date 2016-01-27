@@ -70,21 +70,38 @@ static Handle<Value> ConsoleError(const Arguments& args) {
   return v8::Undefined();
 }
 
-/* callback function */
-// example: from in JS: call_r("rnorm", '{"n":10}')
-// to do: convert arg objects to JSON
-static Handle<Value> callback(const Arguments& args) {
+static Handle<Value> r_callback(std::string fun, const Arguments& args) {
   try {
-    Rcpp::Function callback = Rcpp::Environment::namespace_env("V8")["callback"];
+    Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[fun];
     String::Utf8Value arg0(args[0]);
-    String::Utf8Value arg1(json_stringify(args[1]));
     Rcpp::String fun(*arg0);
-    Rcpp::String json(*arg1);
-    Rcpp::CharacterVector out(callback(fun, json));
+    Rcpp::CharacterVector out;
+    if(args[1]->IsUndefined()){
+      out = r_call(fun);
+    } else {
+      String::Utf8Value arg1(json_stringify(args[1]));
+      Rcpp::String json(*arg1);
+      out = r_call(fun, json);
+    }
     return json_parse(String::New(std::string(out[0]).c_str()));
   } catch( const std::exception& e ) {
     return v8::ThrowException(String::New(e.what()));
   }
+}
+
+/* console.r.call() function */
+static Handle<Value> console_r_call(const Arguments& args) {
+  return r_callback("r_call", args);
+}
+
+/* console.r.get() function */
+static Handle<Value> console_r_get(const Arguments& args) {
+  return r_callback("r_get", args);
+}
+
+/* console.r.eval() function */
+static Handle<Value> console_r_eval(const Arguments& args) {
+  return r_callback("r_eval", args);
 }
 
 // [[Rcpp::export]]
@@ -103,9 +120,11 @@ ctxptr make_context(bool set_console){
     global->Set(String::NewSymbol("print"), FunctionTemplate::New(ConsoleLog));
 
     /* R callback interface */
-    Handle<ObjectTemplate> r = ObjectTemplate::New();
-    console->Set(String::NewSymbol("r"), r);
-    r->Set(String::NewSymbol("call"), FunctionTemplate::New(callback));
+    Handle<ObjectTemplate> console_r = ObjectTemplate::New();
+    console->Set(String::NewSymbol("r"), console_r);
+    console_r->Set(String::NewSymbol("call"), FunctionTemplate::New(console_r_call));
+    console_r->Set(String::NewSymbol("get"), FunctionTemplate::New(console_r_get));
+    console_r->Set(String::NewSymbol("eval"), FunctionTemplate::New(console_r_eval));
 
   }
   /* initialize the context */
