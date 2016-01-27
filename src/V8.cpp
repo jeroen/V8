@@ -101,7 +101,8 @@ static Handle<Value> console_r_get(const Arguments& args) {
 
 /* console.r.eval() function */
 static Handle<Value> console_r_eval(const Arguments& args) {
-  return r_callback("r_eval", args);
+  r_callback("r_eval", args);
+  return v8::Undefined();
 }
 
 // [[Rcpp::export]]
