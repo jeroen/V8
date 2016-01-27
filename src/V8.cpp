@@ -16,6 +16,7 @@
 #include <v8.h>
 #include <Rcpp.h>
 #include "v8_typed_array.h"
+#include "v8_json.h"
 using namespace v8;
 
 /* a linked list keeping track of running contexts */
@@ -69,6 +70,23 @@ static Handle<Value> ConsoleError(const Arguments& args) {
   return v8::Undefined();
 }
 
+/* callback function */
+// example: from in JS: call_r("rnorm", '{"n":10}')
+// to do: convert arg objects to JSON
+static Handle<Value> callback(const Arguments& args) {
+  try {
+    Rcpp::Function callback = Rcpp::Environment::namespace_env("V8")["callback"];
+    String::Utf8Value arg0(args[0]);
+    String::Utf8Value arg1(json_stringify(args[1]));
+    Rcpp::String fun(*arg0);
+    Rcpp::String json(*arg1);
+    Rcpp::CharacterVector out(callback(fun, json));
+    return json_parse(String::New(std::string(out[0]).c_str()));
+  } catch( const std::exception& e ) {
+    return v8::ThrowException(String::New(e.what()));
+  }
+}
+
 // [[Rcpp::export]]
 ctxptr make_context(bool set_console){
   /* setup console.log */
@@ -83,6 +101,12 @@ ctxptr make_context(bool set_console){
 
     /* emscripted assumes a print function */
     global->Set(String::NewSymbol("print"), FunctionTemplate::New(ConsoleLog));
+
+    /* R callback interface */
+    Handle<ObjectTemplate> R = ObjectTemplate::New();
+    console->Set(String::NewSymbol("R"), R);
+    R->Set(String::NewSymbol("call"), FunctionTemplate::New(callback));
+
   }
   /* initialize the context */
   lstail->context = Context::New(NULL, global);
