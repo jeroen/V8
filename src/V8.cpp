@@ -103,9 +103,9 @@ ctxptr make_context(bool set_console){
     global->Set(String::NewSymbol("print"), FunctionTemplate::New(ConsoleLog));
 
     /* R callback interface */
-    Handle<ObjectTemplate> R = ObjectTemplate::New();
-    console->Set(String::NewSymbol("R"), R);
-    R->Set(String::NewSymbol("call"), FunctionTemplate::New(callback));
+    Handle<ObjectTemplate> r = ObjectTemplate::New();
+    console->Set(String::NewSymbol("r"), r);
+    r->Set(String::NewSymbol("call"), FunctionTemplate::New(callback));
 
   }
   /* initialize the context */
