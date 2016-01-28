@@ -23,5 +23,6 @@ Imports:
 LinkingTo:
     Rcpp
 Suggests:
+    testthat,
     knitr,
     rmarkdown
