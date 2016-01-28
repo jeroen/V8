@@ -78,10 +78,16 @@ static Handle<Value> r_callback(std::string fun, const Arguments& args) {
     Rcpp::CharacterVector out;
     if(args[1]->IsUndefined()){
       out = r_call(fun);
-    } else {
+    } else if(args[2]->IsUndefined()) {
       String::Utf8Value arg1(json_stringify(args[1]));
       Rcpp::String json(*arg1);
       out = r_call(fun, json);
+    } else {
+      String::Utf8Value arg1(json_stringify(args[1]));
+      String::Utf8Value arg2(json_stringify(args[2]));
+      Rcpp::String val(*arg1);
+      Rcpp::String json(*arg2);
+      out = r_call(fun, val, json);
     }
     return json_parse(String::New(std::string(out[0]).c_str()));
   } catch( const std::exception& e ) {
@@ -102,6 +108,12 @@ static Handle<Value> console_r_get(const Arguments& args) {
 /* console.r.eval() function */
 static Handle<Value> console_r_eval(const Arguments& args) {
   r_callback("r_eval", args);
+  return v8::Undefined();
+}
+
+/* console.r.eval() function */
+static Handle<Value> console_r_assign(const Arguments& args) {
+  r_callback("r_assign", args);
   return v8::Undefined();
 }
 
@@ -126,6 +138,7 @@ ctxptr make_context(bool set_console){
     console_r->Set(String::NewSymbol("call"), FunctionTemplate::New(console_r_call));
     console_r->Set(String::NewSymbol("get"), FunctionTemplate::New(console_r_get));
     console_r->Set(String::NewSymbol("eval"), FunctionTemplate::New(console_r_eval));
+    console_r->Set(String::NewSymbol("assign"), FunctionTemplate::New(console_r_assign));
 
   }
   /* initialize the context */
