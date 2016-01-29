@@ -1,14 +1,12 @@
 ---
 title: "Introduction to V8 for R"
-author: "Jeroen Ooms"
 date: "`r Sys.Date()`"
+output:
+  html_document
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Introduction to V8 for R}
   \usepackage[utf8]{inputenc} 
-output:
-  knitr:::html_vignette:
-    toc: yes
 ---
 
 ```{r, echo = FALSE, message = FALSE}
@@ -22,7 +20,7 @@ V8 is Google’s open source, high performance JavaScript engine. It is written 
 
 ```{r}
 # Create a new context
-ct <- new_context();
+ct <- v8()
 
 # Evaluate some code
 ct$eval("var foo = 123")
@@ -139,7 +137,7 @@ ct$eval('console.error("Oh no! An error!")')
 A example of using `console.error` is to verify that external resources were loaded:
 
 ```{r, eval=FALSE}
-ct <- new_context()
+ct <- v8()
 ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
 ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
 ```
@@ -149,21 +147,21 @@ ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
 Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains only a few objects: `global` (a refence to itself), `console` (for `console.log` and friends) and `print` (an alias of console.log needed by some JavaScript libraries)
 
 ```{r}
-ct <- new_context(typed_arrays = FALSE);
+ct <- v8(typed_arrays = FALSE);
 ct$get(JS("Object.keys(global)"))
 ```
 
 If typed arrays are enabled it contains some additional functions:
 
 ```{r}
-ct <- new_context(typed_arrays = TRUE);
+ct <- v8(typed_arrays = TRUE);
 ct$get(JS("Object.keys(global)"))
 ```
 
 A context always has a global scope, even when no name is set. When a context is initiated with `global = NULL`, it can still be reached by evaluating the `this` keyword within the global scope:
 
 ```{r}
-ct2 <- new_context(global = NULL, console = FALSE)
+ct2 <- v8(global = NULL, console = FALSE)
 ct2$get(JS("Object.keys(this).length"))
 ct2$assign("cars", cars)
 ct2$eval("var foo = 123")
@@ -200,3 +198,43 @@ To check if an anonymous function is syntactically valid, prefix it with `!` or 
 ct$validate("(function(x){2*x})")
 ct$validate("!function(x){2*x}")
 ```
+
+
+## Callback To R
+
+A recently added feature is to interact with R from within JavaScript using the `console.r` API`. This is most easily demonstrated via the interactive console. 
+
+```{r, eval=FALSE}
+ctx <- v8()
+ctx$console()
+```
+
+From JavaScript we can read/write R objects via `console.r.get` and `console.r.assign`. The final argument is an optional list specifying arguments passed to `toJSON` or `fromJSON`.
+
+```js
+// read the iris object into JS
+var iris = console.r.get("iris")
+var iris_col = console.r.get("iris", {dataframe : "col"})
+
+//write an object back to the R session
+console.r.assign("iris2", iris)
+console.r.assign("iris3", iris, {simplifyVector : false})
+```
+
+To call R functions use `console.r.call`. The first argument should be a string which evaluates to a function. The second argument contains a list of arguments passed to the function, similar to `do.call` in R. Both named and unnamed lists are supported. The return object is returned to JavaScript via JSON.
+
+```js
+//calls rnorm(n=2, mean=10, sd=5)
+var out = console.r.call('rnorm', {n: 2,mean:10, sd:5})
+var out = console.r.call('rnorm', [2, 20, 5])
+
+//anonymous function
+var out = console.r.call('function(x){x^2}', {x:12})
+```
+
+There is also an `console.r.eval` function, which evaluates some code. It takes only a single argument (the string to evaluate) and does not return anything. Console output is printed to the console.
+
+```js
+console.r.eval('sessionInfo()')
+```
+
