@@ -30,6 +30,7 @@ r_eval <- function(str, args = '{"print.eval":true}'){
 r_assign <- function(name, value, args = '{}'){
   ARGS <- as.list(jsonlite::fromJSON(args))
   VAL <- do.call(jsonlite::fromJSON, c(list(txt = value), ARGS))
-  assign(name, VAL, globalenv())
+  asgn <- get("assign", "package:base")
+  asgn(name, VAL, globalenv())
   return('null')
 }
