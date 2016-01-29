@@ -211,7 +211,7 @@ ctx$console()
 
 From JavaScript we can read/write R objects via `console.r.get` and `console.r.assign`. The final argument is an optional list specifying arguments passed to `toJSON` or `fromJSON`.
 
-```js
+```javascript
 // read the iris object into JS
 var iris = console.r.get("iris")
 var iris_col = console.r.get("iris", {dataframe : "col"})
@@ -232,7 +232,7 @@ var out = console.r.call('rnorm', [2, 20, 5])
 var out = console.r.call('function(x){x^2}', {x:12})
 ```
 
-There is also an `console.r.eval` function, which evaluates some code. It takes only a single argument (the string to evaluate) and does not return anything. Console output is printed to the console.
+There is also an `console.r.eval` function, which evaluates some code. It takes only a single argument (the string to evaluate) and does not return anything. Output is printed to the console.
 
 ```js
 console.r.eval('sessionInfo()')
