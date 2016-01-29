@@ -1,8 +1,9 @@
 ---
 title: "Introduction to V8 for R"
 date: "`r Sys.Date()`"
-output:
-  html_document
+output: 
+  html_document:
+    highlight : "kate"
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Introduction to V8 for R}
@@ -14,7 +15,6 @@ knitr::opts_chunk$set(comment = "")
 library(V8)
 ```
 
-## What is V8
 
 V8 is Google’s open source, high performance JavaScript engine. It is written in C++ and implements ECMAScript as specified in ECMA-262, 5th edition. The V8 R package builds on the C++ library to provide a completely standalone JavaScript engine within R:
 
@@ -223,7 +223,7 @@ console.r.assign("iris3", iris, {simplifyVector : false})
 
 To call R functions use `console.r.call`. The first argument should be a string which evaluates to a function. The second argument contains a list of arguments passed to the function, similar to `do.call` in R. Both named and unnamed lists are supported. The return object is returned to JavaScript via JSON.
 
-```js
+```javascript
 //calls rnorm(n=2, mean=10, sd=5)
 var out = console.r.call('rnorm', {n: 2,mean:10, sd:5})
 var out = console.r.call('rnorm', [2, 20, 5])
@@ -234,7 +234,7 @@ var out = console.r.call('function(x){x^2}', {x:12})
 
 There is also an `console.r.eval` function, which evaluates some code. It takes only a single argument (the string to evaluate) and does not return anything. Output is printed to the console.
 
-```js
+```javascript
 console.r.eval('sessionInfo()')
 ```
 
