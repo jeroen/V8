@@ -238,3 +238,18 @@ There is also an `console.r.eval` function, which evaluates some code. It takes 
 console.r.eval('sessionInfo()')
 ```
 
+Besides automatically converting objects, V8 also propagates exceptions between R, C++ and JavaScript up and down the stack. Hence you can catch R errors as JavaScript exceptions when calling an R function from JavaScript or vice versa. If nothing gets caught, exceptions bubble all the way up as R errors in your top-level R session.
+
+```javascript
+//raise an error in R
+console.r.call('stop("ouch!")')
+
+//catch error from JavaScript
+try {
+  console.r.call('stop("ouch!")')
+} catch (e) {
+  console.log("Uhoh R had an error: " + e)
+}
+//# Uhoh R had an error: ouch!
+```
+
