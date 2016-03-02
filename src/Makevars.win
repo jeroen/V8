@@ -2,7 +2,7 @@ PKG_CPPFLAGS= -I../windows/libv8-3.15/include
 PKG_CXXFLAGS=-DV8_DISABLE_DEPRECATIONS
 PKG_LIBS= -L../windows/libv8-3.15/lib${R_ARCH} -lv8_base -lpreparser_lib -lv8_snapshot -lws2_32 -lwinmm
 
-all: clean winlibs $(OBJECTS)
+all: winlibs
 
 clean:
 	rm -f $(OBJECTS)
@@ -18,3 +18,5 @@ winlibs:
 ifeq "$(ALLUSERSPROFILE)" "C:\Documents and Settings\All Users"
 PKG_LIBS += -lmsvcr100
 endif
+
+.PHONY: all winlibs clean

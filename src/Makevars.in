@@ -1,8 +1,3 @@
 PKG_CXXFLAGS=-DV8_DISABLE_DEPRECATIONS
 PKG_CPPFLAGS=@cflags@
 PKG_LIBS=@libs@
-
-all: clean
-
-clean:
-	rm -f *.o *.so
