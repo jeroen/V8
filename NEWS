@@ -1,3 +1,6 @@
+1.0
+ - Remove UTF-8 workarounds now that Rcpp has proper UTF-8 support
+
 0.10
  - Add the console.r callback JavaScript api
 

@@ -117,10 +117,10 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
       if(length(src) > 1){
         src <- join(src)
       }
-      get_str_output(context_eval_safe(src, private$context));
+      get_str_output(context_eval(src, private$context));
     }
     validate <- function(src){
-      context_validate_safe(join(src), private$context)
+      context_validate(join(src), private$context)
     }
     call <- function(fun, ..., auto_unbox = TRUE){
       stopifnot(is.character(fun))
@@ -166,7 +166,7 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
       private$context <- make_context(private$console);
       private$created <- Sys.time();
       if(length(global)){
-        context_eval_safe(paste("var", global, "= this;", collapse = "\n"), private$context)
+        context_eval(paste("var", global, "= this;", collapse = "\n"), private$context)
       }
       if(isTRUE(typed_arrays)){
         context_enable_typed_arrays(private$context)

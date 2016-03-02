@@ -163,10 +163,13 @@ std::string version(){
 }
 
 // [[Rcpp::export]]
-std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("Context has been disposed.");
+
+  //converts input to UTF8 if needed
+  src.set_encoding(CE_UTF8);
 
   // Create a scope
   HandleScope handle_scope;
@@ -191,15 +194,20 @@ std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context
 
   // Convert result to UTF8.
   String::Utf8Value utf8(result);
-  return *utf8;
+  Rcpp::String out(*utf8);
+  out.set_encoding(CE_UTF8);
+  return out;
 }
 
 // [[Rcpp::export]]
-bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
+bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
 
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("Context has been disposed.");
+
+  //converts input to UTF8 if needed
+  src.set_encoding(CE_UTF8);
 
   // Create scope
   HandleScope handle_scope;
@@ -215,27 +223,6 @@ bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> >
 bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
   // Test if context still exists
   return(!ctx);
-}
-
-/*
-Rcpp does not deal well with UTF8 on windows.
-Workaround below (hopefully temporary)
-*/
-
-// [[Rcpp::export]]
-SEXP context_eval_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
-  std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
-  std::string out = context_eval(str, ctx);
-  SEXP res = PROTECT(Rf_allocVector(STRSXP, 1));
-  SET_STRING_ELT(res, 0, Rf_mkCharCE(out.c_str(), CE_UTF8));
-  UNPROTECT(1);
-  return res;
-}
-
-// [[Rcpp::export]]
-bool context_validate_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
-  std::string str(Rf_translateCharUTF8(Rf_asChar(src)));
-  return context_validate(str, ctx);
 }
 
 /*

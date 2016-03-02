@@ -39,24 +39,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // context_eval
-std::string context_eval(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
 RcppExport SEXP V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< std::string >::type src(srcSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type src(srcSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
     __result = Rcpp::wrap(context_eval(src, ctx));
     return __result;
 END_RCPP
 }
 // context_validate
-bool context_validate(std::string src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
 RcppExport SEXP V8_context_validate(SEXP srcSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< std::string >::type src(srcSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type src(srcSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
     __result = Rcpp::wrap(context_validate(src, ctx));
     return __result;
@@ -70,30 +70,6 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
     __result = Rcpp::wrap(context_null(ctx));
-    return __result;
-END_RCPP
-}
-// context_eval_safe
-SEXP context_eval_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_eval_safe(SEXP srcSEXP, SEXP ctxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< SEXP >::type src(srcSEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
-    __result = Rcpp::wrap(context_eval_safe(src, ctx));
-    return __result;
-END_RCPP
-}
-// context_validate_safe
-bool context_validate_safe(SEXP src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_validate_safe(SEXP srcSEXP, SEXP ctxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< SEXP >::type src(srcSEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
-    __result = Rcpp::wrap(context_validate_safe(src, ctx));
     return __result;
 END_RCPP
 }
