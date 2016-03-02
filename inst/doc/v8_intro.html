@@ -9,7 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="date" content="2016-01-29" />
+<meta name="date" content="2016-03-03" />
 
 <title>Introduction to V8 for R</title>
 
@@ -90,7 +90,7 @@ img {
 
 <div id="header">
 <h1 class="title">Introduction to V8 for R</h1>
-<h4 class="date"><em>2016-01-29</em></h4>
+<h4 class="date"><em>2016-03-03</em></h4>
 </div>
 
 
@@ -106,7 +106,7 @@ ct$<span class="kw">eval</span>(<span class="st">&quot;foo + bar&quot;</span>)</
 <p>A major advantage over the other foreign language interfaces is that V8 requires no compilers, external executables or other run-time dependencies. The entire engine is contained within a 6MB package (2MB zipped) and works on all major platforms.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create some JSON</span>
 <span class="kw">cat</span>(ct$<span class="kw">eval</span>(<span class="st">&quot;JSON.stringify({x:Math.random()})&quot;</span>))</code></pre></div>
-<pre><code>{&quot;x&quot;:0.4112895305734128}</code></pre>
+<pre><code>{&quot;x&quot;:0.4219981387723237}</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Simple closure</span>
 ct$<span class="kw">eval</span>(<span class="st">&quot;(function(x){return x+1;})(123)&quot;</span>)</code></pre></div>
 <pre><code>[1] &quot;124&quot;</code></pre>
@@ -283,6 +283,17 @@ ctx$<span class="kw">console</span>()</code></pre></div>
 <span class="kw">var</span> out <span class="op">=</span> <span class="va">console</span>.<span class="va">r</span>.<span class="at">call</span>(<span class="st">'function(x){x^2}'</span><span class="op">,</span> <span class="op">{</span><span class="dt">x</span><span class="op">:</span><span class="dv">12</span><span class="op">}</span>)</code></pre></div>
 <p>There is also an <code>console.r.eval</code> function, which evaluates some code. It takes only a single argument (the string to evaluate) and does not return anything. Output is printed to the console.</p>
 <div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="va">console</span>.<span class="va">r</span>.<span class="at">eval</span>(<span class="st">'sessionInfo()'</span>)</code></pre></div>
+<p>Besides automatically converting objects, V8 also propagates exceptions between R, C++ and JavaScript up and down the stack. Hence you can catch R errors as JavaScript exceptions when calling an R function from JavaScript or vice versa. If nothing gets caught, exceptions bubble all the way up as R errors in your top-level R session.</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="co">//raise an error in R</span>
+<span class="va">console</span>.<span class="va">r</span>.<span class="at">call</span>(<span class="st">'stop(&quot;ouch!&quot;)'</span>)
+
+<span class="co">//catch error from JavaScript</span>
+<span class="cf">try</span> <span class="op">{</span>
+  <span class="va">console</span>.<span class="va">r</span>.<span class="at">call</span>(<span class="st">'stop(&quot;ouch!&quot;)'</span>)
+<span class="op">}</span> <span class="cf">catch</span> (e) <span class="op">{</span>
+  <span class="va">console</span>.<span class="at">log</span>(<span class="st">&quot;Uhoh R had an error: &quot;</span> <span class="op">+</span> e)
+<span class="op">}</span>
+<span class="co">//# Uhoh R had an error: ouch!</span></code></pre></div>
 </div>
 
 
