@@ -114,10 +114,7 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Public methods
   this <- local({
     eval <- function(src){
-      if(length(src) > 1){
-        src <- join(src)
-      }
-      get_str_output(context_eval(src, private$context));
+      get_str_output(context_eval(join(src), private$context));
     }
     validate <- function(src){
       context_validate(join(src), private$context)
