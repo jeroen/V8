@@ -58,7 +58,7 @@ for example: \code{ct$eval("Object.keys(this)")}.
   \item{\code{eval(src)}}{ evaluates a string with JavaScript source code}
   \item{\code{validate(src)}}{ test if a string of JavaScript code is syntactically valid}
   \item{\code{source(file)}}{ evaluates a file with JavaScript code}
-  \item{\code{get(name)}}{ convert a JavaScript to R via JSON}
+  \item{\code{get(name, ...)}}{ convert a JavaScript to R via JSON. Optional arguments (\code{...}) are passed to \link[jsonlite]{fromJSON} to set JSON coercion options.}
   \item{\code{assign(name, value)}}{ copy an R object to JavaScript via JSON}
   \item{\code{call(fun, ...)}}{ call a JavaScript function with arguments \code{...}. Arguments which are not wrapped in \code{JS()} automatically get converted to JSON}
   \item{\code{reset()}}{ resets the context (removes all objects)}
@@ -80,6 +80,7 @@ ctx$eval("(function(x){return x+1;})(123)")
 # Objects (via JSON only)
 ctx$assign("mydata", mtcars)
 ctx$get("mydata")
+ctx$get("mydata", simplifyVector = FALSE)
 
 # Assign JavaScript
 ctx$assign("foo", JS("function(x){return x*x}"))
