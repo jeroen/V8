@@ -286,6 +286,8 @@ join <- function (str){
 }
 
 # Override default call argument.
-stop <- function(..., call. = FALSE){
-  base::stop(..., call. = call.)
+stop <- function(x, ..., call. = FALSE){
+  if(inherits(x, "condition"))
+    base::stop(x, ...)
+  base::stop(x, ..., call. = call.)
 }

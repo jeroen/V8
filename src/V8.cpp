@@ -2,7 +2,6 @@
  R bindings to V8. Copyright 2014, Jeroen Ooms.
 
  Notes:
- - Rcpp completely ignores character encodings, so need to convert manually.
  - Implementation of Typed Arrays taken from node v0.6.21
 
  V8 source parsing:
