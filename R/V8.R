@@ -1,10 +1,9 @@
 #' Run JavaScript in a V8 context
 #'
-#' A \emph{context} is an execution environment that allows separate, unrelated,
-#' JavaScript code to run in a single instance of V8, like a tab in a browser.
-#'
-#' The \code{v8} function is an alias for \code{new_context}, they do exactly the
-#' same thing.
+#' The \code{\link{v8}} function (formerly called \code{new_context}) creates a
+#' new V8 \emph{context}. A context provides an execution environment that allows
+#' separate, unrelated, JavaScript code to run in a single instance of V8, like a
+#' tab in a browser.
 #'
 #' V8 contexts cannot be serialized but creating a new contexts and sourcing code
 #' is very cheap. You can run as many parallel v8 contexts as you want. R packages
@@ -41,14 +40,15 @@
 #'   \item{\code{reset()}}{ resets the context (removes all objects)}
 #' }
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
-#' @export
+#' @export v8 new_context
+#' @aliases v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
 #' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
 #' functions to the global namespace.
-#' @aliases V8 v8 new_context
+#' @aliases v8 V8 v8 new_context
 #' @rdname V8
-#' @name Context
+#' @name V8
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
 #' @importFrom Rcpp sourceCpp
@@ -225,8 +225,6 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   })
 }
 
-#' @export
-#' @rdname V8
 new_context <- v8
 
 undefined_to_null <- function(str){
