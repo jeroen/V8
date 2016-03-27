@@ -52,12 +52,12 @@ echo "Using PKG_CFLAGS=$PKG_CFLAGS"
 echo "Using PKG_LIBS=$PKG_LIBS"
 
 # Find compiler
-CXX=$(${R_HOME}/bin/R CMD config CXX)
+CXXCPP=$(${R_HOME}/bin/R CMD config CXXCPP)
 CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
 
 # Test configuration
-${CXX} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -E tools/version.cpp >/dev/null 2>&1 || R_CONFIG_ERROR=1;
+${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/version.cpp >/dev/null 2>&1 || R_CONFIG_ERROR=1;
 
 # Customize the error
 if [ $R_CONFIG_ERROR ]; then
