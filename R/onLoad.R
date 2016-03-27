@@ -1,6 +1,6 @@
 .onLoad <- function(libname, pkgname){
   # Test for development
-  # ct <- new_context()
+  # ct <- v8()
   # ct$source(system.file("js/underscore.js", package = pkgname))
   # rm(ct)
 }

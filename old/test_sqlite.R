@@ -2,7 +2,7 @@ library(V8)
 library(jsonlite)
 stopifnot(packageVersion("V8") > "0.4.1")
 
-ct <- new_context()
+ct <- v8()
 ct$source("https://raw.githubusercontent.com/kripken/sql.js/master/js/sql.js")
 
 ct$eval('

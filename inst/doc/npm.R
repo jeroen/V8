@@ -3,16 +3,16 @@ knitr::opts_chunk$set(comment = "")
 library(V8)
 
 ## ------------------------------------------------------------------------
-ct <- new_context()
+ct <- v8()
 ct$source(system.file("js/underscore.js", package="V8"))
 ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
 ## ----eval=FALSE----------------------------------------------------------
-#  ct <- new_context()
+#  ct <- v8()
 #  ct$source("~/Desktop/bundle.js")
 
 ## ----echo=FALSE, results='hide'------------------------------------------
-ct <- new_context()
+ct <- v8()
 ct$source("beautify.js")
 
 ## ------------------------------------------------------------------------

@@ -16,7 +16,7 @@ that it will be treated as literal JavaScript code. It was copied from the
 htmlwidgets package, and does exactly the same thing.
 }
 \examples{
-ct <- new_context()
+ct <- v8()
 ct$eval("1+1")
 ct$eval(JS("1+1"))
 ct$assign("test", JS("2+3"))

@@ -1,6 +1,7 @@
 1.0.1
  - Fix internal stop() function for new testthat
  - ctx$eval(character(0)) does not raise error anymore
+ - Remove references to new_context() in favor of v8()
 
 1.0
  - Remove UTF-8 workarounds now that Rcpp has proper UTF-8 support

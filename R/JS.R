@@ -8,7 +8,7 @@
 #'   will be pasted into one character string)
 #' @author Yihui Xie
 #' @export
-#' @examples ct <- new_context()
+#' @examples ct <- v8()
 #' ct$eval("1+1")
 #' ct$eval(JS("1+1"))
 #' ct$assign("test", JS("2+3"))

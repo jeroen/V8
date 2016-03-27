@@ -101,14 +101,14 @@ ctx$call("template", list(name = "Mustache"))
 ctx$call("function(x, y){return x * y}", 123, 3)
 
 \dontrun{CoffeeScript
-ct2 <- new_context()
+ct2 <- v8()
 ct2$source("http://coffeescript.org/extras/coffee-script.js")
 jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 ct2$eval(jscode)
 ct2$call("square", 9)
 
 # Interactive console
-ct3 <- new_context()
+ct3 <- v8()
 ct3$console()
 //this is JavaScript
 var test = [1,2,3]

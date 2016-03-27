@@ -35,7 +35,7 @@ Yes! But not all packages will work. Most libraries in [npm](https://www.npmjs.c
 Some general purpose libraries like underscore or crossfilter will work natively in V8:
 
 ```{r}
-ct <- new_context()
+ct <- v8()
 ct$source(system.file("js/underscore.js", package="V8"))
 ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 ```
@@ -70,12 +70,12 @@ The third line runs browserify and saves the output to a new file `bundle.js`.
 We now have a file that we can load in V8. Assuming you ran the above commands in your Desktop directory:
 
 ```{r eval=FALSE}
-ct <- new_context()
+ct <- v8()
 ct$source("~/Desktop/bundle.js")
 ```
 
 ```{r echo=FALSE, results='hide'}
-ct <- new_context()
+ct <- v8()
 ct$source("beautify.js")
 ```
 

@@ -41,12 +41,11 @@
 #' }
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 #' @export v8 new_context
-#' @aliases v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
 #' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
 #' functions to the global namespace.
-#' @aliases v8 V8 v8 new_context
+#' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
 #' @importFrom jsonlite fromJSON toJSON
@@ -94,14 +93,14 @@
 #' ctx$call("function(x, y){return x * y}", 123, 3)
 #'
 #' \dontrun{CoffeeScript
-#' ct2 <- new_context()
+#' ct2 <- v8()
 #' ct2$source("http://coffeescript.org/extras/coffee-script.js")
 #' jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 #' ct2$eval(jscode)
 #' ct2$call("square", 9)
 #'
 #' # Interactive console
-#' ct3 <- new_context()
+#' ct3 <- v8()
 #' ct3$console()
 #' //this is JavaScript
 #' var test = [1,2,3]
@@ -225,6 +224,7 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   })
 }
 
+# For backward compatibility
 new_context <- v8
 
 undefined_to_null <- function(str){
