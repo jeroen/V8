@@ -5,7 +5,7 @@ cache: packages
 addons:
   apt:
     packages:
-      - v8-dev
+      - libv8-dev
 
 r_github_packages:
   - jimhester/covr
