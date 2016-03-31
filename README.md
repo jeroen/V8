@@ -1,23 +1,17 @@
-Embedded JavaScript Engine
---------------------------
+# V8
+
+##### *Embedded JavaScript Engine for R*
 
 [![Build Status](https://travis-ci.org/jeroenooms/V8.svg?branch=master)](https://travis-ci.org/jeroenooms/V8)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jeroenooms/V8?branch=master&svg=true)](https://ci.appveyor.com/project/jeroenooms/V8)
+[![Coverage Status](https://codecov.io/github/jeroenooms/V8/coverage.svg?branch=master)](https://codecov.io/github/jeroenooms/V8?branch=master)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/V8)](http://cran.r-project.org/package=V8)
+[![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/V8)](http://cran.r-project.org/web/packages/V8/index.html)
 
 > An R interface to Google's open source JavaScript engine.
-  V8 is written in C++ and implements ECMAScript as specified in ECMA-262, 5th edition.
-  In addition, this package implements typed arrays as specified in ECMA 6 in order to
-  support high-performance computing and libraries compiled with 'emscripten'
+  V8 is written in C++ and implements ECMAScript as specified in ECMA-262,
+  5th edition. In addition, this package implements typed arrays as
+  specified in ECMA 6 used for high-performance computing and libraries
+  compiled with 'emscripten'.
 
-Installation
-------------
-
-This package depends on libv8 around 3.14 or 3.16, which is the version included with most package managers:
-
- - Debian: [libv8-3.14-dev](https://packages.debian.org/sid/libv8-3.14-dev)
- - Fedora/EPEL: [v8-devel](https://apps.fedoraproject.org/packages/v8-devel)
- - Arch: [v8-3.14](https://aur.archlinux.org/packages/v8-3.14/)
- - OSX: [v8-315](https://github.com/Homebrew/homebrew-versions/blob/master/v8-315.rb) (`brew tap homebrew/versions; brew install v8-315`)
-
-Unfortunately the developers of libv8 do not care about backward compatibility and therefore recent branches of V8 (such as 3.22 or 4.xx) will not work. For this reason most distributions are unlikely to upgrade any time soon because it would break everything downstream (node, mongodb, etc).
-
-The only distribution I am aware of that does not include a compatible version of v8 is OpenSUSE. So on this system you'll have to pull an older version from [rpmfind](http://www.rpmfind.net/linux/rpm2html/search.php?query=v8&system=opensuse) or [ruby gem](https://rubygems.org/gems/libv8/versions/3.16.14.7) or something.
+Have a look at the [vignette](https://cran.r-project.org/web/packages/V8/vignettes/v8_intro.html) to get started!

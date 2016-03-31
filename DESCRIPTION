@@ -1,7 +1,7 @@
 Package: V8
 Type: Package
-Title: Embedded JavaScript Engine
-Version: 1.0.0.9000
+Title: Embedded JavaScript Engine for R
+Version: 1.0.1
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen.ooms@stat.ucla.edu>
 Description: An R interface to Google's open source JavaScript engine.

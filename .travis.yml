@@ -1,12 +1,22 @@
 language: r
+sudo: false
+cache: packages
+
+addons:
+  apt:
+    packages:
+      - v8-dev
+
+r_github_packages:
+  - jimhester/covr
 
 warnings_are_errors: true
 #r_check_revdep: true
-
-apt_packages:
-  - libv8-dev
 
 notifications:
   email:
     on_success: change
     on_failure: change
+
+after_success:
+  - Rscript -e 'covr::codecov()'
