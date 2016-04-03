@@ -35,9 +35,9 @@ unless an argument has been wrapped in \code{JS()}, see examples.
 The \code{ct$validate} function is used to test if a piece of code is valid
 JavaScript syntax within the context, and always returns TRUE or FALSE.
 
-JSON is used for all data interchange beteen R and JavaScript. Therefore you can
+JSON is used for all data interchange between R and JavaScript. Therefore you can
 (and should) only exchange data types that have a sensible JSON representation.
-All aguments and objects are automatically converted according to the mapping
+All arguments and objects are automatically converted according to the mapping
 described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
 by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
 
