@@ -10,7 +10,7 @@ Description: An R interface to Google's open source JavaScript engine.
     specified in ECMA 6 used for high-performance computing and libraries
     compiled with 'emscripten'.
 License: MIT + file LICENSE
-URL: https://github.com/jeroenooms/v8, https://developers.google.com/v8/
+URL: https://github.com/jeroenooms/v8, https://developers.google.com/v8/intro
 BugReports: https://github.com/jeroenooms/v8/issues
 SystemRequirements: V8: libv8-dev (deb), v8-devel (rpm), v8-3.14 (arch)
 NeedsCompilation: yes
