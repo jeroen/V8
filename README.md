@@ -40,7 +40,7 @@ ctx$get("bar")
 
 Call functions from JavaScript libraries
 
-```
+```r
 ctx <- v8()
 ctx$source("http://coffeescript.org/extras/coffee-script.js")
 jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
