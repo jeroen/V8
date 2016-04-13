@@ -25,7 +25,7 @@ About the R package:
 
 ```r
 # Create a new context
-ctx <- v8()
+ctx <- V8::v8()
 
 # Evaluate some code
 ctx$eval("var foo = 123")
@@ -41,9 +41,9 @@ ctx$get("bar")
 Call functions from JavaScript libraries
 
 ```r
-ctx <- v8()
+ctx <- V8::v8()
 ctx$source("http://coffeescript.org/extras/coffee-script.js")
-jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
+jscode <- ctx$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 ctx$eval(jscode)
 ctx$call("square", 9)
 ```
