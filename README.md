@@ -14,4 +14,70 @@
   specified in ECMA 6 used for high-performance computing and libraries
   compiled with 'emscripten'.
 
-Have a look at the [vignette](https://cran.r-project.org/web/packages/V8/vignettes/v8_intro.html) to get started!
+## Documentation
+
+About the R package:
+
+ - Vignette: [Introduction to V8 for R](https://cran.r-project.org/web/packages/V8/vignettes/v8_intro.html)
+ - Vignette: [Using NPM packages in V8 with browserify](https://cran.r-project.org/web/packages/V8/vignettes/npm.html)
+
+## Hello World
+
+```r
+# Create a new context
+ctx <- v8()
+
+# Evaluate some code
+ctx$eval("var foo = 123")
+ctx$eval("var bar = 456")
+ctx$eval("foo+bar")
+
+# Assign / get objects
+ctx$assign("foo", JS("function(x){return x*x}"))
+ctx$assign("bar", JS("foo(9)"))
+ctx$get("bar")
+```
+
+Call functions from JavaScript libraries
+
+```
+ctx <- v8()
+ctx$source("http://coffeescript.org/extras/coffee-script.js")
+jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
+ctx$eval(jscode)
+ctx$call("square", 9)
+```
+
+## Installation
+
+Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
+
+```r
+install.packages("V8")
+```
+
+Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro) 3.14 or 3.15 (no newer!). On __Debian__ or __Ubuntu__ use [libv8-dev](https://packages.debian.org/testing/libv8-dev):
+
+```
+sudo apt-get install -y libv8-dev
+```
+
+On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8-devel):
+
+```
+sudo yum install v8-devel
+````
+
+On __CentOS / RHEL__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
+
+```
+sudo yum install epel-release
+sudo yum install v8-devel
+```
+
+On __OS-X__ use [v8-315](https://github.com/Homebrew/homebrew-versions/blob/master/v8-315.rb) (**not** regular v8) from Homebrew versions:
+
+```
+brew tap homebrew/versions
+brew install v8-315
+```
