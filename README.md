@@ -25,7 +25,8 @@ About the R package:
 
 ```r
 # Create a new context
-ctx <- V8::v8()
+library(V8)
+ctx <- v8()
 
 # Evaluate some code
 ctx$eval("var foo = 123")
