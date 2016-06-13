@@ -44,7 +44,7 @@ However NPM assumes disk access to resolve dependencies. How is that going to wo
 
 ## Browserify to the rescue
 
-![browserify logo](http://substack.net/images/browserify_logo.png)
+![browserify logo](https://www.opencpu.org/images/browserify.png)
 
 [Browserify](http://browserify.org/) is a brilliant tool to bundle an npm package with all of its dependencies into a single js file that does not require disk access. It is mainly designed to make npm packages suitable for use on a webpage (duh) but it is useful with embedded V8 as well. To install it run:
 
