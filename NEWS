@@ -1,3 +1,6 @@
+1.0.2
+ - Update URL of browserify logo
+
 1.0.1
  - Fix internal stop() function for new testthat
  - ctx$eval(character(0)) does not raise error anymore
