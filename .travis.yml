@@ -33,7 +33,7 @@ notifications:
     on_failure: change
 
 before_install:
-  - if [[ "${R_NOBREW}" ]]; then sudo ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall --force)"; fi
+  - if [[ "${R_NOBREW}" ]]; then curl -OLSs https://raw.githubusercontent.com/Homebrew/install/master/uninstall; sudo ruby uninstall --force; fi
 
 after_success:
   - if [ "${R_CODECOV}" ]; then Rscript -e 'covr::codecov()'; fi
