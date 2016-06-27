@@ -6,10 +6,6 @@ os:
   - linux
   - osx
 
-compiler:
-  - gcc
-  - clang
-
 addons:
   apt:
     packages:
@@ -18,7 +14,6 @@ addons:
 env:
   matrix:
   - osx_image
-
 
 r_github_packages:
   - jimhester/covr
@@ -31,5 +26,8 @@ notifications:
     on_success: change
     on_failure: change
 
+before install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install v8-315; fi
+
 after_success:
-  - Rscript -e 'covr::codecov()'
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then Rscript -e 'covr::codecov()'; fi
