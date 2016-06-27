@@ -7,9 +7,10 @@ matrix:
       sudo: false
     - os: osx
       osx_image: xcode7.2
+      env: R_BREW=true
     - os: osx
       osx_image: beta-xcode6.1
-      env: NOBREW=true
+      env: R_NOBREW=true
 
 addons:
   apt:
@@ -32,8 +33,8 @@ notifications:
     on_failure: change
 
 before install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" && -z "$NOBREW" ]]; then brew update; brew install v8-315; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" && -n "$NOBREW" ]]; then ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"; fi
+  - if [[ "$R_BREW" ]]; then brew update; brew install v8-315; fi
+  - if [[ "$R_NOBREW" ]]; then ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"; fi
 
 after_success:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then Rscript -e 'covr::codecov()'; fi
