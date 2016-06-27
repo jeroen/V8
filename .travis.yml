@@ -17,10 +17,6 @@ addons:
     packages:
       - libv8-dev
 
-env:
-  matrix:
-  - osx_image
-
 r_github_packages:
   - jimhester/covr
 
