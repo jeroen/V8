@@ -5,19 +5,17 @@ matrix:
   include:
     - os: linux
       dist: precise
-      sudo: false
     - os: linux
       dist: trusty
-      sudo: false
     - os: linux
       dist: xenial
-      sudo: false
       ENV: R_CODECOV=true
     - os: osx
       osx_image: xcode7.2
       env: R_BREW=true
     - os: osx
       osx_image: beta-xcode6.1
+      sudo: required
       env: R_NOBREW=true
 
 addons:
@@ -38,7 +36,7 @@ notifications:
 
 before install:
   - if [[ "${R_BREW}" ]]; then brew update; brew install v8-315; fi
-  - if [[ "${R_NOBREW}" ]]; then ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"; fi
+  - if [[ "${R_NOBREW}" ]]; then sudo ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall)"; fi
 
 after_success:
   - if [ "${R_CODECOV}" ]; then Rscript -e 'covr::codecov()'; fi
