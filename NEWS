@@ -1,3 +1,6 @@
+1.0.3
+ - Update homebrew URL in configure script
+
 1.0.2
  - Update URL of browserify logo
 

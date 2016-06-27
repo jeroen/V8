@@ -7,10 +7,10 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-<meta name="date" content="2016-03-27" />
+
+<meta name="date" content="2016-06-28" />
 
 <title>Introduction to V8 for R</title>
 
@@ -66,25 +66,7 @@ code > span.in { color: #808080; font-weight: bold; font-style: italic; } /* Inf
 </style>
 
 
-
-</head>
-
-<body>
-
 <style type="text/css">
-.main-container {
-  max-width: 940px;
-  margin-left: auto;
-  margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
-}
-img {
-  max-width:100%;
-  height: auto;
-}
 h1 {
   font-size: 34px;
 }
@@ -105,6 +87,30 @@ h5 {
 }
 h6 {
   font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type="text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -135,8 +141,9 @@ $(document).ready(function () {
 <div class="fluid-row" id="header">
 
 
-<h1 class="title">Introduction to V8 for R</h1>
-<h4 class="date"><em>2016-03-27</em></h4>
+
+<h1 class="title toc-ignore">Introduction to V8 for R</h1>
+<h4 class="date"><em>2016-06-28</em></h4>
 
 </div>
 
@@ -153,7 +160,7 @@ ct$<span class="kw">eval</span>(<span class="st">&quot;foo + bar&quot;</span>)</
 <p>A major advantage over the other foreign language interfaces is that V8 requires no compilers, external executables or other run-time dependencies. The entire engine is contained within a 6MB package (2MB zipped) and works on all major platforms.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create some JSON</span>
 <span class="kw">cat</span>(ct$<span class="kw">eval</span>(<span class="st">&quot;JSON.stringify({x:Math.random()})&quot;</span>))</code></pre></div>
-<pre><code>{&quot;x&quot;:0.8161813439801335}</code></pre>
+<pre><code>{&quot;x&quot;:0.9676251080818474}</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Simple closure</span>
 ct$<span class="kw">eval</span>(<span class="st">&quot;(function(x){return x+1;})(123)&quot;</span>)</code></pre></div>
 <pre><code>[1] &quot;124&quot;</code></pre>
