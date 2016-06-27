@@ -6,11 +6,9 @@ matrix:
     - os: linux
       dist: precise
       sudo: false
+      env: R_CODECOV=true
     - os: linux
       dist: trusty
-    - os: linux
-      dist: xenial
-      env: R_CODECOV=true
     - os: osx
       osx_image: xcode7.2
       env: R_BREW=true
