@@ -2,10 +2,23 @@ language: r
 sudo: false
 cache: packages
 
+os:
+  - linux
+  - osx
+
+compiler:
+  - gcc
+  - clang
+
 addons:
   apt:
     packages:
       - libv8-dev
+
+env:
+  matrix:
+  - osx_image
+
 
 r_github_packages:
   - jimhester/covr
