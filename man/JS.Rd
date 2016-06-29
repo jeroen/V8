@@ -6,10 +6,6 @@
 \usage{
 JS(...)
 }
-\arguments{
-\item{...}{character vectors as the JavaScript source code (all arguments
-will be pasted into one character string)}
-}
 \description{
 This function \code{JS()} marks character vectors with a special class, so
 that it will be treated as literal JavaScript code. It was copied from the
