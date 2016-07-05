@@ -18,19 +18,10 @@
 #include "v8_json.h"
 using namespace v8;
 
-/* a linked list keeping track of running contexts */
-struct node {
-  Persistent<Context> context;
-  node *next;
-};
-
-node ctxlist = *(new node);
-node *lstail = &ctxlist;
-
 void ctx_finalizer( Persistent<Context>* context ){
-  if(context){
+  if(context)
     context->Dispose();
-  }
+  delete context;
 }
 
 typedef Rcpp::XPtr<Persistent<Context>, Rcpp::PreserveStorage, ctx_finalizer> ctxptr;
@@ -141,11 +132,8 @@ ctxptr make_context(bool set_console){
 
   }
   /* initialize the context */
-  lstail->context = Context::New(NULL, global);
-  ctxptr ptr(&(lstail->context));
-  lstail->next = new node;
-  lstail = lstail->next;
-  return(ptr);
+  Persistent<Context> *ctptr = new Persistent<Context>(Context::New(NULL, global));
+  return ctxptr(ctptr);
 }
 
 // [[Rcpp::export]]
