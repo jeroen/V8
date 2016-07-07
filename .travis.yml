@@ -9,8 +9,9 @@ matrix:
     - os: linux
       dist: trusty
       env: R_CODECOV=true
+      r_check_args: '--use-valgrind'
     - os: osx
-      osx_image: xcode7.2
+      osx_image: xcode8
       brew_packages: v8-315
       latex: false
     - os: osx
@@ -21,6 +22,7 @@ addons:
   apt:
     packages:
       - libv8-dev
+      - valgrind
 
 r_github_packages:
   - jimhester/covr
