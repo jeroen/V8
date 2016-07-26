@@ -7,8 +7,8 @@
 
 # Library settings
 PKG_CONFIG_NAME="libv8"
-PKG_DEB_NAME="libv8-3.14-dev | libv8-dev"
-PKG_RPM_NAME="v8-devel"
+PKG_DEB_NAME="libv8-3.14-dev (formerly: libv8-dev)"
+PKG_RPM_NAME="v8-314-devel (formerly: v8-devel)"
 PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8-315"
 PKG_LIBS="-lv8"
