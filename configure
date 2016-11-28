@@ -13,6 +13,7 @@ PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8-315"
 PKG_LIBS="-lv8"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
+PKG_CFLAGS="-I/usr/include/v8-3.14"
 
 # Use pkg-config if available
 if [ $(command -v pkg-config) ]; then
@@ -57,7 +58,7 @@ CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
 
 # Test configuration
-${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/version.cpp >/dev/null 2>&1 || R_CONFIG_ERROR=1;
+${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/version.cpp >/dev/null || R_CONFIG_ERROR=1;
 
 # Customize the error
 if [ $R_CONFIG_ERROR ]; then
