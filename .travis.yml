@@ -12,7 +12,9 @@ matrix:
       r_check_args: '--use-valgrind'
     - os: osx
       osx_image: xcode8.1
-      brew_packages: v8-315
+      before_install:
+        - brew tap brew tap homebrew/versions
+        - brew install v8-315
       latex: false
     - os: osx
       osx_image: xcode8.1
