@@ -74,6 +74,7 @@ if [ $? -ne 0 ]; then
   echo "  sudo yum install v8-314-devel"
   echo "On MacOS Homebrew try this:"
   echo "  brew remove v8"
+  echo "  brew tap homebrew/versions"
   echo "  brew install v8-315"
   echo "To use a custom libv8 build set INCLUDE_DIR and LIB_DIR manually via:"
   echo "R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
