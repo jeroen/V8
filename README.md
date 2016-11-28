@@ -63,10 +63,10 @@ Installation from source on Linux requires [`libv8`](https://developers.google.c
 sudo apt-get install -y libv8-dev
 ```
 
-On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8-devel):
+On __Fedora__ we need [v8-314-devel](https://apps.fedoraproject.org/packages/v8-314):
 
 ```
-sudo yum install v8-devel
+sudo yum install v8-314-devel
 ````
 
 On __CentOS / RHEL__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
@@ -82,3 +82,5 @@ On __OS-X__ use [v8-315](https://github.com/Homebrew/homebrew-versions/blob/mast
 brew tap homebrew/versions
 brew install v8-315
 ```
+
+On other systems you might need to install libv8 from source. A patched version of V8 3.14 is available from https://github.com/v8-314/v8. Build instructions are in the `build` directory.

@@ -1,3 +1,7 @@
+1.2
+ - Improve configure script to check for the correct version of libv8
+ - Fedora 25+ requires v8-314-devel instead of v8-devel
+
 1.1
  - Use C++ 'new' and 'delete' instead of nodelist to keep contexts in scope
 

@@ -1,11 +1,12 @@
 #!/bin/bash
 # Anticonf (tm) script by Jeroen Ooms (2016)
+# V8 requires libv8 version 3.14 or 3.15. Newer versions are not supported.
+# A suitable version is available here: https://github.com/v8-314/v8
 # This script will check for the required cflags and ldflags.
-# If your libv8 is installed in a custom location, try setting
+# If your libv8 is installed in a custom location you need to set
 # INCLUDE_DIR and LIB_DIR manually via e.g:
 # R CMD INSTALL --configure-vars='INCLUDE_DIR=/.../include LIB_DIR=/.../lib'
 
-# Library settings
 PKG_DEB_NAME="libv8-3.14-dev (formerly: libv8-dev)"
 PKG_RPM_NAME="v8-314-devel (formerly: v8-devel)"
 PKG_CSW_NAME="libv8_dev"
@@ -29,7 +30,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
     mkdir -p $BREWDIR
     echo "Auto-brewing $PKG_BREW_NAME in $BREWDIR..."
     curl -fsSL https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C $BREWDIR
-    #$BREWDIR/bin/brew tap homebrew/versions 2>&1 | perl -pe 's/Warning/Note/gi'
+    $BREWDIR/bin/brew tap homebrew/versions 2>&1 | perl -pe 's/Warning/Note/gi'
     HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew install $PKG_BREW_NAME --force-bottle 2>&1 | perl -pe 's/Warning/Note/gi'
     rm -f $BREWDIR/opt/$PKG_BREW_NAME/lib/*.dylib
     PKG_LIBS="$PKG_LIBS_STATIC"
