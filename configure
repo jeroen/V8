@@ -1,35 +1,25 @@
 #!/bin/bash
-# Anticonf (tm) script by Jeroen Ooms (2015)
-# This script will query 'pkg-config' for the required cflags and ldflags.
-# If pkg-config is unavailable or does not find the library, try setting
+# Anticonf (tm) script by Jeroen Ooms (2016)
+# This script will check for the required cflags and ldflags.
+# If your libv8 is installed in a custom location, try setting
 # INCLUDE_DIR and LIB_DIR manually via e.g:
 # R CMD INSTALL --configure-vars='INCLUDE_DIR=/.../include LIB_DIR=/.../lib'
 
 # Library settings
-PKG_CONFIG_NAME="libv8"
 PKG_DEB_NAME="libv8-3.14-dev (formerly: libv8-dev)"
 PKG_RPM_NAME="v8-314-devel (formerly: v8-devel)"
 PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8-315"
+PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
 PKG_CFLAGS="-I/usr/include/v8-3.14"
 
-# Use pkg-config if available
-if [ $(command -v pkg-config) ]; then
-  PKGCONFIG_CFLAGS=$(pkg-config --cflags --silence-errors ${PKG_CONFIG_NAME})
-  PKGCONFIG_LIBS=$(pkg-config --libs ${PKG_CONFIG_NAME})
-fi
-
-# Note that cflags may be empty in case of success
+# Check for custom locations
 if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
   echo "Found INCLUDE_DIR and/or LIB_DIR!"
   PKG_CFLAGS="-I$INCLUDE_DIR $PKG_CFLAGS"
   PKG_LIBS="-L$LIB_DIR $PKG_LIBS"
-elif [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
-  echo "Found pkg-config cflags and libs!"
-  PKG_CFLAGS=${PKGCONFIG_CFLAGS}
-  PKG_LIBS=${PKGCONFIG_LIBS}
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   if [ $(command -v brew) ]; then
     BREWDIR=$(brew --prefix)
@@ -39,7 +29,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
     mkdir -p $BREWDIR
     echo "Auto-brewing $PKG_BREW_NAME in $BREWDIR..."
     curl -fsSL https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C $BREWDIR
-    $BREWDIR/bin/brew tap homebrew/versions 2>&1 | perl -pe 's/Warning/Note/gi'
+    #$BREWDIR/bin/brew tap homebrew/versions 2>&1 | perl -pe 's/Warning/Note/gi'
     HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew install $PKG_BREW_NAME --force-bottle 2>&1 | perl -pe 's/Warning/Note/gi'
     rm -f $BREWDIR/opt/$PKG_BREW_NAME/lib/*.dylib
     PKG_LIBS="$PKG_LIBS_STATIC"
@@ -57,20 +47,34 @@ CXXCPP=$(${R_HOME}/bin/R CMD config CXXCPP)
 CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
 
-# Test configuration
-${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/version.cpp >/dev/null || R_CONFIG_ERROR=1;
-
-# Customize the error
-if [ $R_CONFIG_ERROR ]; then
+# Test for libv8
+echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -xc++ - >/dev/null 2>&1
+if [ $? -ne 0 ]; then
   echo "------------------------- ANTICONF ERROR ---------------------------"
   echo "Configuration failed because $PKG_CONFIG_NAME was not found. Try installing:"
   echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu)"
   echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
   echo " * brew: $PKG_BREW_NAME (OSX) -- NOT regular v8! Tap from homebrew/versions"
   echo " * csw: $PKG_CSW_NAME (Solaris)"
-  echo "If $PKG_CONFIG_NAME is already installed, check that 'pkg-config' is in your"
-  echo "PATH and PKG_CONFIG_PATH contains a $PKG_CONFIG_NAME.pc file. If pkg-config"
-  echo "is unavailable you can set INCLUDE_DIR and LIB_DIR manually via:"
+  echo "To use a custom libv8, set INCLUDE_DIR and LIB_DIR manually via:"
+  echo "R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
+  echo "--------------------------------------------------------------------"
+  exit 1;
+fi
+
+# Test for libv8 version
+${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/version.cpp >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "------------------------- ANTICONF ERROR ---------------------------"
+  echo "Oh dear. The wrong version of libv8 is installed on the system."
+  echo "This package needs the 3.14 / 3.15 branch of libv8."
+  echo "On Fedora try this:"
+  echo "  sudo yum remove v8-devel"
+  echo "  sudo yum install v8-314-devel"
+  echo "On MacOS Homebrew try this:"
+  echo "  brew remove v8"
+  echo "  brew install v8-315"
+  echo "To use a custom libv8 build set INCLUDE_DIR and LIB_DIR manually via:"
   echo "R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
   echo "--------------------------------------------------------------------"
   exit 1;
