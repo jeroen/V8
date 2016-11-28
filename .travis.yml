@@ -15,11 +15,11 @@ matrix:
       brew_packages: v8-315
       latex: false
     - os: osx
-      osx_image: xcode8
+      osx_image: xcode8.1
       disable_homebrew: true
       latex: false
     - os: osx
-      osx_image: beta-xcode6.1
+      osx_image: xcode6.4
       disable_homebrew: true
       latex: false
 
