@@ -13,7 +13,7 @@ matrix:
     - os: osx
       osx_image: xcode8.1
       before_install:
-        - brew tap brew tap homebrew/versions
+        - brew tap homebrew/versions
         - brew install v8-315
       latex: false
     - os: osx
