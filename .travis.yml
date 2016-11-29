@@ -44,3 +44,6 @@ notifications:
 
 after_success:
   - if [[ "${R_CODECOV}" ]]; then R -e 'covr::codecov()'; fi
+
+before_install:
+  - (while true; do echo 'Ping? Pong!'; sleep 500; done) &
