@@ -10,7 +10,7 @@ clean:
 	rm -f v8.dll $(OBJECTS)
 
 winlibs:
-	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/winlibs.R"
+	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" --vanilla "../tools/winlibs.R"
 
 # Hack for windows XP
 # The msvcr100.dll file is in: Microsoft Visual C++ 2010 Redistributable
