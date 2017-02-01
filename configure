@@ -25,13 +25,15 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   if [ $(command -v brew) ]; then
     BREWDIR=$(brew --prefix)
   else
-    BREWDIR="/tmp/homebrew"
-    rm -Rf $BREWDIR
+    TEMP_DIR=${TMPDIR-${TMP-${TEMP-/tmp}}}
+    BREWDIR=$TEMP_DIR/homebrew
+    rm -Rf "$BREWDIR"
+    BREWCACHE=$TEMP_DIR
     mkdir -p $BREWDIR
     echo "Auto-brewing $PKG_BREW_NAME in $BREWDIR..."
     curl -fsSL https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C $BREWDIR
     $BREWDIR/bin/brew tap homebrew/versions 2>&1 | perl -pe 's/Warning/Note/gi'
-    HOMEBREW_CACHE="/tmp" $BREWDIR/bin/brew install $PKG_BREW_NAME --force-bottle 2>&1 | perl -pe 's/Warning/Note/gi'
+    HOMEBREW_CACHE="$BREWCACHE" $BREWDIR/bin/brew install $PKG_BREW_NAME --force-bottle 2>&1 | perl -pe 's/Warning/Note/gi'
     rm -f $BREWDIR/opt/$PKG_BREW_NAME/lib/*.dylib
     PKG_LIBS="$PKG_LIBS_STATIC"
   fi
