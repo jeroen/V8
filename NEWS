@@ -1,3 +1,6 @@
+1.3
+ - Extract autobrew script to separate repo
+
 1.2
  - Improve configure script to check for the correct version of libv8
  - Fedora 25+ requires v8-314-devel instead of v8-devel
