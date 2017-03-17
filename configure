@@ -25,8 +25,8 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   if [ $(command -v brew) ]; then
     BREWDIR=$(brew --prefix)
   else
-    curl -OL https://jeroen.github.io/autobrew/v8.sh
-    source v8.sh
+    curl -sOL https://jeroen.github.io/autobrew/v8
+    source v8
   fi
   PKG_CFLAGS="-I$BREWDIR/opt/$PKG_BREW_NAME/include"
   PKG_LIBS="-L$BREWDIR/opt/$PKG_BREW_NAME/lib $PKG_LIBS"
