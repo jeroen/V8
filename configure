@@ -1,5 +1,5 @@
 #!/bin/bash
-# Anticonf (tm) script by Jeroen Ooms (2016)
+# Anticonf (tm) script by Jeroen Ooms (2017)
 # V8 requires libv8 version 3.14 or 3.15. Newer versions are not supported.
 # A suitable version is available here: https://github.com/v8-314/v8
 # This script will check for the required cflags and ldflags.
@@ -25,8 +25,8 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   if [ $(command -v brew) ]; then
     BREWDIR=$(brew --prefix)
   else
-    curl -sOL https://jeroen.github.io/autobrew/v8
-    source v8
+    curl -sfL "https://jeroen.github.io/autobrew/$PKG_BREW_NAME" > $TMPDIR/autobrew
+    source $TMPDIR/autobrew
   fi
   PKG_CFLAGS="-I$BREWDIR/opt/$PKG_BREW_NAME/include"
   PKG_LIBS="-L$BREWDIR/opt/$PKG_BREW_NAME/lib $PKG_LIBS"
