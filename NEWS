@@ -1,5 +1,6 @@
 1.3
  - Extract autobrew script to separate repo
+ - Add symbol registration
 
 1.2
  - Improve configure script to check for the correct version of libv8
