@@ -25,4 +25,3 @@ ct$get("test")
 \author{
 Yihui Xie
 }
-

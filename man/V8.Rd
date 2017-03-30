@@ -2,8 +2,8 @@
 % Please edit documentation in R/V8.R
 \name{V8}
 \alias{V8}
-\alias{new_context}
 \alias{v8}
+\alias{new_context}
 \title{Run JavaScript in a V8 context}
 \usage{
 v8(global = "global", console = TRUE, typed_arrays = TRUE)
@@ -60,6 +60,7 @@ for example: \code{ct$eval("Object.keys(this)")}.
   \item{\code{reset()}}{ resets the context (removes all objects)}
 }
 }
+
 \examples{
 # Create a new context
 ctx <- v8();
@@ -119,4 +120,3 @@ exit}
 \references{
 A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 }
-
