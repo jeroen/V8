@@ -13,7 +13,7 @@ License: MIT + file LICENSE
 URL: https://github.com/jeroen/v8, https://developers.google.com/v8/intro
 BugReports: https://github.com/jeroen/v8/issues
 SystemRequirements: V8 <= 3.15: libv8-3.14-dev (deb), v8-314-devel (rpm),
-    v8-3.14 (arch), v8-315 (homebrew)
+    v8-3.14 (arch), v8@3.15 (homebrew)
 NeedsCompilation: yes
 VignetteBuilder: knitr
 Imports:
