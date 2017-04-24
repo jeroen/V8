@@ -79,7 +79,6 @@ sudo yum install v8-devel
 On __OS-X__ use [v8@3.15](https://github.com/Homebrew/homebrew-core/blob/master/Formula/v8@3.15.rb) (**not** regular v8) from Homebrew:
 
 ```
-brew remove v8
 brew install v8@3.15
 ```
 
