@@ -65,7 +65,7 @@ if [ $? -ne 0 ]; then
   echo "On Fedora try this:"
   echo "  sudo yum remove v8-devel"
   echo "  sudo yum install v8-314-devel"
-  echo "On MacOS Homebrew try this:"
+  echo "On MacOS Homebrew you need:"
   echo "  brew remove v8"
   echo "  brew install v8@3.15"
   echo "To use a custom libv8 build set INCLUDE_DIR and LIB_DIR manually via:"

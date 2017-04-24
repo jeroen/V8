@@ -1,3 +1,6 @@
+1.5
+ - Homebrew has moved V8 (again), now it's called v8@3.15
+
 1.4
  - Fix autobrew for OSX Mavericks
 
