@@ -98,3 +98,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+
+static const R_CallMethodDef CallEntries[] = {
+    {"V8_make_context", (DL_FUNC) &V8_make_context, 1},
+    {"V8_context_enable_typed_arrays", (DL_FUNC) &V8_context_enable_typed_arrays, 1},
+    {"V8_version", (DL_FUNC) &V8_version, 0},
+    {"V8_context_eval", (DL_FUNC) &V8_context_eval, 2},
+    {"V8_context_validate", (DL_FUNC) &V8_context_validate, 2},
+    {"V8_context_null", (DL_FUNC) &V8_context_null, 1},
+    {"V8_context_assign_bin", (DL_FUNC) &V8_context_assign_bin, 3},
+    {"V8_context_get_bin", (DL_FUNC) &V8_context_get_bin, 2},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_V8(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
+}

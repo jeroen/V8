@@ -1,3 +1,7 @@
+1.6
+ - Let Rcpp generated R_init_V8()
+ - Add unit test for the exception problem on OSX 10.11
+
 1.5
  - Homebrew has moved V8 (again), now it's called v8@3.15
 
