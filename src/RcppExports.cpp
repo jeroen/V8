@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // make_context
 ctxptr make_context(bool set_console);
-RcppExport SEXP V8_make_context(SEXP set_consoleSEXP) {
+RcppExport SEXP _V8_make_context(SEXP set_consoleSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // context_enable_typed_arrays
 bool context_enable_typed_arrays(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_enable_typed_arrays(SEXP ctxSEXP) {
+RcppExport SEXP _V8_context_enable_typed_arrays(SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,7 +30,7 @@ END_RCPP
 }
 // version
 std::string version();
-RcppExport SEXP V8_version() {
+RcppExport SEXP _V8_version() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -40,7 +40,7 @@ END_RCPP
 }
 // context_eval
 Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP) {
+RcppExport SEXP _V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -52,7 +52,7 @@ END_RCPP
 }
 // context_validate
 bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_validate(SEXP srcSEXP, SEXP ctxSEXP) {
+RcppExport SEXP _V8_context_validate(SEXP srcSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -64,7 +64,7 @@ END_RCPP
 }
 // context_null
 bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_null(SEXP ctxSEXP) {
+RcppExport SEXP _V8_context_null(SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,7 +75,7 @@ END_RCPP
 }
 // context_assign_bin
 bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_assign_bin(SEXP nameSEXP, SEXP dataSEXP, SEXP ctxSEXP) {
+RcppExport SEXP _V8_context_assign_bin(SEXP nameSEXP, SEXP dataSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,7 +88,7 @@ END_RCPP
 }
 // context_get_bin
 Rcpp::RawVector context_get_bin(std::string name, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP V8_context_get_bin(SEXP nameSEXP, SEXP ctxSEXP) {
+RcppExport SEXP _V8_context_get_bin(SEXP nameSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -100,14 +100,14 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"V8_make_context", (DL_FUNC) &V8_make_context, 1},
-    {"V8_context_enable_typed_arrays", (DL_FUNC) &V8_context_enable_typed_arrays, 1},
-    {"V8_version", (DL_FUNC) &V8_version, 0},
-    {"V8_context_eval", (DL_FUNC) &V8_context_eval, 2},
-    {"V8_context_validate", (DL_FUNC) &V8_context_validate, 2},
-    {"V8_context_null", (DL_FUNC) &V8_context_null, 1},
-    {"V8_context_assign_bin", (DL_FUNC) &V8_context_assign_bin, 3},
-    {"V8_context_get_bin", (DL_FUNC) &V8_context_get_bin, 2},
+    {"_V8_make_context", (DL_FUNC) &_V8_make_context, 1},
+    {"_V8_context_enable_typed_arrays", (DL_FUNC) &_V8_context_enable_typed_arrays, 1},
+    {"_V8_version", (DL_FUNC) &_V8_version, 0},
+    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 2},
+    {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
+    {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},
+    {"_V8_context_assign_bin", (DL_FUNC) &_V8_context_assign_bin, 3},
+    {"_V8_context_get_bin", (DL_FUNC) &_V8_context_get_bin, 2},
     {NULL, NULL, 0}
 };
 
