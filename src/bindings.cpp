@@ -68,7 +68,7 @@ static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
   args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
-static Local<Value> r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args) {
+void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args) {
   try {
     Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[fun];
     String::Utf8Value arg0(args[0]);
@@ -77,42 +77,40 @@ static Local<Value> r_callback(std::string fun, const v8::FunctionCallbackInfo<v
     if(args[1]->IsUndefined()){
       out = r_call(fun);
     } else if(args[2]->IsUndefined()) {
-      Local<String> arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[1]).ToLocalChecked());
-      Rcpp::String json(*arg1);
+      String::Utf8Value arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[1]).ToLocalChecked());
+      Rcpp::String json(ToCString(arg1));
       out = r_call(fun, json);
     } else {
-      Local<String> arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[1]).ToLocalChecked());
-      Local<String> arg2(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[2]).ToLocalChecked());
-      Rcpp::String val(*arg1);
-      Rcpp::String json(*arg2);
+      String::Utf8Value arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[1]).ToLocalChecked());
+      String::Utf8Value arg2(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[2]).ToLocalChecked());
+      Rcpp::String val(ToCString(arg1));
+      Rcpp::String json(ToCString(arg2));
       out = r_call(fun, val, json);
     }
-    return v8::JSON::Parse(args.GetIsolate(), ToJSString(std::string(out[0]).c_str())).ToLocalChecked();
+    args.GetReturnValue().Set( v8::JSON::Parse(args.GetIsolate(), ToJSString(std::string(out[0]).c_str())).ToLocalChecked());
   } catch( const std::exception& e ) {
-    return args.GetIsolate()->ThrowException(ToJSString(e.what()));
+    args.GetIsolate()->ThrowException(ToJSString(e.what()));
   }
 }
 
 /* console.r.call() function */
 static void console_r_call(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  args.GetReturnValue().Set(r_callback("r_call", args));
+  r_callback("r_call", args);
 }
 
 /* console.r.get() function */
 static void console_r_get(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  args.GetReturnValue().Set(r_callback("r_get", args));
+  r_callback("r_get", args);
 }
 
 /* console.r.eval() function */
 static void console_r_eval(const v8::FunctionCallbackInfo<v8::Value>& args) {
   r_callback("r_eval", args);
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate())); //TODO: redundant?
 }
 
 /* console.r.eval() function */
 static void console_r_assign(const v8::FunctionCallbackInfo<v8::Value>& args) {
   r_callback("r_assign", args);
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));  //TODO: redundant?
 }
 
 // [[Rcpp::export]]
