@@ -1,6 +1,3 @@
-#include <libplatform/libplatform.h>
-#include <v8.h>
-#include <Rcpp.h>
 #include "V8_types.h"
 using namespace v8;
 
@@ -22,16 +19,16 @@ static Local<String> ToJSString(const char * str){
 }
 
 // [[Rcpp::export]]
-void R_init_all(){
-  //v8::V8::InitializeICUDefaultLocation(argv[0]);
-  //v8::V8::InitializeExternalStartupData(argv[0]);
-  std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+void start_v8_isolate(){
+  static std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   V8::InitializePlatform(platform.get());
   V8::Initialize();
   Isolate::CreateParams create_params;
   create_params.array_buffer_allocator =
     ArrayBuffer::Allocator::NewDefaultAllocator();
   isolate = Isolate::New(create_params);
+  if(!isolate)
+    throw std::runtime_error("Failed to initiate V8 isolate");
 }
 
 /* Helper fun that compiles JavaScript source code */
@@ -134,7 +131,11 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
 
   // Create a scope
   v8::Isolate::Scope isolate_scope(isolate);
+  // Create a stack-allocated handle scope.
   v8::HandleScope handle_scope(isolate);
+  // Create a new context.
+  v8::Local<v8::Context> context = v8::Context::New(isolate);
+  v8::Context::Scope context_scope(context);
 
   // Compile source code
   TryCatch trycatch(isolate);
@@ -185,12 +186,10 @@ bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
 
 // [[Rcpp::export]]
 ctxptr make_context(bool set_console){
-  //setup console.log
   v8::Isolate::Scope isolate_scope(isolate);
-  // Create a stack-allocated handle scope.
   v8::HandleScope handle_scope(isolate);
-  // Create a new context.
   Local<ObjectTemplate> global = ObjectTemplate::New(isolate);
+
   if(set_console){
     Local<ObjectTemplate> console = ObjectTemplate::New(isolate);
     global->Set(ToJSString("console"), console);
@@ -211,6 +210,11 @@ ctxptr make_context(bool set_console){
 
   }
   // initialize the context
-  Persistent<Context> *ctptr = new Persistent<Context>(isolate, Context::New(isolate, NULL, global));
-  return ctxptr(ctptr);
+  Persistent<Context> *ptr = new Persistent<Context>(isolate, Context::New(isolate, NULL, global));
+  return ctxptr(ptr);
+}
+
+// [[Rcpp::export]]
+bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
+  return true;
 }

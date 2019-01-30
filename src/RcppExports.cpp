@@ -6,12 +6,12 @@
 
 using namespace Rcpp;
 
-// R_init_all
-void R_init_all();
-RcppExport SEXP _V8_R_init_all() {
+// start_v8_isolate
+void start_v8_isolate();
+RcppExport SEXP _V8_start_v8_isolate() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    R_init_all();
+    start_v8_isolate();
     return R_NilValue;
 END_RCPP
 }
@@ -71,14 +71,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// context_enable_typed_arrays
+bool context_enable_typed_arrays(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+RcppExport SEXP _V8_context_enable_typed_arrays(SEXP ctxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
+    rcpp_result_gen = Rcpp::wrap(context_enable_typed_arrays(ctx));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_V8_R_init_all", (DL_FUNC) &_V8_R_init_all, 0},
+    {"_V8_start_v8_isolate", (DL_FUNC) &_V8_start_v8_isolate, 0},
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
     {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 2},
     {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
     {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},
     {"_V8_make_context", (DL_FUNC) &_V8_make_context, 1},
+    {"_V8_context_enable_typed_arrays", (DL_FUNC) &_V8_context_enable_typed_arrays, 1},
     {NULL, NULL, 0}
 };
 
