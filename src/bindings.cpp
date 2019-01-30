@@ -131,11 +131,8 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
 
   // Create a scope
   v8::Isolate::Scope isolate_scope(isolate);
-  // Create a stack-allocated handle scope.
   v8::HandleScope handle_scope(isolate);
-  // Create a new context.
-  v8::Local<v8::Context> context = v8::Context::New(isolate);
-  v8::Context::Scope context_scope(context);
+  v8::Context::Scope context_scope(ctx.checked_get()->Get(isolate));
 
   // Compile source code
   TryCatch trycatch(isolate);
@@ -169,8 +166,10 @@ bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> 
   //converts input to UTF8 if needed
   src.set_encoding(CE_UTF8);
 
-  // Create scope
-  HandleScope handle_scope(isolate);
+  // Create a scope
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
+  v8::Context::Scope context_scope(ctx.checked_get()->Get(isolate));
 
   // Try to compile, catch errors
   TryCatch trycatch(isolate);
