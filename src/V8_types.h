@@ -1,4 +1,3 @@
-#include <libplatform/libplatform.h>
 #include <v8.h>
 #include <Rcpp.h>
 void ctx_finalizer( v8::Persistent<v8::Context>* ctx );
