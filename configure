@@ -13,7 +13,7 @@ PKG_BREW_NAME="v8"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
-PKG_CFLAGS="-I/usr/include/nodejs/deps"
+PKG_CFLAGS="-I/usr/include/nodejs/deps/v8/include"
 
 # Check for custom locations
 if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
