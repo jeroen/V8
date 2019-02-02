@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Anticonf (tm) script by Jeroen Ooms (2017)
 # V8 requires either libv8 6.8 LTS OR legacy libv8 (3.14 / 3.15).
 # This script will check for the required cflags and ldflags.
@@ -13,7 +13,13 @@ PKG_BREW_NAME="v8"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
+PKG_CFLAGS="-I/usr/include/v8-3.14"
+
+# Special case for Debian libnode-dev
+if [ -f /usr/include/nodejs/deps/v8/include/v8.h ]; then
+PKG_LIBS="-lnode"
 PKG_CFLAGS="-I/usr/include/nodejs/deps/v8/include"
+fi
 
 # Check for custom locations
 if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
