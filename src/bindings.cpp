@@ -24,6 +24,7 @@ void start_v8_isolate(){
   static std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   V8::InitializePlatform(platform.get());
   V8::Initialize();
+  //V8::InitializeICU();
   Isolate::CreateParams create_params;
   create_params.array_buffer_allocator =
     ArrayBuffer::Allocator::NewDefaultAllocator();
