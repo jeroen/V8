@@ -15,10 +15,20 @@ PKG_LIBS_LEGACY="-lv8"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
 PKG_CFLAGS="-I/usr/include/v8-3.14"
 
+# Find compiler
+CXX11=$(${R_HOME}/bin/R CMD config CXX11)
+CXXCPP=$(${R_HOME}/bin/R CMD config CXXCPP)
+CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
+CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
+
 # Special case for Debian libnode-dev
-if [ -e /usr/include/nodejs/deps/v8/include/v8.h ] && [ -e /usr/lib/x86_64-linux-gnu/libnode.so ]; then
-PKG_CFLAGS="-I/usr/include/nodejs/deps/v8/include"
+NODEJS_INCLUDE="/usr/include/nodejs/deps/v8/include"
+if [ -e "${NODEJS_INCLUDE}/v8.h" ]; then
+${CXX11} "-I${NODEJS_INCLUDE}" tools/test.cpp -lnode >/dev/null
+if [ $? -eq 0 ]; then
+PKG_CFLAGS="-I${NODEJS_INCLUDE}"
 PKG_LIBS="-lnode"
+fi
 fi
 
 # Check for custom locations
@@ -40,11 +50,6 @@ fi
 # For debugging
 echo "Using PKG_CFLAGS=$PKG_CFLAGS"
 echo "Using PKG_LIBS=$PKG_LIBS"
-
-# Find compiler
-CXXCPP=$(${R_HOME}/bin/R CMD config CXXCPP)
-CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
-CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
 
 # Test for libv8
 echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -xc++ - >/dev/null 2>&1
