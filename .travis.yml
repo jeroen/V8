@@ -4,13 +4,14 @@ latex: false
 
 matrix:
   include:
-    - os: linux
-      dist: trusty
+    - dist: trusty
+    - dist: xenial
       r_check_args: '--use-valgrind'
     - os: osx
       osx_image: xcode9.4
-      brew_packages: v8@3.15
-      before_install: brew link --force v8@3.15
+      before_install:
+        - brew install v8@3.15
+        - brew link --force v8@3.15
     - os: osx
       osx_image: xcode8.3
       disable_homebrew: true
