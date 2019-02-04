@@ -19,7 +19,7 @@ static Local<String> ToJSString(const char * str){
   return String::NewFromUtf8(isolate, str, NewStringType::kNormal).ToLocalChecked();
 }
 
-// [[Rcpp::export]]
+// [[Rcpp::init]]
 void start_v8_isolate(){
   static std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   V8::InitializePlatform(platform.get());

@@ -10,6 +10,7 @@ matrix:
     - os: osx
       osx_image: xcode9.4
       brew_packages: v8@3.15
+      before_install: brew link --force v8@3.15
     - os: osx
       osx_image: xcode8.3
       disable_homebrew: true

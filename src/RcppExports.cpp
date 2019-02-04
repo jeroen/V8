@@ -6,15 +6,6 @@
 
 using namespace Rcpp;
 
-// start_v8_isolate
-void start_v8_isolate();
-RcppExport SEXP _V8_start_v8_isolate() {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    start_v8_isolate();
-    return R_NilValue;
-END_RCPP
-}
 // version
 std::string version();
 RcppExport SEXP _V8_version() {
@@ -83,18 +74,22 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP _V8_start_v8_isolate();
+
 static const R_CallMethodDef CallEntries[] = {
-    {"_V8_start_v8_isolate", (DL_FUNC) &_V8_start_v8_isolate, 0},
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
     {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 2},
     {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
     {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},
     {"_V8_make_context", (DL_FUNC) &_V8_make_context, 1},
     {"_V8_context_enable_typed_arrays", (DL_FUNC) &_V8_context_enable_typed_arrays, 1},
+    {"_V8_start_v8_isolate",            (DL_FUNC) &_V8_start_v8_isolate,            0},
     {NULL, NULL, 0}
 };
 
+void start_v8_isolate();
 RcppExport void R_init_V8(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
+    start_v8_isolate(dll);
 }
