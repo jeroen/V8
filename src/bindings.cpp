@@ -20,7 +20,7 @@ static Local<String> ToJSString(const char * str){
 }
 
 // [[Rcpp::init]]
-void start_v8_isolate(){
+void start_v8_isolate(void *dll){
   static std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   V8::InitializePlatform(platform.get());
   V8::Initialize();
