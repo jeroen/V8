@@ -79,12 +79,15 @@ void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args
     if(args[1]->IsUndefined()){
       out = r_call(fun);
     } else if(args[2]->IsUndefined()) {
-      String::Utf8Value arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[1]).ToLocalChecked());
+      Local<Object> obj1 = Local<Object>::Cast(args[1]);
+      String::Utf8Value arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
       Rcpp::String json(ToCString(arg1));
       out = r_call(fun, json);
     } else {
-      String::Utf8Value arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[1]).ToLocalChecked());
-      String::Utf8Value arg2(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), args[2]).ToLocalChecked());
+      Local<Object> obj1 = Local<Object>::Cast(args[1]);
+      Local<Object> obj2 = Local<Object>::Cast(args[2]);
+      String::Utf8Value arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
+      String::Utf8Value arg2(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj2).ToLocalChecked());
       Rcpp::String val(ToCString(arg1));
       Rcpp::String json(ToCString(arg2));
       out = r_call(fun, val, json);
