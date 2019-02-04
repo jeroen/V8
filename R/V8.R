@@ -289,3 +289,11 @@ stop <- function(x, ..., call. = FALSE){
     base::stop(x, ...)
   base::stop(x, ..., call. = call.)
 }
+
+#' @rdname V8
+#' @export
+engine_info <- function(){
+  list (
+    version = version()
+  )
+}

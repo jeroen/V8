@@ -4,9 +4,12 @@
 \alias{V8}
 \alias{v8}
 \alias{new_context}
+\alias{engine_info}
 \title{Run JavaScript in a V8 context}
 \usage{
 v8(global = "global", console = TRUE, typed_arrays = TRUE)
+
+engine_info()
 }
 \arguments{
 \item{global}{character vector indicating name(s) of the global environment. Use NULL for no name.}
