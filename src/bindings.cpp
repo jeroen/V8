@@ -220,7 +220,7 @@ ctxptr make_context(bool set_console){
   v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, global);
   v8::Context::Scope context_scope(context);
 
-  // need to unset windows.console otherwise it crashes in some V8 versions (e.g. Fedora)
+  // need to unset global.console, or it will crash in some V8 versions (e.g. Fedora)
   // See: https://stackoverflow.com/questions/49620965/v8-cannot-set-objecttemplate-with-name-console
   if(set_console){
     if(context->Global()->Has(ToJSString("console"))){
