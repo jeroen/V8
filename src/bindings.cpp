@@ -216,7 +216,8 @@ ctxptr make_context(bool set_console){
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
 
-  // initialize the context
+  // emscripted requires a print function
+  global->Set(ToJSString("print"), v8::FunctionTemplate::New(isolate, ConsoleLog));
   v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, global);
   v8::Context::Scope context_scope(context);
 
@@ -228,8 +229,6 @@ ctxptr make_context(bool set_console){
     }
     context->Global()->Set(ToJSString("console"), console_template());
 
-    // emscripted also assumes a print function
-    global->Set(ToJSString("print"), v8::FunctionTemplate::New(isolate, ConsoleLog));
   }
   v8::Persistent<v8::Context> *ptr = new v8::Persistent<v8::Context>(isolate, context);
   return ctxptr(ptr);
