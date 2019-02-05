@@ -1,22 +1,17 @@
 COMPILED_BY ?= gcc-4.6.3
-PKG_CPPFLAGS= -I../windows/libv8-3.15.10/include
+PKG_CPPFLAGS= -Ilegacy -I../windows/libv8-3.15.10/include
 PKG_CXXFLAGS=-DV8_DISABLE_DEPRECATIONS
 PKG_LIBS= -L../windows/libv8-3.15.10/lib${subst gcc,,${COMPILED_BY}}${R_ARCH} \
 	-lv8_base -lpreparser_lib -lv8_snapshot -lws2_32 -lwinmm
 
+OBJECTS = legacy/V8.o legacy/v8_typed_array.o legacy/RcppExports.o
+
 all: clean winlibs
 
 clean:
-	rm -f v8.dll $(OBJECTS)
+	rm -f $(SHLIB) $(OBJECTS)
 
 winlibs:
 	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" --vanilla "../tools/winlibs.R"
-
-# Hack for windows XP
-# The msvcr100.dll file is in: Microsoft Visual C++ 2010 Redistributable
-# https://www.microsoft.com/en-us/download/confirmation.aspx?id=5555
-ifeq "$(ALLUSERSPROFILE)" "C:\Documents and Settings\All Users"
-PKG_LIBS += -lmsvcr100
-endif
 
 .PHONY: all winlibs clean

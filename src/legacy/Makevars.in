@@ -2,9 +2,9 @@ PKG_CXXFLAGS=-DV8_DISABLE_DEPRECATIONS $(C_VISIBILITY)
 PKG_CPPFLAGS=@cflags@ -Ilegacy
 PKG_LIBS=@libs@
 
+OBJECTS = legacy/V8.o legacy/v8_typed_array.o legacy/RcppExports.o
+
 all: clean
 
 clean:
 	rm -f $(SHLIB) $(OBJECTS)
-
-OBJECTS = legacy/V8.o legacy/v8_typed_array.o legacy/RcppExports.o

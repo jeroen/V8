@@ -8,7 +8,7 @@
 PKG_DEB_NAME="libnode-dev / libv8-dev"
 PKG_RPM_NAME="v8-314-devel (formerly: v8-devel)"
 PKG_CSW_NAME="libv8_dev"
-PKG_BREW_NAME="v8"
+PKG_BREW_NAME="v8@3.15"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_LIBS_LEGACY="-lv8"
