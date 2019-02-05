@@ -11,7 +11,6 @@ PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8@3.15"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
-PKG_LIBS_LEGACY="-lv8"
 PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
 PKG_CFLAGS="-I/usr/include/v8-3.14"
 
@@ -70,8 +69,8 @@ fi
 ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} src/legacy/test.cpp >/dev/null 2>&1
 if [ $? -eq 0 ]; then
   echo "Found legacy version of libv8"
-  echo "Using PKG_LIBS=$PKG_LIBS_LEGACY"
-  sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS_LEGACY|" src/legacy/Makevars.in > src/Makevars
+  PKG_LIBS=$(echo "$PKG_LIBS" | sed -e "s/-lv8_libplatform//")
+  sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/legacy/Makevars.in > src/Makevars
   exit 0
 fi
 
