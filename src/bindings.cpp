@@ -219,10 +219,10 @@ ctxptr make_context(bool set_console){
   // initialize the context
   v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, global);
   v8::Context::Scope context_scope(context);
-  v8::Persistent<v8::Context> *ptr = new v8::Persistent<v8::Context>(isolate, context);
 
+  // need to unset windows.console otherwise it crashes in some V8 versions (e.g. Fedora)
+  // See: https://stackoverflow.com/questions/49620965/v8-cannot-set-objecttemplate-with-name-console
   if(set_console){
-    // need to unset if preset
     if(context->Global()->Has(ToJSString("console"))){
       context->Global()->Delete(ToJSString("console"));
     }
@@ -231,6 +231,7 @@ ctxptr make_context(bool set_console){
     // emscripted also assumes a print function
     global->Set(ToJSString("print"), v8::FunctionTemplate::New(isolate, ConsoleLog));
   }
+  v8::Persistent<v8::Context> *ptr = new v8::Persistent<v8::Context>(isolate, context);
   return ctxptr(ptr);
 }
 
