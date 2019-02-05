@@ -2,6 +2,12 @@
 #include "V8_types.h"
 using namespace v8;
 
+/* Note: ToLocalChecked() aborts if x is empty */
+template <typename T>
+Local<T> safe_to_local(MaybeLocal<T> x){
+  return x.IsEmpty() ? Local<T>() : x.ToLocalChecked();
+}
+
 void ctx_finalizer( Persistent<Context>* context ){
   if(context)
     context->Reset();
@@ -17,7 +23,7 @@ static const char* ToCString(const v8::String::Utf8Value& value) {
 
 static Local<String> ToJSString(const char * str){
   MaybeLocal<String> out = String::NewFromUtf8(isolate, str, NewStringType::kNormal);
-  return out.IsEmpty() ? Local<String>() : out.ToLocalChecked();
+  return safe_to_local(out);
 }
 
 // [[Rcpp::init]]
@@ -37,11 +43,8 @@ void start_v8_isolate(void *dll){
 /* Helper fun that compiles JavaScript source code */
 static Local<Script> compile_source(std::string src, Local<Context> context){
   Local<String> source = ToJSString(src.c_str());
-  if(source.IsEmpty()){
-    return Local<Script>();
-  }
   MaybeLocal<Script> script = Script::Compile(context, source);
-  return script.IsEmpty() ? Local<Script>() : script.ToLocalChecked();
+  return safe_to_local(script);
 }
 
 /* console.log */
@@ -151,7 +154,7 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
 
   // Run the script to get the result.
   MaybeLocal<Value> res = script->Run(ctx.checked_get()->Get(isolate));
-  Handle<Value> result = res.IsEmpty() ? Handle<Value>() : res.ToLocalChecked();
+  Handle<Value> result = safe_to_local(res);
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
