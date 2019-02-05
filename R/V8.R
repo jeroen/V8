@@ -43,8 +43,8 @@
 #' @export v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
-#' @param typed_arrays enable support for typed arrays (part of ECMA6). This adds a bunch of additional
-#' functions to the global namespace.
+#' @param typed_arrays used to enable support for typed arrays in legacy libv8. This is enabled by default
+#' in recent versions of libv8.
 #' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
