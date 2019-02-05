@@ -41,12 +41,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // context_null
-bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context>> ctx);
 RcppExport SEXP _V8_context_null(SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context>> >::type ctx(ctxSEXP);
     rcpp_result_gen = Rcpp::wrap(context_null(ctx));
     return rcpp_result_gen;
 END_RCPP
