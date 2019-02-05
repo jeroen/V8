@@ -194,33 +194,43 @@ bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context>> ctx) {
   return(!ctx);
 }
 
+v8::Local<v8::Object> console_template(){
+  v8::Local<v8::ObjectTemplate> console = v8::ObjectTemplate::New(isolate);
+  console->Set(ToJSString("log"), v8::FunctionTemplate::New(isolate, ConsoleLog));
+  console->Set(ToJSString("warn"), v8::FunctionTemplate::New(isolate, ConsoleWarn));
+  console->Set(ToJSString("error"), v8::FunctionTemplate::New(isolate, ConsoleError));
+
+  // R callback interface
+  v8::Local<v8::ObjectTemplate> console_r = v8::ObjectTemplate::New(isolate);
+  console->Set(ToJSString("r"), console_r);
+  console_r->Set(ToJSString("call"), v8::FunctionTemplate::New(isolate, console_r_call));
+  console_r->Set(ToJSString("get"), v8::FunctionTemplate::New(isolate, console_r_get));
+  console_r->Set(ToJSString("eval"), v8::FunctionTemplate::New(isolate, console_r_eval));
+  console_r->Set(ToJSString("assign"), v8::FunctionTemplate::New(isolate, console_r_assign));
+  return console->NewInstance();
+}
+
 // [[Rcpp::export]]
 ctxptr make_context(bool set_console){
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
 
-  if(set_console){
-    v8::Local<v8::ObjectTemplate> console = v8::ObjectTemplate::New(isolate);
-    global->Set(ToJSString("console"), console);
-    console->Set(ToJSString("log"), v8::FunctionTemplate::New(isolate, ConsoleLog));
-    console->Set(ToJSString("warn"), v8::FunctionTemplate::New(isolate, ConsoleWarn));
-    console->Set(ToJSString("error"), v8::FunctionTemplate::New(isolate, ConsoleError));
-
-    // emscripted assumes a print function
-    global->Set(ToJSString("print"), v8::FunctionTemplate::New(isolate, ConsoleLog));
-
-    // R callback interface
-    v8::Local<v8::ObjectTemplate> console_r = v8::ObjectTemplate::New(isolate);
-    console->Set(ToJSString("r"), console_r);
-    console_r->Set(ToJSString("call"), v8::FunctionTemplate::New(isolate, console_r_call));
-    console_r->Set(ToJSString("get"), v8::FunctionTemplate::New(isolate, console_r_get));
-    console_r->Set(ToJSString("eval"), v8::FunctionTemplate::New(isolate, console_r_eval));
-    console_r->Set(ToJSString("assign"), v8::FunctionTemplate::New(isolate, console_r_assign));
-
-  }
   // initialize the context
-  v8::Persistent<v8::Context> *ptr = new v8::Persistent<v8::Context>(isolate, v8::Context::New(isolate, NULL, global));
+  v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, global);
+  v8::Context::Scope context_scope(context);
+  v8::Persistent<v8::Context> *ptr = new v8::Persistent<v8::Context>(isolate, context);
+
+  if(set_console){
+    // need to unset if preset
+    if(context->Global()->Has(ToJSString("console"))){
+      context->Global()->Delete(ToJSString("console"));
+    }
+    context->Global()->Set(ToJSString("console"), console_template());
+
+    // emscripted also assumes a print function
+    global->Set(ToJSString("print"), v8::FunctionTemplate::New(isolate, ConsoleLog));
+  }
   return ctxptr(ptr);
 }
 
