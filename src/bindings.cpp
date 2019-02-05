@@ -16,7 +16,8 @@ static const char* ToCString(const v8::String::Utf8Value& value) {
 }
 
 static Local<String> ToJSString(const char * str){
-  return String::NewFromUtf8(isolate, str, NewStringType::kNormal).ToLocalChecked();
+  MaybeLocal<String> out = String::NewFromUtf8(isolate, str, NewStringType::kNormal);
+  return out.IsEmpty() ? Local<String>() : out.ToLocalChecked();
 }
 
 // [[Rcpp::init]]
@@ -34,10 +35,13 @@ void start_v8_isolate(void *dll){
 }
 
 /* Helper fun that compiles JavaScript source code */
-static Local<Script> compile_source(std::string src){
-  Local<String> source = String::NewFromUtf8(isolate, src.c_str(), NewStringType::kNormal).ToLocalChecked();
-  Local<Script> script = Script::Compile(source);
-  return script;
+static Local<Script> compile_source(std::string src, Local<Context> context){
+  Local<String> source = ToJSString(src.c_str());
+  if(source.IsEmpty()){
+    return Local<Script>();
+  }
+  MaybeLocal<Script> script = Script::Compile(context, source);
+  return script.IsEmpty() ? Local<Script>() : script.ToLocalChecked();
 }
 
 /* console.log */
@@ -73,21 +77,21 @@ static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
 void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args) {
   try {
     Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[fun];
-    String::Utf8Value arg0(args[0]);
+    String::Utf8Value arg0(args.GetIsolate(), args[0]);
     Rcpp::String fun(*arg0);
     Rcpp::CharacterVector out;
     if(args[1]->IsUndefined()){
       out = r_call(fun);
     } else if(args[2]->IsUndefined()) {
       Local<Object> obj1 = Local<Object>::Cast(args[1]);
-      String::Utf8Value arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
+      String::Utf8Value arg1(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
       Rcpp::String json(ToCString(arg1));
       out = r_call(fun, json);
     } else {
       Local<Object> obj1 = Local<Object>::Cast(args[1]);
       Local<Object> obj2 = Local<Object>::Cast(args[2]);
-      String::Utf8Value arg1(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
-      String::Utf8Value arg2(v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj2).ToLocalChecked());
+      String::Utf8Value arg1(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
+      String::Utf8Value arg2(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj2).ToLocalChecked());
       Rcpp::String val(ToCString(arg1));
       Rcpp::String json(ToCString(arg2));
       out = r_call(fun, val, json);
@@ -139,21 +143,22 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
 
   // Compile source code
   TryCatch trycatch(isolate);
-  Handle<Script> script = compile_source(src);
+  Handle<Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
   if(script.IsEmpty()) {
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::invalid_argument(ToCString(exception));
   }
 
   // Run the script to get the result.
-  Handle<Value> result = script->Run();
+  MaybeLocal<Value> res = script->Run(ctx.checked_get()->Get(isolate));
+  Handle<Value> result = res.IsEmpty() ? Handle<Value>() : res.ToLocalChecked();
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
   }
 
   // Convert result to UTF8.
-  String::Utf8Value utf8(result);
+  String::Utf8Value utf8(isolate, result);
   Rcpp::String out(*utf8);
   out.set_encoding(CE_UTF8);
   return out;
@@ -176,7 +181,7 @@ bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> 
 
   // Try to compile, catch errors
   TryCatch trycatch(isolate);
-  Handle<Script> script = compile_source(src);
+  Handle<Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
   return !script.IsEmpty();
 }
 
