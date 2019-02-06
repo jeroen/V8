@@ -57,9 +57,9 @@ Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
 install.packages("V8")
 ```
 
-Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro) 3.14 or 3.15 (no newer!). On __Debian__ or __Ubuntu__ use [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev) OR [linode-dev](https://packages.debian.org/testing/libnode-dev):
+Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro). On __Debian__ or __Ubuntu__ use either [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev) or for recent Debian you need [linode-dev](https://packages.debian.org/testing/libnode-dev):
 
-```
+```sh
 # Most versions of Debian and Ubuntu
 sudo apt-get install -y libv8-dev
 
@@ -69,20 +69,20 @@ sudo apt-get install libnode-dev
 
 On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8):
 
-```
+```sh
 sudo yum install v8-devel
 ````
 
 On __CentOS / RHEL__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
 
-```
+```sh
 sudo yum install epel-release
 sudo yum install v8-devel
 ```
 
 On __OS-X__ use [v8](https://github.com/Homebrew/homebrew-core/blob/master/Formula/v8) from Homebrew:
 
-```
+```sh
 brew install v8
 ```
 
