@@ -1,4 +1,13 @@
-1.6
+2.0
+ - Major upgrade: now support libv8 version 6.x and up. Note that this means
+   we move to ES2015+ adding support for promises, async, etc. This may change
+   the behavior of certain JavaScript libraries.
+ - For now we also still stupport building with legacy V8 (3.14)
+ - Debian Buster: support building with libnode-dev
+ - Fedora: support building with v8-devel (V8 6.7.17)
+ - MacOS: update binary package to V8 7.2.502.24
+
+1.6 (unreleased)
  - Let Rcpp generated R_init_V8()
  - Add unit test for the exception problem on OSX 10.11
 

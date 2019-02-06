@@ -8,10 +8,10 @@
 PKG_DEB_NAME="libnode-dev / libv8-dev"
 PKG_RPM_NAME="v8-devel"
 PKG_CSW_NAME="libv8_dev"
-PKG_BREW_NAME="v8@3.15"
+PKG_BREW_NAME="v8"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
-PKG_LIBS_STATIC="-lv8_{base,snapshot} -lpreparser_lib"
+PKG_LIBS_STATIC="-lv8_{base,libplatform,nosnapshot,libbase,libsampler,initializers,init} -ltorque_{base,generated_initializers}"
 PKG_CFLAGS="-I/usr/include/v8-3.14"
 
 # Find compiler
