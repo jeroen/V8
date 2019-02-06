@@ -1,27 +1,22 @@
 language: r
 cache: packages
+latex: false
+fortran: false
 
 matrix:
   include:
-    - os: linux
-      dist: precise
-      sudo: false
-    - os: linux
-      dist: trusty
-      env: R_CODECOV=true
+    - dist: trusty
+    - dist: xenial
       r_check_args: '--use-valgrind'
     - os: osx
-      osx_image: xcode8.3
-      brew_packages: v8@3.15
-      latex: false
+      brew_packages: v8
     - os: osx
-      osx_image: xcode8.3
-      disable_homebrew: true
-      latex: false
+      before_install:
+        - brew install v8@3.15
+        - brew link --force v8@3.15
     - os: osx
       osx_image: xcode7.3
       disable_homebrew: true
-      latex: false
 
 addons:
   apt:

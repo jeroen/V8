@@ -1,3 +1,7 @@
+.onAttach <- function(libname, pkg){
+  packageStartupMessage(paste("Using to V8 engine", version()))
+}
+
 .onLoad <- function(libname, pkgname){
   # Test for development
   # ct <- v8()

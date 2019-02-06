@@ -1,20 +1,20 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript Engine for R
-Version: 1.5.9000
+Version: 1.9000
 Author: Jeroen Ooms
 Maintainer: Jeroen Ooms <jeroen@berkeley.edu>
-Description: An R interface to Google's open source JavaScript engine.
-    V8 is written in C++ and implements ECMAScript as specified in ECMA-262,
-    5th edition. In addition, this package implements typed arrays as
-    specified in ECMA 6 used for high-performance computing and libraries
-    compiled with 'emscripten'.
+Description: An R interface to Google's open source JavaScript engine. This 
+    package can now be compiled either with V8 version 6 (LTS) from nodejs
+    or with the legacy 3.14/3.15 version of V8. In the latter case, only 
+    ECMAScript v5 is supported, hence no promises or async.
 License: MIT + file LICENSE
 URL: https://github.com/jeroen/v8 (devel)
   https://developers.google.com/v8/intro (upstream)
 BugReports: https://github.com/jeroen/v8/issues
-SystemRequirements: V8 <= 3.15: libv8-3.14-dev (deb), v8-314-devel (rpm),
-    v8-3.14 (arch, from AUR), v8@3.15 (homebrew)
+SystemRequirements: V8 version 6 or 7 is recommended, but 3.14 (legacy) is 
+    still supported. On Ubuntu/Debian: either libv8-dev or libnode-dev. On
+    Fedora v8-314-devel (rpm), v8-3.14 (arch, from AUR), v8@3.15 (homebrew)
 NeedsCompilation: yes
 VignetteBuilder: knitr
 Imports:
@@ -27,4 +27,4 @@ Suggests:
     testthat,
     knitr,
     rmarkdown
-RoxygenNote: 6.0.1.9000
+RoxygenNote: 6.1.1
