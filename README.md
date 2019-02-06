@@ -57,16 +57,20 @@ Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
 install.packages("V8")
 ```
 
-Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro) 3.14 or 3.15 (no newer!). On __Debian__ or __Ubuntu__ use [libv8-3.14-dev](https://packages.debian.org/testing/libv8-3.14-dev):
+Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro) 3.14 or 3.15 (no newer!). On __Debian__ or __Ubuntu__ use [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev) OR [linode-dev](https://packages.debian.org/testing/libnode-dev):
 
 ```
-sudo apt-get install -y libv8-3.14-dev
+# Most versions of Debian and Ubuntu
+sudo apt-get install -y libv8-dev
+
+# Alternatively for Debian Buster
+sudo apt-get install libnode-dev
 ```
 
-On __Fedora__ we need [v8-314-devel](https://apps.fedoraproject.org/packages/v8-314):
+On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8):
 
 ```
-sudo yum install v8-314-devel
+sudo yum install v8-devel
 ````
 
 On __CentOS / RHEL__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
@@ -76,11 +80,11 @@ sudo yum install epel-release
 sudo yum install v8-devel
 ```
 
-On __OS-X__ use [v8@3.15](https://github.com/Homebrew/homebrew-core/blob/master/Formula/v8@3.15.rb) (**not** regular v8) from Homebrew:
+On __OS-X__ use [v8](https://github.com/Homebrew/homebrew-core/blob/master/Formula/v8) from Homebrew:
 
 ```
-brew install v8@3.15
+brew install v8
 ```
 
-On other systems you might need to install libv8 from source. A compatible version of V8 3.14 is available from https://github.com/v8-314/v8. Build instructions are in the `build` directory.
+On other systems you might need to install libv8 from source.
 
