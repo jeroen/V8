@@ -1,6 +1,11 @@
 #include <libplatform/libplatform.h>
 #include "V8_types.h"
 
+/* used for setting icu data below */
+#ifdef __APPLE__
+#define V8_ICU_DATA_PATH "/usr/local/opt/v8/libexec/icudtl.dat"
+#include <unistd.h>
+#endif
 
 /* Note: Tov8::LocalChecked() aborts if x is empty */
 template <typename T>
@@ -28,10 +33,14 @@ static v8::Local<v8::String> ToJSString(const char * str){
 
 // [[Rcpp::init]]
 void start_v8_isolate(void *dll){
-  //static std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+#ifdef V8_ICU_DATA_PATH
+  // Needed if V8 is built with bundled ICU. Check CRAN package 'dagitty' to test.
+  if( access( V8_ICU_DATA_PATH, F_OK ) != -1 ) {
+    v8::V8::InitializeICUDefaultLocation(V8_ICU_DATA_PATH);
+  }
+#endif
   v8::V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
   v8::V8::Initialize();
-  //V8::InitializeICU();
   v8::Isolate::CreateParams create_params;
   create_params.array_buffer_allocator =
     v8::ArrayBuffer::Allocator::NewDefaultAllocator();
