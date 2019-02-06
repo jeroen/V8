@@ -1,6 +1,6 @@
 # V8
 
-##### *Embedded JavaScript Engine for R*
+> Embedded JavaScript Engine for R
 
 [![Build Status](https://travis-ci.org/jeroen/V8.svg?branch=master)](https://travis-ci.org/jeroen/V8)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jeroen/V8?branch=master&svg=true)](https://ci.appveyor.com/project/jeroen/V8)
@@ -8,11 +8,9 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/V8)](http://cran.r-project.org/package=V8)
 [![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/V8)](http://cran.r-project.org/web/packages/V8/index.html)
 
-> An R interface to Google's open source JavaScript engine.
-  V8 is written in C++ and implements ECMAScript as specified in ECMA-262,
-  5th edition. In addition, this package implements typed arrays as
-  specified in ECMA 6 used for high-performance computing and libraries
-  compiled with 'emscripten'.
+An R interface to Google's open source JavaScript engine. This 
+package can now be compiled either with V8 version 6 (LTS) from nodejs
+or with the legacy 3.14/3.15 version of V8.
 
 ## Documentation
 
@@ -43,7 +41,7 @@ Call functions from JavaScript libraries
 
 ```r
 ctx <- V8::v8()
-ctx$source("http://coffeescript.org/extras/coffee-script.js")
+ctx$source("https://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.4.0/coffee-script.min.js")
 jscode <- ctx$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 ctx$eval(jscode)
 ctx$call("square", 9)
