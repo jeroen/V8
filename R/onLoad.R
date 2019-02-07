@@ -1,5 +1,5 @@
 .onAttach <- function(libname, pkg){
-  packageStartupMessage(paste("Using to V8 engine", version()))
+  packageStartupMessage(paste("Using V8 engine", version()))
 }
 
 .onLoad <- function(libname, pkgname){
