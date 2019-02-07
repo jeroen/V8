@@ -31,7 +31,7 @@ Currently the R package is just V8. Perhaps more will be added later.
 
 ## Can we use NPM?
 
-Yes! But not all packages will work. Most libraries in [npm](https://www.npmjs.com) are primarely written for Node or the browser. Obviously, anything that requires internet access, graphics or files is not going to work in plain V8. But there is quite a lot of stuff that does work.
+Yes! But not all packages will work. Most libraries in [npm](https://www.npmjs.com) are primarily written for Node or the browser. Obviously, anything that requires internet access, graphics or files is not going to work in plain V8. But there is quite a lot of stuff that does work.
 
 Some general purpose libraries like underscore or crossfilter will work natively in V8:
 

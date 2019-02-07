@@ -126,7 +126,7 @@ JavaScript runtime exceptions are automatically propagated into R errors:
 ct$eval("123 + doesnotexit")
 ```
 
-Within JavaScript we can also call back to the R console manually using `console.log`, `console.warn` and `console.error`. This allows for explicilty generating output, warnings or errors from within a JavaScript application.
+Within JavaScript we can also call back to the R console manually using `console.log`, `console.warn` and `console.error`. This allows for explicitly generating output, warnings or errors from within a JavaScript application.
 
 ```{r, error = TRUE, purl = FALSE}
 ct$eval('console.log("this is a message")')
@@ -144,7 +144,7 @@ ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
 
 ## The Global Namespace
 
-Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains only a few objects: `global` (a refence to itself), `console` (for `console.log` and friends) and `print` (an alias of console.log needed by some JavaScript libraries)
+Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains only a few objects: `global` (a reference to itself), `console` (for `console.log` and friends) and `print` (an alias of console.log needed by some JavaScript libraries)
 
 ```{r}
 ct <- v8(typed_arrays = FALSE);
