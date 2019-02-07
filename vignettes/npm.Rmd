@@ -18,15 +18,16 @@ library(V8)
 
 ## What is V8 (not)
 
-V8 is Google's JavaScript engine that is used in Chrome, Node and other tools. However each of these programs implements most JavaScript functionality on top of V8. The naked V8 engine only provides basic ECMAscript, which does not include a lot of things that you might be used to. There is no I/O (network/disk), no event-loop and no DOM (window).
+V8 is Google's JavaScript engine that is used in Chrome, Node and other tools. However each of these programs implements most JavaScript functionality on top of V8. The naked V8 engine only provides basic ECMAscript, which does not include a lot of things that you might be used to. There is no I/O (network/disk) and no DOM (window). Only recent versions of V8 have an event loop.
 
-|         | JS Engine | Evented  | Network | Disk | DOM |
-|---------|--------|-----------|------|---------|-----|
-| Browser | ✔      | ✔        | ✔    | -     | ✔   |
-| Node    | ✔      | ✔        | ✔    | ✔       | -   |
-| V8      | ✔      | -         | -    | -       | -   |
+|            | JS Engine | Evented  | Network | Disk | DOM |
+|------------|--------|-----------|------|---------|-----|
+| Browser    | ✔      | ✔        | ✔    | -       | ✔   |
+| Node       | ✔      | ✔        | ✔    | ✔       | -   |
+| V8 (6)     | ✔      | ✔        | -    | -        | -   |
+| V8 (3.14)  | ✔      | -        | -    | -        | -   |
 
-Currently the R package is just V8. Perhaps more will be added later, although both IO and DOM would require an event-loop, which disqualifies the simple eval-and-return pattern. In that case it would work more like a server (similar to the httpuv package). But for now we will be working with plain V8 and rely on R for I/O.
+Currently the R package is just V8. Perhaps more will be added later.
 
 ## Can we use NPM?
 
