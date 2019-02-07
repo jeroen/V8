@@ -55,14 +55,18 @@ Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
 install.packages("V8")
 ```
 
-Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro). On __Debian__ or __Ubuntu__ use either [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev) or for recent Debian you need [linode-dev](https://packages.debian.org/testing/libnode-dev):
+Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro). On __Debian 10 (Buster)__ and up or __Ubuntu 19.04 (Disco)__ and up, use [linode-dev](https://packages.debian.org/testing/libnode-dev):
 
 ```sh
-# Most versions of Debian and Ubuntu
-sudo apt-get install -y libv8-dev
-
-# Alternatively for Debian Buster
+# Recent versions of Debian / Ubuntu
 sudo apt-get install libnode-dev
+```
+
+On older versions of Debian/Ubuntu you need [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev):
+
+```sh
+# Older versions of Debian and Ubuntu
+sudo apt-get install -y libv8-dev
 ```
 
 On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8):
