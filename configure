@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Anticonf (tm) script by Jeroen Ooms (2019)
-# Package requires either libv8 LTS 6.8 or legacy libv8 (3.14 / 3.15).
+# Package requires either libv8 6 or 7 or legacy libv8 (3.14 / 3.15).
 # If your libv8 is installed in a custom location you need to set
 # INCLUDE_DIR and LIB_DIR manually via e.g:
 # R CMD INSTALL --configure-vars='INCLUDE_DIR=/.../include LIB_DIR=/.../lib'
 
-PKG_DEB_NAME="libnode-dev / libv8-dev"
+PKG_DEB_NAME="libnode-dev"
 PKG_RPM_NAME="v8-devel"
 PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8"
@@ -55,7 +55,8 @@ echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAG
 if [ $? -ne 0 ]; then
   echo "------------------------- ANTICONF ERROR ---------------------------"
   echo "Configuration failed because $PKG_CONFIG_NAME was not found. Try installing:"
-  echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu)"
+  echo " * deb: libnode-dev (Debian 10 / Ubuntu 19.04)"
+  echo " * deb: libv8-dev (older Debian / Ubuntu)"
   echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
   echo " * brew: $PKG_BREW_NAME (OSX) -- NOT regular v8!"
   echo " * csw: $PKG_CSW_NAME (Solaris)"
