@@ -47,7 +47,7 @@ if [ $? -ne 0 ]; then
   echo "Configuration failed because $PKG_CONFIG_NAME was not found. Try installing:"
   echo " * deb: $PKG_DEB_NAME (Debian / Ubuntu)"
   echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
-  echo " * brew: $PKG_BREW_NAME (OSX) -- NOT regular v8!"
+  echo " * brew: $PKG_BREW_NAME (OSX)"
   echo " * csw: $PKG_CSW_NAME (Solaris)"
   echo "To use a custom libv8, set INCLUDE_DIR and LIB_DIR manually via:"
   echo "R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
