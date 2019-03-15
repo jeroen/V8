@@ -108,7 +108,7 @@ void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args
       Rcpp::String json(ToCString(arg2));
       out = r_call(fun, val, json);
     }
-    args.GetReturnValue().Set( v8::JSON::Parse(args.GetIsolate(), ToJSString(std::string(out[0]).c_str())).ToLocalChecked());
+    args.GetReturnValue().Set( v8::JSON::Parse(args.GetIsolate()->GetCurrentContext(), ToJSString(std::string(out[0]).c_str())).ToLocalChecked());
   } catch( const std::exception& e ) {
     args.GetIsolate()->ThrowException(ToJSString(e.what()));
   }
