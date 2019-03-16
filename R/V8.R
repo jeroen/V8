@@ -94,7 +94,7 @@
 #'
 #' \dontrun{CoffeeScript
 #' ct2 <- v8()
-#' ct2$source("http://coffeescript.org/extras/coffee-script.js")
+#' ct2$source("http://coffeescript.org/v1/browser-compiler/coffee-script.js")
 #' jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 #' ct2$eval(jscode)
 #' ct2$call("square", 9)

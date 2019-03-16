@@ -108,7 +108,7 @@ void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args
       Rcpp::String json(ToCString(arg2));
       out = r_call(fun, val, json);
     }
-    args.GetReturnValue().Set( v8::JSON::Parse(args.GetIsolate(), ToJSString(std::string(out[0]).c_str())).ToLocalChecked());
+    args.GetReturnValue().Set( v8::JSON::Parse(args.GetIsolate()->GetCurrentContext(), ToJSString(std::string(out[0]).c_str())).ToLocalChecked());
   } catch( const std::exception& e ) {
     args.GetIsolate()->ThrowException(ToJSString(e.what()));
   }
@@ -230,13 +230,15 @@ ctxptr make_context(bool set_console){
   v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, global);
   v8::Context::Scope context_scope(context);
 
+  v8::Local<v8::String> console = ToJSString("console");
   // need to unset global.console, or it will crash in some V8 versions (e.g. Fedora)
   // See: https://stackoverflow.com/questions/49620965/v8-cannot-set-objecttemplate-with-name-console
   if(set_console){
-    if(context->Global()->Has(ToJSString("console"))){
-      context->Global()->Delete(ToJSString("console"));
+    if(context->Global()->Has(context, console).FromMaybe(true)){
+       if(context->Global()->Delete(context, console).IsNothing())
+         Rcpp::warning("Could not delete console.");
     }
-    context->Global()->Set(ToJSString("console"), console_template());
+    context->Global()->Set(console, console_template());
 
   }
   v8::Persistent<v8::Context> *ptr = new v8::Persistent<v8::Context>(isolate, context);
@@ -247,3 +249,4 @@ ctxptr make_context(bool set_console){
 bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
   return true;
 }
+

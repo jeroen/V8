@@ -16,8 +16,8 @@ engine_info()
 
 \item{console}{expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).}
 
-\item{typed_arrays}{enable support for typed arrays (part of ECMA6). This adds a bunch of additional
-functions to the global namespace.}
+\item{typed_arrays}{used to enable support for typed arrays in legacy libv8. This is enabled by default
+in recent versions of libv8.}
 }
 \description{
 The \code{\link{v8}} function (formerly called \code{new_context}) creates a
@@ -106,7 +106,7 @@ ctx$call("function(x, y){return x * y}", 123, 3)
 
 \dontrun{CoffeeScript
 ct2 <- v8()
-ct2$source("http://coffeescript.org/extras/coffee-script.js")
+ct2$source("http://coffeescript.org/v1/browser-compiler/coffee-script.js")
 jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
 ct2$eval(jscode)
 ct2$call("square", 9)
