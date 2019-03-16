@@ -5,11 +5,11 @@ Version: 2.1
 Authors@R: person("Jeroen", "Ooms", role = c("aut", "cre"), email = "jeroen@berkeley.edu",
     comment = c(ORCID = "0000-0002-4035-0289"))
 Description: An R interface to Google's open source JavaScript engine. This 
-    package can now be compiled either with V8 version 6 (LTS) from nodejs
-    or with the legacy 3.14/3.15 version of V8.
+    package can now be compiled either with V8 version 6 or 7 (LTS) from 
+    nodejs or with the legacy 3.14/3.15 branch of V8.
 License: MIT + file LICENSE
 URL: https://github.com/jeroen/v8 (devel)
-  https://developers.google.com/v8/intro (upstream)
+    https://v8.dev (upstream)
 BugReports: https://github.com/jeroen/v8/issues
 SystemRequirements: V8 version 6 or 7 is recommended, but 3.14 (legacy) is 
     still supported as well. On Debian / Ubuntu you need either libv8-dev or 
