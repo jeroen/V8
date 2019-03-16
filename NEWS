@@ -1,3 +1,8 @@
+2.1
+ - Remove special casing for libnode-dev on Debian: libnode-dev now
+   officially provides and symlinks libv8-dev.
+ - Fix build for new V8 7.3.492.22 (Jan Marvin, #55)
+
 2.0
  - Major upgrade: now support libv8 version 6.x and up. Note that this means
    we move to ES2015+ adding support for promises, async, etc. This may change
