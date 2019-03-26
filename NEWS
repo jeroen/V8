@@ -1,3 +1,6 @@
+2.2
+ - MacOS: fix include/linker path for new location of v8
+
 2.1
  - Remove special casing for libnode-dev on Debian: libnode-dev now
    officially provides and symlinks libv8-dev.

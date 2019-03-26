@@ -32,8 +32,9 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
     curl -sfL "https://jeroen.github.io/autobrew/$PKG_BREW_NAME" > autobrew
     source autobrew
   fi
-  PKG_CFLAGS="-I$BREWDIR/opt/$PKG_BREW_NAME/include"
-  PKG_LIBS="-L$BREWDIR/opt/$PKG_BREW_NAME/lib $PKG_LIBS"
+  V8HOME="$BREWDIR/opt/$PKG_BREW_NAME"
+  PKG_CFLAGS="-I${V8HOME}/include -I${V8HOME}/libexec/include"
+  PKG_LIBS="-L${V8HOME}/{lib,libexec} $PKG_LIBS"
 fi
 
 # For debugging
