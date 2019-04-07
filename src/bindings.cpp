@@ -39,7 +39,8 @@ void start_v8_isolate(void *dll){
     v8::V8::InitializeICUDefaultLocation(V8_ICU_DATA_PATH);
   }
 #endif
-  v8::V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
+  std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+  v8::V8::InitializePlatform(platform.get());
   v8::V8::Initialize();
   v8::Isolate::CreateParams create_params;
   create_params.array_buffer_allocator =
