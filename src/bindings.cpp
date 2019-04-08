@@ -217,7 +217,7 @@ v8::Local<v8::Object> console_template(){
   console_r->Set(ToJSString("get"), v8::FunctionTemplate::New(isolate, console_r_get));
   console_r->Set(ToJSString("eval"), v8::FunctionTemplate::New(isolate, console_r_eval));
   console_r->Set(ToJSString("assign"), v8::FunctionTemplate::New(isolate, console_r_assign));
-  return console->NewInstance();
+  return console->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
 }
 
 // [[Rcpp::export]]
