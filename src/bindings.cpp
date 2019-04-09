@@ -39,7 +39,12 @@ void start_v8_isolate(void *dll){
     v8::V8::InitializeICUDefaultLocation(V8_ICU_DATA_PATH);
   }
 #endif
+#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 704
+  static std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+  v8::V8::InitializePlatform(platform.get());
+#else
   v8::V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
+#endif
   v8::V8::Initialize();
   v8::Isolate::CreateParams create_params;
   create_params.array_buffer_allocator =
@@ -216,7 +221,7 @@ v8::Local<v8::Object> console_template(){
   console_r->Set(ToJSString("get"), v8::FunctionTemplate::New(isolate, console_r_get));
   console_r->Set(ToJSString("eval"), v8::FunctionTemplate::New(isolate, console_r_eval));
   console_r->Set(ToJSString("assign"), v8::FunctionTemplate::New(isolate, console_r_assign));
-  return console->NewInstance();
+  return console->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
 }
 
 // [[Rcpp::export]]
