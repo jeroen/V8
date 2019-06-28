@@ -243,8 +243,8 @@ ctxptr make_context(bool set_console){
        if(context->Global()->Delete(context, console).IsNothing())
          Rcpp::warning("Could not delete console.");
     }
-    context->Global()->Set(console, console_template());
-
+    if(context->Global()->Set(context, console, console_template()).IsNothing())
+      Rcpp::warning("Could not set console.");
   }
   v8::Persistent<v8::Context> *ptr = new v8::Persistent<v8::Context>(isolate, context);
   return ctxptr(ptr);
