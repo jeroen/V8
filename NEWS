@@ -1,3 +1,6 @@
+2.3
+ - Fix for removed API in libv8 version 7.7
+
 2.2
  - Fixes for API changes in libv8 version 7.4 and 7.5
  - MacOS: fix include/linker path for new location of v8
