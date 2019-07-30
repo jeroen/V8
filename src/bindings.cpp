@@ -51,7 +51,7 @@ void start_v8_isolate(void *dll){
     v8::ArrayBuffer::Allocator::NewDefaultAllocator();
   isolate = v8::Isolate::New(create_params);
   if(!isolate)
-    throw std::runtime_error("Failed to initiate V8 isolate");
+    throw Rcpp::exception("Failed to initiate V8 isolate", false);
 }
 
 /* Helper fun that compiles JavaScript source code */
@@ -148,7 +148,7 @@ std::string version(){
 Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   // Test if context still exists
   if(!ctx)
-    throw std::runtime_error("v8::Context has been disposed.");
+    throw Rcpp::exception("v8::Context has been disposed.", false);
 
   //converts input to UTF8 if needed
   src.set_encoding(CE_UTF8);
@@ -163,7 +163,7 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
   v8::Handle<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
   if(script.IsEmpty()) {
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
-    throw std::invalid_argument(ToCString(exception));
+    throw Rcpp::exception(ToCString(exception), false);
   }
 
   // Run the script to get the result.
@@ -171,7 +171,7 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
   v8::Handle<v8::Value> result = safe_to_local(res);
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
-    throw std::runtime_error(ToCString(exception));
+    throw Rcpp::exception(ToCString(exception), false);
   }
 
   // Convert result to UTF8.
@@ -186,7 +186,7 @@ bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> 
 
   // Test if context still exists
   if(!ctx)
-    throw std::runtime_error("v8::Context has been disposed.");
+    throw Rcpp::exception("v8::Context has been disposed.", false);
 
   //converts input to UTF8 if needed
   src.set_encoding(CE_UTF8);
