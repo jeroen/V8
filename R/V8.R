@@ -68,7 +68,8 @@
 #' # Objects (via JSON only)
 #' ctx$assign("mydata", mtcars)
 #' ctx$get("mydata")
-#' ctx$get("mydata", simplifyVector = FALSE)
+#' outlist <- ctx$get("mydata", simplifyVector = FALSE)
+#' outlist[1]
 #'
 #' # Assign JavaScript
 #' ctx$assign("foo", JS("function(x){return x*x}"))
@@ -92,7 +93,8 @@
 #' # Call anonymous function
 #' ctx$call("function(x, y){return x * y}", 123, 3)
 #'
-#' \dontrun{CoffeeScript
+#' \dontrun{
+#' #CoffeeScript
 #' ct2 <- v8()
 #' ct2$source("http://coffeescript.org/v1/browser-compiler/coffee-script.js")
 #' jscode <- ct2$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = TRUE))
@@ -102,10 +104,11 @@
 #' # Interactive console
 #' ct3 <- v8()
 #' ct3$console()
-#' //this is JavaScript
-#' var test = [1,2,3]
-#' JSON.stringify(test)
-#' exit}
+#' # //this is JavaScript
+#' # var test = [1,2,3]
+#' # JSON.stringify(test)
+#' # exit
+#' }
 #'
 v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Private fields
