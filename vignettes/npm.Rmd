@@ -1,14 +1,18 @@
 ---
 title: "Using NPM packages in V8"
-author: "Jeroen Ooms"
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Using NPM packages in V8}
   \usepackage[utf8]{inputenc} 
 output:
-  knitr:::html_vignette:
-    toc: yes
+  html_document:
+    fig_caption: false
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 3
 ---
 
 ```{r, echo = FALSE, message = FALSE}
@@ -18,44 +22,54 @@ library(V8)
 
 ## What is V8 (not)
 
-V8 is Google's JavaScript engine that is used in Chrome, Node and other tools. However each of these programs implements most JavaScript functionality on top of V8. The naked V8 engine only provides basic ECMAscript, which does not include a lot of things that you might be used to. There is no I/O (network/disk) and no DOM (window). Only recent versions of V8 have an event loop.
+The R package V8 provides a direct interface to Google's high performance JavaScript engine. The V8 engine is also used in Chrome, NodeJS, MongoDB, and many other software. 
 
-|            | JS Engine | Evented  | Network | Disk | DOM |
-|------------|--------|-----------|------|---------|-----|
-| Browser    | ✔      | ✔        | ✔    | -       | ✔   |
-| Node       | ✔      | ✔        | ✔    | ✔       | -   |
-| V8 (6)     | ✔      | ✔        | -    | -        | -   |
-| V8 (3.14)  | ✔      | -        | -    | -        | -   |
+However each of these programs actually implements most JavaScript functionality on top of V8. The naked V8 engine only provides pure ECMAscript, which does not include a lot of things that you might be used to. There is no I/O (network/disk) and no DOM (window). 
 
-Currently the R package is just V8. Perhaps more will be added later.
+Recent versions of V8 do have an event loop (required for async in ES6) and WASM support.
 
-## Can we use NPM?
+|            | JS Engine | Evented  | Network | Disk | DOM | WASM
+|------------|--------|-----------|------|---------|-----|------
+| Browser    | ✔      | ✔        | ✔    | -       | ✔   |✔   |
+| Node       | ✔      | ✔        | ✔    | ✔       | -   |✔   |
+| V8 (6+)    | ✔      | ✔        | -    | -        | -   |✔   |
+| Legacy V8 (3.14)  | ✔      | -        | -    | -        | -   |-
 
-Yes! But not all packages will work. Most libraries in [npm](https://www.npmjs.com) are primarily written for Node or the browser. Obviously, anything that requires internet access, graphics or files is not going to work in plain V8. But there is quite a lot of stuff that does work.
+As of 2019, we support modern V8 (ES6+) on all important systems. See the [installation instructions](https://github.com/jeroen/V8#installation) for more details.
 
-Some general purpose libraries like underscore or crossfilter will work natively in V8:
+
+## Using JavaScript libraries
+
+You can load JavaScript libraries in V8, but beware that not all packages will work out of the box. Most libraries in [npm](https://www.npmjs.com) are primarily written for Node or the browser. Functionality that requires internet connectivity, a browser window, or file access won't work, but there is a lot of stuff that does work.
+
 
 ```{r}
 ct <- v8()
-ct$source(system.file("js/underscore.js", package="V8"))
+ct$source(system.file("js/underscore.js", package = "V8"))
 ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 ```
 
-However NPM assumes disk access to resolve dependencies. How is that going to work?
+JS libraries that don't do anyting online or graphical generally work out of the box.
 
-## Browserify to the rescue
+## NPM and browserify
+
+Most NPM packages have many dependencies, but to load it in V8 we need a single `.js` file. The same holds for browsers, so most libraries provide a bundled version for each release. Also CDN services like [cdnjs](https://cdnjs.com) or [jsdelivr](https://www.jsdelivr.com) provide a large archive of bundled versions of most JavaScript libraries. If the library you need can be found here, this is a good place to start.
+
+If no bundle is available for your library, you might be able to create one from the NPM package. However NPM assumes disk access to load dependencies in `require()` statements. How is that going to work?
 
 ![browserify logo](http://jeroen.github.io/V8/browserify.png)
 
-[Browserify](http://browserify.org/) is a brilliant tool to bundle an npm package with all of its dependencies into a single js file that does not require disk access. It is mainly designed to make npm packages suitable for use on a webpage (duh) but it is useful with embedded V8 as well. To install it run:
+[Browserify](http://browserify.org/) is a tool to bundle an npm package with all of its dependencies into a single js file that does not require disk access. It is mainly designed to make npm packages suitable for use on a webpage but it is useful with embedded V8 as well. 
+
+## Browserify example: js-beautify
+
+First we need to install browserify itself:
 
 ```bash
 npm install -g browserify
 ```
 
-## Example: beautify-js
-
-[Beautify-js](https://www.npmjs.com/package/js-beautify) is a simple npm package to fix linebreaks and indentation in JavaScript, HTML or CSS code. To bundle it up, run these three lines in a shell:
+Now let's find an example library to browserify. [Beautify-js](https://www.npmjs.com/package/js-beautify) is a simple npm package to fix linebreaks and indentation in JavaScript, HTML or CSS code. To bundle it up, run these three lines in a shell:
 
 ```bash
 npm install js-beautify
@@ -86,11 +100,7 @@ Let's see whats in our global environment now:
 ct$get(JS('Object.keys(global)'))
 ```
 
-The `beautify` library is available now.
-
-## Lets beautify stuff
-
-To beautify JavaScript we need to use the `js_beautify` function. See the [package homepage](https://www.npmjs.com/package/js-beautify) for a full list of options.
+The `beautify` library is available now. To beautify JavaScript we need to use the `js_beautify` function. See the [package homepage](https://www.npmjs.com/package/js-beautify) for a full list of options.
 
 ```{r}
 test <- "(function(x,y){x = x || 1; y = y || 1; return y * x;})(4, 9)"

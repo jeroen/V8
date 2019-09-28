@@ -1,9 +1,14 @@
 ---
 title: "Introduction to V8 for R"
 date: "`r Sys.Date()`"
-output: 
+output:
   html_document:
-    highlight : "kate"
+    fig_caption: false
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 3
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Introduction to V8 for R}
@@ -110,7 +115,7 @@ print(output)
 ```
 
 
-## Conditions (warnings, errors and console.log)
+## warnings, errors and console.log
 
 Evaluating invalid JavaScript code results in a SyntaxError:
 

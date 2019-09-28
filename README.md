@@ -18,6 +18,78 @@ About the R package:
 
  - Vignette: [Introduction to V8 for R](https://cran.r-project.org/web/packages/V8/vignettes/v8_intro.html)
  - Vignette: [Using NPM packages in V8 with browserify](https://cran.r-project.org/web/packages/V8/vignettes/npm.html)
+ 
+
+## Installation
+
+Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
+
+```r
+install.packages("V8")
+```
+
+### Debian / Ubuntu 
+
+Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro). On Ubuntu / Debian you need to install either [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev), or [libnode-dev](https://packages.ubuntu.com/eoan/libnode-dev). On the latest systems, `libv8-dev` is actually an alias for `libnode-dev` so they are the same:
+
+```sh
+# Debian and Ubuntu
+sudo apt-get install -y libv8-dev
+```
+
+### Backports for Xenial and Bionic
+
+Ubuntu versions before 19.04 ship with a rather old V8 engine in libv8-dev. The R package can be compiled against this, but the engine only supports ES5, so some "modern" JavaScript syntax may not work. A lot of JS libraries these days require this.
+
+A recent version of the V8 engine is available in `libnode-dev` from our the [cran/v8](https://launchpad.net/~cran/+archive/ubuntu/v8) PPA:
+
+```sh
+# Ubuntu Xenial (16.04) and Bionic (18.04) only
+sudo add-apt-repository ppa:cran/v8
+sudo apt-get update
+sudo apt-get install libnode-dev
+```
+
+After installing `libnode-dev` you need to reinstall the R package, and you should be good to go.
+
+### Travis CI
+
+The above PPA is enabled by default in Travis for R 3.5 and up. You can use the following configuration to check R packges that depend on V8:
+
+```yaml
+dist: xenial
+addons:
+  apt:
+    packages: libnode-dev
+```
+
+The [.travis.yml](https://github.com/jeroen/V8/blob/master/.travis.yml) in the V8 repository shows other possible configurations.
+
+### Fedora / Redhat
+
+On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8):
+
+```sh
+sudo yum install v8-devel
+````
+
+On __CentOS / RHEL__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
+
+```sh
+sudo yum install epel-release
+sudo yum install v8-devel
+```
+
+### Homebrew
+
+On __OS-X__ use [v8](https://github.com/Homebrew/homebrew-core/blob/master/Formula/v8) from Homebrew:
+
+```sh
+brew install v8
+```
+
+On other systems you might need to install libv8 from source.
+
 
 ## Hello World
 
@@ -46,39 +118,3 @@ jscode <- ctx$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = 
 ctx$eval(jscode)
 ctx$call("square", 9)
 ```
-
-## Installation
-
-Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
-
-```r
-install.packages("V8")
-```
-
-Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro). On Ubuntu / Debian you need to install [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev). On Debian 10 / Ubuntu 19.04 and up, libv8-dev is actually provided by libnode, but the installation remains the same:
-
-```sh
-# Debian and Ubuntu
-sudo apt-get install -y libv8-dev
-```
-
-On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8):
-
-```sh
-sudo yum install v8-devel
-````
-
-On __CentOS / RHEL__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
-
-```sh
-sudo yum install epel-release
-sudo yum install v8-devel
-```
-
-On __OS-X__ use [v8](https://github.com/Homebrew/homebrew-core/blob/master/Formula/v8) from Homebrew:
-
-```sh
-brew install v8
-```
-
-On other systems you might need to install libv8 from source.
