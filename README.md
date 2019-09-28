@@ -9,7 +9,7 @@
 [![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/V8)](http://cran.r-project.org/web/packages/V8/index.html)
 
 An R interface to Google's open source JavaScript engine. This 
-package can now be compiled either with V8 version 6 (LTS) from nodejs
+package can now be compiled either with V8 version 6+ (LTS) from nodejs
 or with the legacy 3.14/3.15 version of V8.
 
 ## Documentation
@@ -62,6 +62,8 @@ addons:
   apt:
     packages: libnode-dev
 ```
+
+You should delete the travis repository package cache if you switch from `libv8-dev` to `libnode-dev`.
 
 The [.travis.yml](https://github.com/jeroen/V8/blob/master/.travis.yml) in the V8 repository shows other possible configurations.
 
