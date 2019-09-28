@@ -10,8 +10,6 @@ matrix:
     - dist: xenial
       addons:
         apt:
-          sources:
-            - sourceline: 'ppa:cran/v8'
           packages: libnode-dev
     - os: osx
       brew_packages: v8
