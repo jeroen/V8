@@ -8,7 +8,7 @@ Description: An R interface to Google's open source JavaScript engine. This
     package can now be compiled either with V8 version 6 or 7 (LTS) from 
     nodejs or with the legacy 3.14/3.15 branch of V8.
 License: MIT + file LICENSE
-URL: https://jeroen.cran/dev/V8 (docs)
+URL: https://jeroen.cran.dev/V8 (docs)
     https://github.com/jeroen/v8 (devel)
     https://v8.dev (upstream)
 BugReports: https://github.com/jeroen/v8/issues
