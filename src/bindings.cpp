@@ -97,9 +97,9 @@ void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args
     v8::String::Utf8Value arg0(args.GetIsolate(), args[0]);
     Rcpp::String fun(*arg0);
     Rcpp::CharacterVector out;
-    if(args[1]->IsUndefined()){
+    if(args.Length() == 1 || args[1]->IsUndefined()){
       out = r_call(fun);
-    } else if(args[2]->IsUndefined()) {
+    } else if(args.Length() == 2 || args[2]->IsUndefined()) {
       v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(args[1]);
       v8::String::Utf8Value arg1(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
       Rcpp::String json(ToCString(arg1));
