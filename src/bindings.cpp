@@ -91,7 +91,7 @@ static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
   args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
-void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args) {
+static void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args) {
   try {
     Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[fun];
     v8::String::Utf8Value arg0(args.GetIsolate(), args[0]);
@@ -139,13 +139,32 @@ static void console_r_assign(const v8::FunctionCallbackInfo<v8::Value>& args) {
   r_callback("r_assign", args);
 }
 
+static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
+  if(value->IsArrayBuffer() || value->IsArrayBufferView()){
+    v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
+    value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
+    Rcpp::RawVector data(buffer->ByteLength());
+    memcpy(data.begin(), buffer->GetContents().Data(), data.size());
+    return data;
+  } else {
+    //convert to string without jsonify
+    //v8::String::Utf8Value utf8(isolate, value);
+    v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), value).ToLocalChecked());
+    Rcpp::String str(*utf8);
+    str.set_encoding(CE_UTF8);
+    Rcpp::CharacterVector out(1);
+    out.at(0) = str;
+    return out;
+  }
+}
+
 // [[Rcpp::export]]
 std::string version(){
   return v8::V8::GetVersion();
 }
 
 // [[Rcpp::export]]
-Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -174,10 +193,16 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
     throw std::runtime_error(ToCString(exception));
   }
 
-  // Convert result to UTF8.
+  // Serialize to JSON or Raw
+  if(serialize == true)
+    return convert_object(result);
+
+  // Convert result to string
   v8::String::Utf8Value utf8(isolate, result);
-  Rcpp::String out(*utf8);
-  out.set_encoding(CE_UTF8);
+  Rcpp::String str(*utf8);
+  str.set_encoding(CE_UTF8);
+  Rcpp::CharacterVector out(1);
+  out.at(0) = str;
   return out;
 }
 
@@ -207,7 +232,7 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::
 }
 
 // [[Rcpp::export]]
-Rcpp::RawVector read_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+Rcpp::RObject context_read(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -225,15 +250,8 @@ Rcpp::RawVector read_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v
   if(!global->Has(context, name).FromMaybe(true))
     throw std::runtime_error(std::string("No such object: ") + key.get_cstring());
   v8::Local<v8::Value> value = global->Get(context, name).ToLocalChecked();
-  if(!value->IsArrayBuffer() && !value->IsArrayBufferView())
-    throw std::runtime_error(std::string("Object is not an ArrayBuffer or TypedArray: ") + key.get_cstring());
-  v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
-    value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
-  Rcpp::RawVector data(buffer->ByteLength());
-  memcpy(data.begin(), buffer->GetContents().Data(), data.size());
-  return data;
+  return convert_object(value);
 }
-
 
 // [[Rcpp::export]]
 bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {

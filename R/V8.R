@@ -114,10 +114,15 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   # Private fields
   private <- environment();
 
+  # Low level evaluate
+  evaluate_js <- function(src, serialize = FALSE){
+    context_eval(join(src), private$context, serialize)
+  }
+
   # Public methods
   this <- local({
     eval <- function(src){
-      get_str_output(context_eval(join(src), private$context));
+      get_str_output(evaluate_js(src))
     }
     validate <- function(src){
       context_validate(join(src), private$context)
@@ -138,9 +143,8 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
         }
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
-      src <- paste0("JSON.stringify((", fun ,")(", jsargs, "));");
-      out <- this$eval(src)
-      get_json_output(out)
+      src <- paste0("(", fun ,")(", jsargs, ");")
+      get_json_output(evaluate_js(src, serialize = TRUE))
     }
     source <- function(file){
       if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
@@ -148,16 +152,16 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
         on.exit(close(file))
       }
       # Always assume UTF8, even on Windows.
-      this$eval(readLines(file, encoding = "UTF-8", warn = FALSE))
+      evaluate_js(readLines(file, encoding = "UTF-8", warn = FALSE))
     }
     get <- function(name, ...){
       stopifnot(is.character(name))
-      get_json_output(this$eval(c("JSON.stringify(", name, ")")), ...)
+      get_json_output(evaluate_js(name, serialize = TRUE), ...)
     }
-    #getraw <- function(name, ...){
-    #  stopifnot(is.character(name))
-    #  read_array_buffer(name, private$context)
-    #}
+    read <- function(name, ...){
+      stopifnot(is.character(name))
+      get_json_output(context_read(name, private$context))
+    }
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
       obj <- if(inherits(value, "raw")) {
@@ -245,7 +249,9 @@ undefined_to_null <- function(str){
 }
 
 get_json_output <- function(json, ...){
-  if(identical(json,"undefined")){
+  if(is.raw(json)){
+    return(json)
+  } else if(identical(json,"undefined")){
     invisible(NULL)
   } else {
     fromJSON(json, ...)
