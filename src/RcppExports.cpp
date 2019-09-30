@@ -28,6 +28,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// create_array_buffer
+bool create_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+RcppExport SEXP _V8_create_array_buffer(SEXP keySEXP, SEXP dataSEXP, SEXP ctxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::String >::type key(keySEXP);
+    Rcpp::traits::input_parameter< Rcpp::RawVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
+    rcpp_result_gen = Rcpp::wrap(create_array_buffer(key, data, ctx));
+    return rcpp_result_gen;
+END_RCPP
+}
 // context_validate
 bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
 RcppExport SEXP _V8_context_validate(SEXP srcSEXP, SEXP ctxSEXP) {
@@ -77,6 +90,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
     {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 2},
+    {"_V8_create_array_buffer", (DL_FUNC) &_V8_create_array_buffer, 3},
     {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
     {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},
     {"_V8_make_context", (DL_FUNC) &_V8_make_context, 1},

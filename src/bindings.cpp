@@ -182,6 +182,32 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
 }
 
 // [[Rcpp::export]]
+bool create_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("v8::Context has been disposed.");
+
+  // Create a scope
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = ctx.checked_get()->Get(isolate);
+  v8::Context::Scope context_scope(context);
+  v8::TryCatch trycatch(isolate);
+
+  // Copy data from R vector into JS buffer
+  v8::Handle<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
+  memcpy(buffer->GetContents().Data(), data.begin(), data.size());
+
+  // Assign to object (delete first if exists)
+  v8::Local<v8::String> name = ToJSString(key.get_cstring());
+  v8::Local<v8::Object> global = context->Global();
+  if(!global->Has(context, name).FromMaybe(true) || !global->Delete(context, name).IsNothing())
+    return !global->Set(context, name, buffer).IsNothing();
+  return false;
+}
+
+
+// [[Rcpp::export]]
 bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
 
   // Test if context still exists
