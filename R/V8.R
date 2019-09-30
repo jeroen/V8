@@ -130,7 +130,9 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
         stop("Named arguments are not supported in JavaScript.")
       }
       jsargs <- vapply(jsargs, function(x){
-        if(is.atomic(x) && inherits(x, "JS_EVAL")){
+        if(is.raw(x)){
+          raw_to_js(x)
+        } else if(is.atomic(x) && inherits(x, "JS_EVAL")){
           as.character(x)
         } else {
           # To box or not. I'm not sure.
@@ -305,4 +307,9 @@ engine_info <- function(){
   list (
     version = version()
   )
+}
+
+raw_to_js <- function(x){
+  stopifnot(is.raw(x))
+  paste0('new Uint8Array(', jsonlite::toJSON(as.integer(x)), ')')
 }
