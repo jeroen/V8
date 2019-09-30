@@ -15,7 +15,7 @@ Load a WebAssembly program. Returns a list of exported functions.
 \examples{
 # Load example wasm program
 if(engine_info()$version > 6){
-exports <- wasm(system.file('wasm/add.wasm', package = 'V8'))
-exports$add(12, 30)
+instance <- wasm(system.file('wasm/add.wasm', package = 'V8'))
+instance$exports$add(12, 30)
 }
 }

@@ -6,8 +6,8 @@
 #' @param data either raw vector or file path with the binary wasm program
 #' @examples # Load example wasm program
 #' if(engine_info()$version > 6){
-#' exports <- wasm(system.file('wasm/add.wasm', package = 'V8'))
-#' exports$add(12, 30)
+#' instance <- wasm(system.file('wasm/add.wasm', package = 'V8'))
+#' instance$exports$add(12, 30)
 #' }
 wasm <- function(data){
   if(is.character(data))
@@ -19,9 +19,12 @@ wasm <- function(data){
   ctx$eval('let module = new WebAssembly.Module(bytes);')
   ctx$eval('let instance = new WebAssembly.Instance(module);')
   function_names <- ctx$get('Object.keys(instance.exports)')
-  structure(lapply(function_names, function(f){
+  exports <- structure(lapply(function_names, function(f){
     body <- sprintf('call("instance.exports.%s", ...)', f)
     fun <- list(... = substitute(), parse(text = body)[[1]])
     as.function(fun, envir = environment(ctx$call))
   }), names = function_names)
+  list(
+    exports = exports
+  )
 }
