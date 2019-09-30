@@ -30,6 +30,13 @@ test_that("ArrayBuffers", {
   expect_equal(ctx$get('(function(x){return mtcars})()'), mtcars)
   expect_null(ctx$get('console.log'))
 
+  # Using call (serialize and eval)
+  ctx$eval('function identity(x){return x;}')
+  expect_equal(ctx$call('identity', JS('bytes')), bin)
+  expect_equal(ctx$call('identity', JS('buffer')), bin)
+  expect_equal(ctx$call('identity', JS('mtcars')), mtcars)
+  expect_null(ctx$call('identity', JS('console.log')))
+
   # Without serialize
   expect_match(ctx$eval('bytes'), "^(\\d,?)+$")
   expect_match(ctx$eval('buffer'), "[object ArrayBuffer]", fixed = TRUE)
