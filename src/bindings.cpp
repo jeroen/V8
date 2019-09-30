@@ -225,9 +225,10 @@ Rcpp::RawVector read_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v
   if(!global->Has(context, name).FromMaybe(true))
     throw std::runtime_error(std::string("No such object: ") + key.get_cstring());
   v8::Local<v8::Value> value = global->Get(context, name).ToLocalChecked();
-  if(!value->IsArrayBuffer())
-    throw std::runtime_error(std::string("Object is not an ArrayBuffer: ") + key.get_cstring());
-  v8::Local<v8::ArrayBuffer> buffer = value.As<v8::ArrayBuffer>();
+  if(!value->IsArrayBuffer() && !value->IsArrayBufferView())
+    throw std::runtime_error(std::string("Object is not an ArrayBuffer or TypedArray: ") + key.get_cstring());
+  v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
+    value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
   Rcpp::RawVector data(buffer->ByteLength());
   memcpy(data.begin(), buffer->GetContents().Data(), data.size());
   return data;
