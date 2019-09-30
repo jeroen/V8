@@ -154,10 +154,14 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
       stopifnot(is.character(name))
       get_json_output(this$eval(c("JSON.stringify(", name, ")")), ...)
     }
+    #getraw <- function(name, ...){
+    #  stopifnot(is.character(name))
+    #  read_array_buffer(name, private$context)
+    #}
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
       obj <- if(inherits(value, "raw")) {
-        create_array_buffer(name, value, private$context)
+        write_array_buffer(name, value, private$context)
       } else if(inherits(value, "JS_EVAL")) {
         invisible(this$eval(paste("var", name, "=", value)))
       } else {

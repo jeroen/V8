@@ -9,8 +9,12 @@ context_eval <- function(src, ctx) {
     .Call('_V8_context_eval', PACKAGE = 'V8', src, ctx)
 }
 
-create_array_buffer <- function(key, data, ctx) {
-    .Call('_V8_create_array_buffer', PACKAGE = 'V8', key, data, ctx)
+write_array_buffer <- function(key, data, ctx) {
+    .Call('_V8_write_array_buffer', PACKAGE = 'V8', key, data, ctx)
+}
+
+read_array_buffer <- function(key, ctx) {
+    .Call('_V8_read_array_buffer', PACKAGE = 'V8', key, ctx)
 }
 
 context_validate <- function(src, ctx) {
