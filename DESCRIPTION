@@ -28,5 +28,5 @@ Suggests:
     knitr,
     rmarkdown
 RoxygenNote: 6.1.99.9001
-Roxygen: list(load = "source")
+Roxygen: list(load = "installed")
 Language: en-US
