@@ -27,10 +27,10 @@ test_that("console.r.call", {
   expect_equal(length(ctx$get("console.r.call('rnorm', {n: 2,mean:10, sd:5})")), 2)
   expect_equal(length(ctx$get("console.r.call('rnorm', 3)")), 3)
   expect_equal(ctx$get("console.r.call('function(x){x^2}', {x:12})"), 144)
-  expect_error(ctx$get("console.r.call('rnorm')"), "missing")
+  expect_error(ctx$get("console.r.call('rnorm')"), "missing", class = "std::runtime_error")
 })
 
 test_that("console.r.eval", {
   expect_is(ctx$eval("console.r.eval('invisible(sessionInfo())')"), "character")
-  expect_error(ctx$eval("console.r.eval('doesnotexists')"), "not found")
+  expect_error(ctx$eval("console.r.eval('doesnotexists')"), "not found", class = "std::runtime_error")
 })
