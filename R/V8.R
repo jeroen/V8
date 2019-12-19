@@ -154,12 +154,11 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
     }
     get <- function(name, ...){
       stopifnot(is.character(name))
+      if(is_array_buffer(name, private$context)){
+        return(read_array_buffer(name, private$context))
+      }
       get_json_output(this$eval(c("JSON.stringify(", name, ")")), ...)
     }
-    #getraw <- function(name, ...){
-    #  stopifnot(is.character(name))
-    #  read_array_buffer(name, private$context)
-    #}
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
       obj <- if(inherits(value, "raw")) {

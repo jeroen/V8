@@ -234,6 +234,27 @@ Rcpp::RawVector read_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v
   return data;
 }
 
+// [[Rcpp::export]]
+bool is_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+  // Test if context still exists
+  if(!ctx)
+    throw std::runtime_error("v8::Context has been disposed.");
+
+  // Create a scope
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Context> context = ctx.checked_get()->Get(isolate);
+  v8::Context::Scope context_scope(context);
+  v8::TryCatch trycatch(isolate);
+
+  // Find the object
+  v8::Local<v8::String> name = ToJSString(key.get_cstring());
+  v8::Local<v8::Object> global = context->Global();
+  if(!global->Has(context, name).FromMaybe(true))
+    return false;
+  v8::Local<v8::Value> value = global->Get(context, name).ToLocalChecked();
+  return value->IsArrayBuffer() || value->IsArrayBufferView();
+}
 
 // [[Rcpp::export]]
 bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {

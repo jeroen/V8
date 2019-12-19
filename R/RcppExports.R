@@ -17,6 +17,10 @@ read_array_buffer <- function(key, ctx) {
     .Call('_V8_read_array_buffer', PACKAGE = 'V8', key, ctx)
 }
 
+is_array_buffer <- function(key, ctx) {
+    .Call('_V8_is_array_buffer', PACKAGE = 'V8', key, ctx)
+}
+
 context_validate <- function(src, ctx) {
     .Call('_V8_context_validate', PACKAGE = 'V8', src, ctx)
 }
