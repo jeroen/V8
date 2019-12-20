@@ -26,3 +26,13 @@ test_that("Roundtrip ArrayBuffers", {
   ctx$assign('iris', serialize(iris, NULL))
   expect_equal(unserialize(ctx$get('iris')), iris)
 })
+
+test_that("Large ArrayBuffer", {
+  ctx <- V8::v8()
+  x <- serialize(rnorm(1e6), NULL)
+  ctx$assign('x', x)
+  y <- ctx$get('x')
+  expect_identical(x, y)
+  rm(x); gc()
+  expect_identical(ctx$get('x'), y)
+})
