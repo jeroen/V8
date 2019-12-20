@@ -763,6 +763,13 @@ void AttachBindings(v8::Handle<v8::Object> obj) {
            DataView::GetTemplate()->GetFunction());
 }
 
+v8::Local<v8::Object> new_array(int len){
+  v8::Handle<v8::Value> argv[1] = {v8::Integer::NewFromUnsigned(len)};
+  v8::Local<v8::Object> buffer = Int8Array::GetTemplate()->GetFunction()->NewInstance(1, argv);
+  //v8::Local<v8::Object> buffer = ArrayBuffer::GetTemplate()->GetFunction()->NewInstance(1, argv);
+  return buffer;
+}
+
 int SizeOfArrayElementForType(v8::ExternalArrayType type) {
   switch (type) {
     case v8::kExternalByteArray:

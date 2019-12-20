@@ -10,7 +10,7 @@
  Xptr examples:
  - https://github.com/RcppCore/Rcpp/blob/master/inst/unitTests/cpp/XPtr.cpp
  - http://romainfrancois.blog.free.fr/index.php?post/2010/01/08/External-pointers-with-Rcpp
-*/
+ */
 
 #include <v8.h>
 #include <Rcpp.h>
@@ -212,43 +212,56 @@ bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
   return(!ctx);
 }
 
-/*
-Method below does not work because null bytes get lost when converting to strings.
-Should use ArrayBuffer types instead, e.g. Uint8Array.
-*/
-
 // [[Rcpp::export]]
-bool context_assign_bin(std::string name, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
-
-  // Test if context still exists
+Rcpp::RawVector read_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   if(!ctx)
     throw std::runtime_error("Context has been disposed.");
 
   // Create scope
   HandleScope handle_scope;
   Context::Scope context_scope(*ctx);
+  v8::Handle<v8::String> name = String::NewSymbol(key.get_cstring());
   v8::Handle<v8::Object> global = (*ctx)->Global();
 
-  // Currently converts raw vectors to strings. Better would be ArrayBuffer (Uint8Array specifically)
-  Local<v8::String> mystring = v8::String::New((const char*) RAW(data), data.length());
-  global->Set(String::NewSymbol(name.c_str()), mystring);
-  return true;
+  if(!global->Has(name))
+    throw std::runtime_error(std::string("No such object: ") + key.get_cstring());
+  v8::Local<v8::Object> val = global->Get(name)->ToObject();
+  int size = v8_typed_array::SizeOfArrayElementForType(val->GetIndexedPropertiesExternalArrayDataType());
+  size_t len = val->GetIndexedPropertiesExternalArrayDataLength();
+  Rcpp::RawVector buf(len * size);
+  memcpy(buf.begin(), val->GetIndexedPropertiesExternalArrayData(), len * size);
+  return buf;
 }
 
 // [[Rcpp::export]]
-Rcpp::RawVector context_get_bin(std::string name, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
-  // Test if context still exists
+bool is_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
   if(!ctx)
     throw std::runtime_error("Context has been disposed.");
 
   // Create scope
   HandleScope handle_scope;
   Context::Scope context_scope(*ctx);
+  v8::Handle<v8::String> name = String::NewSymbol(key.get_cstring());
   v8::Handle<v8::Object> global = (*ctx)->Global();
 
-  //find the string
-  Local<v8::String> mystring = global->Get(String::NewSymbol(name.c_str()))->ToString();
-  Rcpp::RawVector res(mystring->Length());
-  mystring->WriteAscii((char*) res.begin());
-  return res;
+  if(!global->Has(name))
+    return false;
+  v8::Local<v8::Value> value = global->Get(name);
+  return value->ToObject()->HasIndexedPropertiesInExternalArrayData();
+}
+
+// [[Rcpp::export]]
+bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+  if(!ctx)
+    throw std::runtime_error("Context has been disposed.");
+
+  // Create scope
+  HandleScope handle_scope;
+  Context::Scope context_scope(*ctx);
+  v8::Handle<v8::String> name = String::NewSymbol(key.get_cstring());
+  v8::Handle<v8::Object> global = (*ctx)->Global();
+  v8::Local<v8::Object> obj = v8_typed_array::new_array(data.length());
+  memcpy(obj->GetIndexedPropertiesExternalArrayData(), data.begin(), data.length());
+  global->Set(name, obj);
+  return true;
 }

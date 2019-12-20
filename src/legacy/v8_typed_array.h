@@ -30,6 +30,8 @@ void AttachBindings(v8::Handle<v8::Object> obj);
 
 int SizeOfArrayElementForType(v8::ExternalArrayType type);
 
+v8::Local<v8::Object> new_array(int len);
+
 }  // namespace v8_typed_array
 
 #endif  // V8_TYPED_ARRAY_H_
