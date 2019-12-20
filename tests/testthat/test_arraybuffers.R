@@ -13,6 +13,12 @@ var floatArray = new Float32Array( [0, Math.PI])')
   expect_equal(ctx$get('dataBuffer'), raw(3))
   expect_equal(ctx$get('floatArray'), as.raw(c(0, 0, 0, 0, 219, 15, 73, 64)))
   expect_equal(ctx$get('intArray'), as.raw(1:3))
+
+  # Print methods
+  expect_equal(ctx$eval('dataBuffer'), "[object ArrayBuffer]")
+  expect_equal(ctx$eval('floatArray.buffer'), "[object ArrayBuffer]")
+  expect_equal(ctx$eval('intArray.buffer'), "[object ArrayBuffer]")
+
 })
 
 test_that("Roundtrip ArrayBuffers", {

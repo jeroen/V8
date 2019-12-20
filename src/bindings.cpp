@@ -194,15 +194,16 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::
   v8::Context::Scope context_scope(context);
   v8::TryCatch trycatch(isolate);
 
-  // Copy data from R vector into JS buffer
+  // Initiate ArrayBuffer and ArrayBufferView (uint8 typed array)
   v8::Handle<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
+  v8::Handle<v8::Uint8Array> typed_array = v8::Uint8Array::New(buffer, 0, data.size());
   memcpy(buffer->GetContents().Data(), data.begin(), data.size());
 
   // Assign to object (delete first if exists)
   v8::Local<v8::String> name = ToJSString(key.get_cstring());
   v8::Local<v8::Object> global = context->Global();
   if(!global->Has(context, name).FromMaybe(true) || !global->Delete(context, name).IsNothing())
-    return !global->Set(context, name, buffer).IsNothing();
+    return !global->Set(context, name, typed_array).IsNothing();
   return false;
 }
 
