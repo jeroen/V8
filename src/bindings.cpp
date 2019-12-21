@@ -154,7 +154,8 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
   } else {
     //convert to string without jsonify
     //v8::String::Utf8Value utf8(isolate, value);
-    v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), value).ToLocalChecked());
+    v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(value);
+    v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), obj1).ToLocalChecked());
     Rcpp::String str(*utf8);
     str.set_encoding(CE_UTF8);
     Rcpp::CharacterVector out(1);
