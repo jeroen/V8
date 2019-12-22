@@ -145,7 +145,9 @@ std::string version(){
 }
 
 static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
-  if(value->IsArrayBuffer() || value->IsArrayBufferView()){
+  if(value->IsUndefined() || value->IsNull()){
+    return R_NilValue;
+  } if(value->IsArrayBuffer() || value->IsArrayBufferView()){
     v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
     value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
     Rcpp::RawVector data(buffer->ByteLength());

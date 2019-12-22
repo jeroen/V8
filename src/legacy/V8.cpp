@@ -150,6 +150,9 @@ std::string version(){
 }
 
 static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
+  if(value->IsUndefined() || value->IsNull()){
+    return R_NilValue;
+  }
   Local<v8::Object> obj = value->ToObject();
   if(obj->HasIndexedPropertiesInExternalArrayData()){
     int size = v8_typed_array::SizeOfArrayElementForType(obj->GetIndexedPropertiesExternalArrayDataType());
@@ -161,6 +164,8 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     //convert to string without jsonify
     //v8::String::Utf8Value utf8(isolate, value);
     String::Utf8Value utf8(json_stringify(value));
+    if(!utf8.length())
+      return R_NilValue;
     Rcpp::CharacterVector out = {Rcpp::String(*utf8, CE_UTF8)};
     return out;
   }

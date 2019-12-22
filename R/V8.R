@@ -9,8 +9,9 @@
 #' is very cheap. You can run as many parallel v8 contexts as you want. R packages
 #' that use V8 can use a separate V8 context for each object or function call.
 #'
-#' The \code{ct$eval} method evaluates a string of raw code in the same way
-#' as \code{eval} would do in JavaScript. It returns a string with console output.
+#' The \code{ct$eval} method evaluates a string of JavaScript code in the same way
+#' as \code{eval} in JavaScript. By default, it returns a string with console output;
+#' when the \code{serialize} parameter is set to \code{TRUE} it returns either
 #' The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions
 #' on the other hand automatically convert arguments and return value from/to JSON,
 #' unless an argument has been wrapped in \code{JS()}, see examples.
@@ -121,8 +122,9 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
 
   # Public methods
   this <- local({
-    eval <- function(src){
-      get_str_output(evaluate_js(src))
+    eval <- function(src, serialize = FALSE){
+      # serialize=TRUE does not unserialize: user has to parse json/raw
+      get_str_output(evaluate_js(src, serialize = serialize))
     }
     validate <- function(src){
       context_validate(join(src), private$context)
