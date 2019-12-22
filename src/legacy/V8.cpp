@@ -27,7 +27,7 @@ void ctx_finalizer( Persistent<Context>* context ){
 typedef Rcpp::XPtr<Persistent<Context>, Rcpp::PreserveStorage, ctx_finalizer> ctxptr;
 
 /* Helper fun that compiles JavaScript source code */
-Handle<Script> compile_source( std::string src ){
+static Handle<Script> compile_source( std::string src ){
   Handle<String> source = String::New(src.c_str());
   Handle<Script> script = Script::Compile(source);
   return script;
@@ -161,10 +161,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     //convert to string without jsonify
     //v8::String::Utf8Value utf8(isolate, value);
     String::Utf8Value utf8(json_stringify(value));
-    Rcpp::String str(*utf8);
-    str.set_encoding(CE_UTF8);
-    Rcpp::CharacterVector out(1);
-    out.at(0) = str;
+    Rcpp::CharacterVector out = {Rcpp::String(*utf8, CE_UTF8)};
     return out;
   }
 }

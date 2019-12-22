@@ -156,10 +156,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     //v8::String::Utf8Value utf8(isolate, value);
     v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(value);
     v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), obj1).ToLocalChecked());
-    Rcpp::String str(*utf8);
-    str.set_encoding(CE_UTF8);
-    Rcpp::CharacterVector out(1);
-    out.at(0) = str;
+    Rcpp::CharacterVector out = {Rcpp::String(*utf8, CE_UTF8)};
     return out;
   }
 }
@@ -306,4 +303,3 @@ ctxptr make_context(bool set_console){
 bool context_enable_typed_arrays( Rcpp::XPtr< v8::Persistent<v8::Context> > ctx ){
   return true;
 }
-
