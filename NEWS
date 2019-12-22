@@ -1,6 +1,7 @@
 2.4
  - Fix callback API crashes in V8 7.9+ (Jan Marvin, #70, #71, #75)
- - Convert Raw vectors to/from Uint8Array where possible.
+ - Internal rewrite of object serialization (to prepare for wasm)
+ - Convert Raw vectors to/from Uint8Array when serializing.
 
 2.3
  - Fix for removed API in libv8 version 7.7

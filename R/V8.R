@@ -5,47 +5,57 @@
 #' separate, unrelated, JavaScript code to run in a single instance of V8, like a
 #' tab in a browser.
 #'
-#' V8 contexts cannot be serialized but creating a new contexts and sourcing code
-#' is very cheap. You can run as many parallel v8 contexts as you want. R packages
+#' A V8 context cannot be saved or duplicated, but creating a new context and sourcing
+#' code is very cheap. You can run as many parallel v8 contexts as you want. R packages
 #' that use V8 can use a separate V8 context for each object or function call.
-#'
-#' The \code{ct$eval} method evaluates a string of JavaScript code in the same way
-#' as \code{eval} in JavaScript. By default, it returns a string with console output;
-#' when the \code{serialize} parameter is set to \code{TRUE} it returns either
-#' The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions
-#' on the other hand automatically convert arguments and return value from/to JSON,
-#' unless an argument has been wrapped in \code{JS()}, see examples.
-#' The \code{ct$validate} function is used to test if a piece of code is valid
-#' JavaScript syntax within the context, and always returns TRUE or FALSE.
-#'
-#' JSON is used for all data interchange between R and JavaScript. Therefore you can
-#' (and should) only exchange data types that have a sensible JSON representation.
-#' All arguments and objects are automatically converted according to the mapping
-#' described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
-#' by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
 #'
 #' The name of the global object (i.e. \code{global} in node and \code{window}
 #' in browsers) can be set with the global argument. A context always have a global
 #' scope, even when no name is set. When a context is initiated with \code{global = NULL},
 #' the global environment can be reached by evaluating \code{this} in the global scope,
 #' for example: \code{ct$eval("Object.keys(this)")}.
-#' @section Methods:
-#' \describe{
-#'   \item{\code{console()}}{ starts an interactive console}
-#'   \item{\code{eval(src)}}{ evaluates a string with JavaScript source code}
-#'   \item{\code{validate(src)}}{ test if a string of JavaScript code is syntactically valid}
-#'   \item{\code{source(file)}}{ evaluates a file with JavaScript code}
-#'   \item{\code{get(name, ...)}}{ convert a JavaScript to R via JSON. Optional arguments (\code{...}) are passed to \link[jsonlite]{fromJSON} to set JSON coercion options.}
-#'   \item{\code{assign(name, value)}}{ copy an R object to JavaScript via JSON}
-#'   \item{\code{call(fun, ...)}}{ call a JavaScript function with arguments \code{...}. Arguments which are not wrapped in \code{JS()} automatically get converted to JSON}
-#'   \item{\code{reset()}}{ resets the context (removes all objects)}
-#' }
+#'
+#' @section V8 Context Methods:
+#' \Sexpr[results=rd, stage=build, echo=FALSE]{V8:::generate_rd()}
+#'
+#' The \code{ct$eval} method evaluates a string of JavaScript code in the same way
+#' as \code{eval} in JavaScript. By default \code{eval()} returns a string with
+#' console output; but when the \code{serialize} parameter is set to \code{TRUE} it
+#' serializes the JavaScript return object to a JSON string or a raw buffer.
+#'
+#' The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions automatically
+#' convert arguments and return value between R and JavaScript (using JSON). To pass
+#' literal JavaScript arguments that should not be converted to JSON, wrap them in
+#' \code{JS()}, see examples.
+#'
+#' The \code{ct$validate} function is used to test
+#' if a piece of code is valid JavaScript syntax within the context, and always
+#' returns TRUE or FALSE.
+#'
+#' In an interactive R session you can use \code{ct$console()} to switch to an
+#' interactive JavaScript console. Here you can use \code{console.log} to print
+#' objects, and there is some support for JS tab-completion. This is mostly for
+#' testing and debugging, it may not work perfectly in every IDE or R-frontend.
+#'
+#' @section Data Interchange:
+#' JSON is used for data interchange between R and JavaScript. Therefore you can
+#' (and should) only exchange data types that have a sensible JSON representation.
+#' One exception is raw vectors which are converted to/from Uint8Array buffers, see
+#' below. All other arguments and objects are automatically converted according to the mapping
+#' described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
+#' by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
+#'
+#' As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
+#' typed arrays, and vice versa. This makes it possible to efficiently copy large chunks
+#' binary data between R and JavaScript, which is useful for running wasm
+#' or emscripten.
+#'
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
 #' @export v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
-#' @param typed_arrays used to enable support for typed arrays in legacy libv8. This is enabled by default
-#' in recent versions of libv8.
+#' @param typed_arrays (deprecated) enable typed arrays in legacy libv8. Deprecated because
+#' typed arrays are natively supported in recent versions of libv8.
 #' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
@@ -94,7 +104,7 @@
 #' # Call anonymous function
 #' ctx$call("function(x, y){return x * y}", 123, 3)
 #'
-#' \dontrun{
+#' \donttest{
 #' #CoffeeScript
 #' ct2 <- v8()
 #' ct2$source("http://coffeescript.org/v1/browser-compiler/coffee-script.js")
@@ -290,8 +300,23 @@ print.V8 <- function(x, ...){
   if(context_null(get("context", x))){
     cat("This context has been disposed.")
   } else {
-    cat("V8 context methods:\n  $console()\n  $eval(src)\n  $validate(src)\n  $source(file)\n  $get(name)\n  $assign(name, value)\n  $call(fun, ...)\n  $reset()\n")
+    ns <- ls(x)
+    title <- paste0("<", class(x)[1], ">")
+    cat(title, "\n")
+    lapply(ns, function(fn){
+      cat(format_function(x[[fn]], fn), sep = "\n")
+    })
+    invisible()
   }
+}
+
+# Pretty format function headers
+format_function <- function(fun, name = deparse(substitute(fun))){
+  #header <- sub("\\{$", "", capture.output(fun)[1])
+  header <- utils::head(deparse(args(fun), 100L), -1)
+  header <- sub("^[ ]*", "   ", header)
+  header[1] <- sub("^[ ]*function ?", paste0(" $", name), header[1])
+  header
 }
 
 join <- function (str){
@@ -316,4 +341,9 @@ engine_info <- function(){
 raw_to_js <- function(x){
   stopifnot(is.raw(x))
   paste0('new Uint8Array(', jsonlite::toJSON(as.integer(x)), ')')
+}
+
+generate_rd <- function(){
+  out <- paste(utils::capture.output(print(v8())), collapse = "\n")
+  paste("\\preformatted{", "## ctx <- v8()", out, "}\n", sep = "\n")
 }

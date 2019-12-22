@@ -16,8 +16,8 @@ engine_info()
 
 \item{console}{expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).}
 
-\item{typed_arrays}{used to enable support for typed arrays in legacy libv8. This is enabled by default
-in recent versions of libv8.}
+\item{typed_arrays}{(deprecated) enable typed arrays in legacy libv8. Deprecated because
+typed arrays are natively supported in recent versions of libv8.}
 }
 \description{
 The \code{\link{v8}} function (formerly called \code{new_context}) creates a
@@ -26,23 +26,9 @@ separate, unrelated, JavaScript code to run in a single instance of V8, like a
 tab in a browser.
 }
 \details{
-V8 contexts cannot be serialized but creating a new contexts and sourcing code
-is very cheap. You can run as many parallel v8 contexts as you want. R packages
+A V8 context cannot be saved or duplicated, but creating a new context and sourcing
+code is very cheap. You can run as many parallel v8 contexts as you want. R packages
 that use V8 can use a separate V8 context for each object or function call.
-
-The \code{ct$eval} method evaluates a string of raw code in the same way
-as \code{eval} would do in JavaScript. It returns a string with console output.
-The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions
-on the other hand automatically convert arguments and return value from/to JSON,
-unless an argument has been wrapped in \code{JS()}, see examples.
-The \code{ct$validate} function is used to test if a piece of code is valid
-JavaScript syntax within the context, and always returns TRUE or FALSE.
-
-JSON is used for all data interchange between R and JavaScript. Therefore you can
-(and should) only exchange data types that have a sensible JSON representation.
-All arguments and objects are automatically converted according to the mapping
-described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
-by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
 
 The name of the global object (i.e. \code{global} in node and \code{window}
 in browsers) can be set with the global argument. A context always have a global
@@ -50,18 +36,43 @@ scope, even when no name is set. When a context is initiated with \code{global =
 the global environment can be reached by evaluating \code{this} in the global scope,
 for example: \code{ct$eval("Object.keys(this)")}.
 }
-\section{Methods}{
+\section{V8 Context Methods}{
 
-\describe{
-  \item{\code{console()}}{ starts an interactive console}
-  \item{\code{eval(src)}}{ evaluates a string with JavaScript source code}
-  \item{\code{validate(src)}}{ test if a string of JavaScript code is syntactically valid}
-  \item{\code{source(file)}}{ evaluates a file with JavaScript code}
-  \item{\code{get(name, ...)}}{ convert a JavaScript to R via JSON. Optional arguments (\code{...}) are passed to \link[jsonlite]{fromJSON} to set JSON coercion options.}
-  \item{\code{assign(name, value)}}{ copy an R object to JavaScript via JSON}
-  \item{\code{call(fun, ...)}}{ call a JavaScript function with arguments \code{...}. Arguments which are not wrapped in \code{JS()} automatically get converted to JSON}
-  \item{\code{reset()}}{ resets the context (removes all objects)}
+\Sexpr[results=rd, stage=build, echo=FALSE]{V8:::generate_rd()}
+
+The \code{ct$eval} method evaluates a string of JavaScript code in the same way
+as \code{eval} in JavaScript. By default \code{eval()} returns a string with
+console output; but when the \code{serialize} parameter is set to \code{TRUE} it
+serializes the JavaScript return object to a JSON string or a raw buffer.
+
+The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions automatically
+convert arguments and return value between R and JavaScript (using JSON). To pass
+literal JavaScript arguments that should not be converted to JSON, wrap them in
+\code{JS()}, see examples.
+
+The \code{ct$validate} function is used to test
+if a piece of code is valid JavaScript syntax within the context, and always
+returns TRUE or FALSE.
+
+In an interactive R session you can use \code{ct$console()} to switch to an
+interactive JavaScript console. Here you can use \code{console.log} to print
+objects, and there is some support for JS tab-completion. This is mostly for
+testing and debugging, it may not work perfectly in every IDE or R-frontend.
 }
+
+\section{Data Interchange}{
+
+JSON is used for data interchange between R and JavaScript. Therefore you can
+(and should) only exchange data types that have a sensible JSON representation.
+One exception is raw vectors which are converted to/from Uint8Array buffers, see
+below. All other arguments and objects are automatically converted according to the mapping
+described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
+by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
+
+As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
+typed arrays, and vice versa. This makes it possible to efficiently copy large chunks
+binary data between R and JavaScript, which is useful for running wasm
+or emscripten.
 }
 
 \examples{
@@ -105,7 +116,7 @@ ctx$call("template", list(name = "Mustache"))
 # Call anonymous function
 ctx$call("function(x, y){return x * y}", 123, 3)
 
-\dontrun{
+\donttest{
 #CoffeeScript
 ct2 <- v8()
 ct2$source("http://coffeescript.org/v1/browser-compiler/coffee-script.js")
