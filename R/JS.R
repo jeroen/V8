@@ -1,6 +1,6 @@
 #' Mark character strings as literal JavaScript code
 #'
-#' This function \code{JS()} marks character vectors with a special class, so
+#' This function `JS()` marks character vectors with a special class, so
 #' that it will be treated as literal JavaScript code. It was copied from the
 #' htmlwidgets package, and does exactly the same thing.
 #'

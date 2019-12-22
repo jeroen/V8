@@ -20,7 +20,7 @@ engine_info()
 typed arrays are natively supported in recent versions of libv8.}
 }
 \description{
-The \code{\link{v8}} function (formerly called \code{new_context}) creates a
+The \code{\link[=v8]{v8()}} function (formerly called \code{new_context}) creates a
 new V8 \emph{context}. A context provides an execution environment that allows
 separate, unrelated, JavaScript code to run in a single instance of V8, like a
 tab in a browser.
@@ -67,11 +67,11 @@ JSON is used for data interchange between R and JavaScript. Therefore you can
 One exception is raw vectors which are converted to/from Uint8Array buffers, see
 below. All other arguments and objects are automatically converted according to the mapping
 described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
-by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
+by the jsonlite package in \code{\link[=fromJSON]{fromJSON()}} and \code{\link[=toJSON]{toJSON()}}.
 
 As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
 typed arrays, and vice versa. This makes it possible to efficiently copy large chunks
-binary data between R and JavaScript, which is useful for running wasm
+binary data between R and JavaScript, which is useful for running \link{wasm}
 or emscripten.
 }
 

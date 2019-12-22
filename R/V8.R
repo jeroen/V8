@@ -1,7 +1,7 @@
 #' Run JavaScript in a V8 context
 #'
-#' The \code{\link{v8}} function (formerly called \code{new_context}) creates a
-#' new V8 \emph{context}. A context provides an execution environment that allows
+#' The [v8()] function (formerly called `new_context`) creates a
+#' new V8 *context*. A context provides an execution environment that allows
 #' separate, unrelated, JavaScript code to run in a single instance of V8, like a
 #' tab in a browser.
 #'
@@ -9,31 +9,31 @@
 #' code is very cheap. You can run as many parallel v8 contexts as you want. R packages
 #' that use V8 can use a separate V8 context for each object or function call.
 #'
-#' The name of the global object (i.e. \code{global} in node and \code{window}
+#' The name of the global object (i.e. `global` in node and `window`
 #' in browsers) can be set with the global argument. A context always have a global
-#' scope, even when no name is set. When a context is initiated with \code{global = NULL},
-#' the global environment can be reached by evaluating \code{this} in the global scope,
-#' for example: \code{ct$eval("Object.keys(this)")}.
+#' scope, even when no name is set. When a context is initiated with `global = NULL`,
+#' the global environment can be reached by evaluating `this` in the global scope,
+#' for example: `ct$eval("Object.keys(this)")`.
 #'
 #' @section V8 Context Methods:
 #' \Sexpr[results=rd, stage=build, echo=FALSE]{V8:::generate_rd()}
 #'
-#' The \code{ct$eval} method evaluates a string of JavaScript code in the same way
-#' as \code{eval} in JavaScript. By default \code{eval()} returns a string with
-#' console output; but when the \code{serialize} parameter is set to \code{TRUE} it
+#' The `ct$eval` method evaluates a string of JavaScript code in the same way
+#' as `eval` in JavaScript. By default `eval()` returns a string with
+#' console output; but when the `serialize` parameter is set to `TRUE` it
 #' serializes the JavaScript return object to a JSON string or a raw buffer.
 #'
-#' The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions automatically
+#' The `ct$get`, `ct$assign` and `ct$call` functions automatically
 #' convert arguments and return value between R and JavaScript (using JSON). To pass
 #' literal JavaScript arguments that should not be converted to JSON, wrap them in
-#' \code{JS()}, see examples.
+#' `JS()`, see examples.
 #'
-#' The \code{ct$validate} function is used to test
+#' The `ct$validate` function is used to test
 #' if a piece of code is valid JavaScript syntax within the context, and always
 #' returns TRUE or FALSE.
 #'
-#' In an interactive R session you can use \code{ct$console()} to switch to an
-#' interactive JavaScript console. Here you can use \code{console.log} to print
+#' In an interactive R session you can use `ct$console()` to switch to an
+#' interactive JavaScript console. Here you can use `console.log` to print
 #' objects, and there is some support for JS tab-completion. This is mostly for
 #' testing and debugging, it may not work perfectly in every IDE or R-frontend.
 #'
@@ -42,18 +42,18 @@
 #' (and should) only exchange data types that have a sensible JSON representation.
 #' One exception is raw vectors which are converted to/from Uint8Array buffers, see
 #' below. All other arguments and objects are automatically converted according to the mapping
-#' described in \href{http://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
-#' by the jsonlite package in \code{\link{fromJSON}} and \code{\link{toJSON}}.
+#' described in [Ooms (2014)](http://arxiv.org/abs/1403.2805), and implemented
+#' by the jsonlite package in [fromJSON()] and [toJSON()].
 #'
-#' As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
+#' As for version 3.0 of this R package, Raw vectors are converted to `Uint8Array`
 #' typed arrays, and vice versa. This makes it possible to efficiently copy large chunks
-#' binary data between R and JavaScript, which is useful for running wasm
+#' binary data between R and JavaScript, which is useful for running [wasm]
 #' or emscripten.
 #'
-#' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
+#' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): <http://arxiv.org/abs/1403.2805>
 #' @export v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
-#' @param console expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).
+#' @param console expose `console` API (`console.log`, `console.warn`, `console.error`).
 #' @param typed_arrays (deprecated) enable typed arrays in legacy libv8. Deprecated because
 #' typed arrays are natively supported in recent versions of libv8.
 #' @aliases V8 v8 new_context
@@ -301,7 +301,7 @@ print.V8 <- function(x, ...){
     cat("This context has been disposed.")
   } else {
     ns <- ls(x)
-    title <- paste0("<", class(x)[1], ">")
+    title <- sprintf("<V8 engine %s>", engine_info()$version)
     cat(title, "\n")
     lapply(ns, function(fn){
       cat(format_function(x[[fn]], fn), sep = "\n")
