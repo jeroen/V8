@@ -49,7 +49,7 @@ ct$source(system.file("js/underscore.js", package = "V8"))
 ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 ```
 
-JS libraries that don't do anyting online or graphical generally work out of the box.
+JS libraries that don't do anything online or graphical generally work out of the box.
 
 ## NPM and browserify
 

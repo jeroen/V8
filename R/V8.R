@@ -50,6 +50,15 @@
 #' binary data between R and JavaScript, which is useful for running [wasm]
 #' or emscripten.
 #'
+#' @section Note about Linux and Legacy V8 engines:
+#' This R package can be compiled against modern (V8 version 6+) libv8 API, or the legacy
+#' libv8 API (V8 version 3.15 and below). You can check `V8::engine_info()` to see the version
+#' that is running. The legacy version does not support modern JS (ES6) or WASM, but it is
+#' still the default on older versions of Ubuntu and CentOS. The latest versions of all major
+#' Linux distributions now provide a modern version of V8. For Ubuntu 16.04 and 18.04
+#' we provide backports of libv8 (via libnode-dev), see the
+#' [readme](https://github.com/jeroen/v8#backports-for-xenial-and-bionic) for details.
+#'
 #' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): <http://arxiv.org/abs/1403.2805>
 #' @export v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
@@ -104,7 +113,7 @@
 #' # Call anonymous function
 #' ctx$call("function(x, y){return x * y}", 123, 3)
 #'
-#' \donttest{
+#' \dontrun{
 #' #CoffeeScript
 #' ct2 <- v8()
 #' ct2$source("http://coffeescript.org/v1/browser-compiler/coffee-script.js")
