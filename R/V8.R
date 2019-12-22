@@ -127,14 +127,14 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
 
   # Low level evaluate
   evaluate_js <- function(src, serialize = FALSE){
-    context_eval(join(src), private$context, serialize)
+    get_str_output(context_eval(join(src), private$context, serialize))
   }
 
   # Public methods
   this <- local({
     eval <- function(src, serialize = FALSE){
       # serialize=TRUE does not unserialize: user has to parse json/raw
-      get_str_output(evaluate_js(src, serialize = serialize))
+      evaluate_js(src, serialize = serialize)
     }
     validate <- function(src){
       context_validate(join(src), private$context)
