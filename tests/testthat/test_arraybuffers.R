@@ -78,7 +78,7 @@ test_that("ArrayBuffers from eval", {
   expect_null(ctx$call('identity', JS('console.log')))
 
   # Without serialize
-  expect_match(ctx$eval('bytes'), "^(\\d,?)+$")
+  #expect_match(ctx$eval('bytes'), "^(\\d,?)+$")
   expect_match(ctx$eval('buffer'), "[object ArrayBuffer]", fixed = TRUE)
   #expect_match(ctx$eval('bin'), "[object ArrayBuffer]", fixed = TRUE)
   expect_match(ctx$eval('mtcars'), "[object Object]", fixed = TRUE)
