@@ -149,8 +149,28 @@ std::string version(){
   return v8::V8::GetVersion();
 }
 
+static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
+  Local<v8::Object> obj = value->ToObject();
+  if(obj->HasIndexedPropertiesInExternalArrayData()){
+    int size = v8_typed_array::SizeOfArrayElementForType(obj->GetIndexedPropertiesExternalArrayDataType());
+    size_t len = obj->GetIndexedPropertiesExternalArrayDataLength();
+    Rcpp::RawVector buf(len * size);
+    memcpy(buf.begin(), obj->GetIndexedPropertiesExternalArrayData(), len * size);
+    return buf;
+  } else {
+    //convert to string without jsonify
+    //v8::String::Utf8Value utf8(isolate, value);
+    String::Utf8Value utf8(json_stringify(value));
+    Rcpp::String str(*utf8);
+    str.set_encoding(CE_UTF8);
+    Rcpp::CharacterVector out(1);
+    out.at(0) = str;
+    return out;
+  }
+}
+
 // [[Rcpp::export]]
-Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("Context has been disposed.");
@@ -172,17 +192,22 @@ Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Conte
   }
 
   // Run the script to get the result.
-  Handle<Value> result = script->Run();
+  Local<Value> result = script->Run();
   if(result.IsEmpty()){
     Local<Value> exception = trycatch.Exception();
     String::AsciiValue exception_str(exception);
     throw std::runtime_error(*exception_str);
   }
 
+  // Serialize to JSON or Raw
+  if(serialize == true)
+    return convert_object(result);
+
   // Convert result to UTF8.
-  String::Utf8Value utf8(result);
-  Rcpp::String out(*utf8);
-  out.set_encoding(CE_UTF8);
+  v8::String::Utf8Value utf8(result);
+  Rcpp::String str(*utf8, CE_UTF8);
+  Rcpp::CharacterVector out(1);
+  out.at(0) = str;
   return out;
 }
 
@@ -210,44 +235,6 @@ bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> 
 bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx) {
   // Test if context still exists
   return(!ctx);
-}
-
-// [[Rcpp::export]]
-Rcpp::RawVector read_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
-  if(!ctx)
-    throw std::runtime_error("Context has been disposed.");
-
-  // Create scope
-  HandleScope handle_scope;
-  Context::Scope context_scope(*ctx);
-  v8::Handle<v8::String> name = String::NewSymbol(key.get_cstring());
-  v8::Handle<v8::Object> global = (*ctx)->Global();
-
-  if(!global->Has(name))
-    throw std::runtime_error(std::string("No such object: ") + key.get_cstring());
-  v8::Local<v8::Object> val = global->Get(name)->ToObject();
-  int size = v8_typed_array::SizeOfArrayElementForType(val->GetIndexedPropertiesExternalArrayDataType());
-  size_t len = val->GetIndexedPropertiesExternalArrayDataLength();
-  Rcpp::RawVector buf(len * size);
-  memcpy(buf.begin(), val->GetIndexedPropertiesExternalArrayData(), len * size);
-  return buf;
-}
-
-// [[Rcpp::export]]
-bool is_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx){
-  if(!ctx)
-    throw std::runtime_error("Context has been disposed.");
-
-  // Create scope
-  HandleScope handle_scope;
-  Context::Scope context_scope(*ctx);
-  v8::Handle<v8::String> name = String::NewSymbol(key.get_cstring());
-  v8::Handle<v8::Object> global = (*ctx)->Global();
-
-  if(!global->Has(name))
-    return false;
-  v8::Local<v8::Value> value = global->Get(name);
-  return value->ToObject()->HasIndexedPropertiesInExternalArrayData();
 }
 
 // [[Rcpp::export]]

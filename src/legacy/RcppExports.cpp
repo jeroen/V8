@@ -39,14 +39,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // context_eval
-Rcpp::String context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP _V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP) {
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize);
+RcppExport SEXP _V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP, SEXP serializeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type src(srcSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
-    rcpp_result_gen = Rcpp::wrap(context_eval(src, ctx));
+    Rcpp::traits::input_parameter< bool >::type serialize(serializeSEXP);
+    rcpp_result_gen = Rcpp::wrap(context_eval(src, ctx, serialize));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -73,30 +74,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// read_array_buffer
-Rcpp::RawVector read_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP _V8_read_array_buffer(SEXP keySEXP, SEXP ctxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::String >::type key(keySEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
-    rcpp_result_gen = Rcpp::wrap(read_array_buffer(key, ctx));
-    return rcpp_result_gen;
-END_RCPP
-}
-// is_array_buffer
-bool is_array_buffer(Rcpp::String key, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
-RcppExport SEXP _V8_is_array_buffer(SEXP keySEXP, SEXP ctxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::String >::type key(keySEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
-    rcpp_result_gen = Rcpp::wrap(is_array_buffer(key, ctx));
-    return rcpp_result_gen;
-END_RCPP
-}
 // write_array_buffer
 bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
 RcppExport SEXP _V8_write_array_buffer(SEXP keySEXP, SEXP dataSEXP, SEXP ctxSEXP) {
@@ -115,11 +92,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_V8_make_context", (DL_FUNC) &_V8_make_context, 1},
     {"_V8_context_enable_typed_arrays", (DL_FUNC) &_V8_context_enable_typed_arrays, 1},
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
-    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 2},
+    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 3},
     {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
     {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},
-    {"_V8_read_array_buffer", (DL_FUNC) &_V8_read_array_buffer, 2},
-    {"_V8_is_array_buffer", (DL_FUNC) &_V8_is_array_buffer, 2},
     {"_V8_write_array_buffer", (DL_FUNC) &_V8_write_array_buffer, 3},
     {NULL, NULL, 0}
 };

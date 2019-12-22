@@ -5,20 +5,12 @@ version <- function() {
     .Call('_V8_version', PACKAGE = 'V8')
 }
 
-context_eval <- function(src, ctx) {
-    .Call('_V8_context_eval', PACKAGE = 'V8', src, ctx)
+context_eval <- function(src, ctx, serialize = FALSE) {
+    .Call('_V8_context_eval', PACKAGE = 'V8', src, ctx, serialize)
 }
 
 write_array_buffer <- function(key, data, ctx) {
     .Call('_V8_write_array_buffer', PACKAGE = 'V8', key, data, ctx)
-}
-
-read_array_buffer <- function(key, ctx) {
-    .Call('_V8_read_array_buffer', PACKAGE = 'V8', key, ctx)
-}
-
-is_array_buffer <- function(key, ctx) {
-    .Call('_V8_is_array_buffer', PACKAGE = 'V8', key, ctx)
 }
 
 context_validate <- function(src, ctx) {
