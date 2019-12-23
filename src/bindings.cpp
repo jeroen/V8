@@ -100,13 +100,13 @@ void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args
     if(args.Length() == 1){
       out = r_call(fun);
     } else if(args.Length() == 2) {
-      v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(args[1]);
+      v8::Local<v8::Object> obj1 = args[1]->ToObject(args.GetIsolate()->GetCurrentContext()).ToLocalChecked();
       v8::String::Utf8Value arg1(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
       Rcpp::String json(ToCString(arg1));
       out = r_call(fun, json);
     } else {
-      v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(args[1]);
-      v8::Local<v8::Object> obj2 = v8::Local<v8::Object>::Cast(args[2]);
+      v8::Local<v8::Object> obj1 = args[1]->ToObject(args.GetIsolate()->GetCurrentContext()).ToLocalChecked();
+      v8::Local<v8::Object> obj2 = args[2]->ToObject(args.GetIsolate()->GetCurrentContext()).ToLocalChecked();
       v8::String::Utf8Value arg1(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj1).ToLocalChecked());
       v8::String::Utf8Value arg2(args.GetIsolate(), v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), obj2).ToLocalChecked());
       Rcpp::String val(ToCString(arg1));
@@ -145,7 +145,7 @@ std::string version(){
 }
 
 static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
-  if(value.IsEmpty() || value->IsUndefined() || value->IsNull()){
+  if(value.IsEmpty() || value->IsNullOrUndefined()){
     return R_NilValue;
   } else if(value->IsArrayBuffer() || value->IsArrayBufferView()){
     v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
@@ -156,7 +156,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
   } else {
     //convert to string without jsonify
     //v8::String::Utf8Value utf8(isolate, value);
-    v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(value);
+    v8::Local<v8::Object> obj1 = value->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
     v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), obj1).ToLocalChecked());
     Rcpp::CharacterVector out = {Rcpp::String(*utf8, CE_UTF8)};
     return out;
