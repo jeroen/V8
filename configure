@@ -15,10 +15,10 @@ PKG_LIBS_STATIC="-lv8_{base,libplatform,nosnapshot,libbase,libsampler,initialize
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
 # Find compiler
-CXX11=$(${R_HOME}/bin/R CMD config CXX11)
-CXXCPP=$(${R_HOME}/bin/R CMD config CXXCPP)
 CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
+CXX=$(${R_HOME}/bin/R CMD config CXX)
+CXXCPP="$CXX -E"
 
 # Check for custom locations
 if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
