@@ -270,8 +270,8 @@ undefined_to_null <- function(str){
 get_json_output <- function(json, ...){
   if(is.raw(json)){
     return(json)
-  } else if(identical(json,"undefined")){
-    invisible(NULL)
+  } else if(is.null(json) || identical(json,"undefined")){
+    invisible()
   } else {
     fromJSON(json, ...)
   }
