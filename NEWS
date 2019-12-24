@@ -1,7 +1,9 @@
-2.4
+3.0
+ - Internal rewrite of object serialization to prepare for wasm
+ - Automatically convert raw vectors to/from Uint8Array in eval/get/assign
+ - Experimental wasm interface
  - Fix callback API crashes in V8 7.9+ (Jan Marvin, #70, #71, #75)
- - Internal rewrite of object serialization (to prepare for wasm)
- - Convert Raw vectors to/from Uint8Array when serializing.
+ - Build with -DV8_ENABLE_CHECKS to get better error messages
 
 2.3
  - Fix for removed API in libv8 version 7.7
