@@ -1,6 +1,8 @@
-#' Run WebAssembly
+#' Experimental WebAssembly
 #'
-#' Load a WebAssembly program. Returns a list of exported functions.
+#' Experimental wrapper to load a WebAssembly program. Returns a list of
+#' exported functions. This will probably be moved into it's own package
+#' once WebAssembly matures.
 #'
 #' @export
 #' @param data either raw vector or file path with the binary wasm program
