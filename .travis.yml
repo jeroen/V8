@@ -5,7 +5,6 @@ fortran: false
 
 matrix:
   include:
-    - dist: trusty
     - dist: xenial
     - dist: xenial
       addons:
