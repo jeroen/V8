@@ -5,7 +5,8 @@ fortran: false
 
 matrix:
   include:
-    - r:oldrel
+    - r:3.4
+    - r:3.5
     - dist: xenial
     - dist: xenial
       addons:
