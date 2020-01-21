@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Anticonf (tm) script by Jeroen Ooms (2019)
-# Package requires either libv8 6 or 7 or legacy libv8 (3.14 / 3.15).
+# Anticonf (tm) script by Jeroen Ooms (2020)
+# Package requires either libv8 6 and up, or legacy branch (3.14 / 3.15).
 # If your libv8 is installed in a custom location you need to set
 # INCLUDE_DIR and LIB_DIR manually via e.g:
 # R CMD INSTALL --configure-vars='INCLUDE_DIR=/.../include LIB_DIR=/.../lib'
