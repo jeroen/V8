@@ -42,19 +42,19 @@ echo "Using PKG_CFLAGS=$PKG_CFLAGS"
 echo "Using PKG_LIBS=$PKG_LIBS"
 
 # Test for libv8
-tmpfile=$(mktemp)
-echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -xc++ - >/dev/null 2>$tmpfile
+echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -xc++ - >/dev/null 2>configure.log
 if [ $? -ne 0 ]; then
-  echo "------------------------- ANTICONF ERROR ---------------------------"
-  echo "Configuration failed because libv8 engine was not found. Try installing:"
+  echo "-----------------------------[ ANTICONF ]-------------------------------"
+  echo "Configuration failed to find the libv8 engine library. Try installing:"
   echo " * deb: $PKG_DEB_NAME (Debian / Ubuntu)"
   echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
   echo " * brew: $PKG_BREW_NAME (OSX)"
   echo " * csw: $PKG_CSW_NAME (Solaris)"
   echo "To use a custom libv8, set INCLUDE_DIR and LIB_DIR manually via:"
   echo "R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
-  echo "--------------------------------------------------------------------"
-  cat $tmpfile
+  echo "---------------------------[ ERROR MESSAGE ]----------------------------"
+  cat configure.log
+  echo "------------------------------------------------------------------------"
   exit 1
 fi
 

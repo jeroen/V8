@@ -10,3 +10,4 @@ src/Makevars
 .DS_Store
 src/gcc_version.txt
 windows
+configure.log

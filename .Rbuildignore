@@ -14,3 +14,4 @@
 ^src/gcc_version.txt$
 ^appveyor.yml$
 ^revdep/
+^configure.log$
