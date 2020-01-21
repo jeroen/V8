@@ -27,6 +27,19 @@ Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
 install.packages("V8")
 ```
 
+### Arch
+
+Arch users are advised to install the [`v8-r`](https://aur.archlinux.org/packages/v8-r/) package, which has been configured to work well with R. Installation can done through your preferred AUR helper such as yay, Trizen, etc. However, since V8 contains a large codebase and (re-)compilation takes a while, users may prefer to build and update it manually. For example,
+
+```sh
+## Arch
+cd /tmp
+yay -G v8-r   
+cd v8-r
+makepkg -si
+```
+
+
 ### Debian / Ubuntu 
 
 Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro). On Ubuntu / Debian you need to install either [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev), or [libnode-dev](https://packages.ubuntu.com/eoan/libnode-dev). On the latest systems, `libv8-dev` is actually an alias for `libnode-dev` so they are the same:
