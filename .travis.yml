@@ -9,6 +9,8 @@ matrix:
     - r: 3.3
       addons:
         apt:
+          sources:
+            - sourceline: 'ppa:cran/travis'
           packages: libnode-dev
     - r: release
     - r: release
