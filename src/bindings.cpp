@@ -158,8 +158,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     //v8::String::Utf8Value utf8(isolate, value);
     v8::Local<v8::Object> obj1 = value->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
     v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), obj1).ToLocalChecked());
-    Rcpp::CharacterVector out = {Rcpp::String(*utf8, CE_UTF8)};
-    return out;
+    return Rcpp::CharacterVector(Rcpp::String(*utf8));
   }
 }
 

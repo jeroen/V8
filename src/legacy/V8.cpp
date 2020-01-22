@@ -166,8 +166,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     String::Utf8Value utf8(json_stringify(value));
     if(!utf8.length())
       return R_NilValue;
-    Rcpp::CharacterVector out = {Rcpp::String(*utf8, CE_UTF8)};
-    return out;
+    return Rcpp::CharacterVector(Rcpp::String(*utf8));
   }
 }
 
