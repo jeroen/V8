@@ -1,3 +1,6 @@
+3.0.1
+ - Fix build for old versions of R using old compilers that do not default to C++11
+
 3.0
  - Internal rewrite of object serialization to prepare for wasm
  - Automatically convert raw vectors to/from Uint8Array in eval/get/assign
