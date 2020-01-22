@@ -5,4 +5,8 @@ test_that("Encoding is preserved", {
   str_utf <- enc2utf8("\u00C0\u00CB\u00D0")
   expect_equal(ctx$call('I', str_native), str_utf)
   expect_equal(ctx$call('I', str_utf), str_utf)
+  ctx$assign('x1', str_native)
+  ctx$assign('x2', str_utf)
+  expect_equal(ctx$get('x1'), str_utf)
+  expect_equal(ctx$get('x2'), str_utf)
 })
