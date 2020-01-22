@@ -6,9 +6,12 @@ fortran: false
 matrix:
   include:
     - r: 3.3
-    - r: 3.5
-    - dist: xenial
-    - dist: xenial
+    - r: 3.3
+      addons:
+        apt:
+          packages: libnode-dev
+    - r: release
+    - r: release
       addons:
         apt:
           packages: libnode-dev
