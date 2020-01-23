@@ -9,4 +9,6 @@ test_that("Encoding is preserved", {
   ctx$assign('x2', str_utf)
   expect_equal(ctx$get('x1'), str_utf)
   expect_equal(ctx$get('x2'), str_utf)
+  expect_equal(ctx$eval('x1'), str_utf)
+  expect_equal(ctx$eval('x2'), str_utf)
 })
