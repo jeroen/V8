@@ -1,5 +1,5 @@
 3.0.2
- - Fix text encoding bug introduced in 3.0 for non-ascii text.
+ - Windows: fix text encoding bug introduced in 3.0 for non-ascii text.
 
 3.0.1
  - Fix build for old versions of R using old compilers that do not default to C++11
