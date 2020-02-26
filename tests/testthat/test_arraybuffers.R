@@ -11,7 +11,11 @@ var floatArray = new Float32Array( [0, Math.PI])')
 
   expect_equal(ctx$get('data'), 1:3)
   expect_equal(ctx$get('dataBuffer'), raw(3))
-  expect_equal(ctx$get('floatArray'), as.raw(c(0, 0, 0, 0, 219, 15, 73, 64)))
+  if (.Platform$endian == "little") {
+    expect_equal(ctx$get('floatArray'), as.raw(c(0, 0, 0, 0, 219, 15, 73, 64)))
+  } else {
+    expect_equal(ctx$get('floatArray'), as.raw(c(0, 0, 0, 0, 64, 73, 15, 219)))
+  }
   expect_equal(ctx$get('intArray'), as.raw(1:3))
 
   # Print methods
