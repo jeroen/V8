@@ -94,6 +94,15 @@ sudo yum install epel-release
 sudo yum install v8-devel
 ```
 
+Not that on __CentOS / RHEL 8__, you first need to enable the `node:13` module repository:
+
+```sh
+# Needed on EPEL 8 only
+yum install epel-release 
+yum module enable nodejs:13
+yum install v8-devel
+```
+
 ### Homebrew
 
 On __OS-X__ use [v8](https://github.com/Homebrew/homebrew-core/blob/master/Formula/v8) from Homebrew:
