@@ -71,10 +71,10 @@ fi
 ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} src/test.cpp >/dev/null 2>&1
 if [ $? -eq 0 ]; then
   echo "Pointer compression is enabled"
-  PKG_CFLAGS="$(echo "$PKG_LIBS") -DV8_COMPRESS_POINTERS"
+  PKG_CFLAGS="$(echo "$PKG_CFLAGS") -DV8_COMPRESS_POINTERS"
 else
   echo "Pointer compression is disabled"
-  PKG_CFLAGS="$(echo "$PKG_LIBS") -DV8_ENABLE_CHECKS"
+  PKG_CFLAGS="$(echo "$PKG_CFLAGS") -DV8_ENABLE_CHECKS"
 fi
 
 # Assume a modern V8 API
