@@ -67,6 +67,16 @@ if [ $? -eq 0 ]; then
   exit 0
 fi
 
+# check for pointer compression
+${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} src/test.cpp >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+  echo "Pointer compression is enabled"
+  PKG_CFLAGS="$(echo "$PKG_LIBS") -DV8_COMPRESS_POINTERS"
+else
+  echo "Pointer compression is disabled"
+  PKG_CFLAGS="$(echo "$PKG_LIBS") -DV8_ENABLE_CHECKS"
+fi
+
 # Assume a modern V8 API
 sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/Makevars.in > src/Makevars
 exit 0
