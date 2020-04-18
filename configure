@@ -68,10 +68,9 @@ if [ $? -eq 0 ]; then
 fi
 
 # check for pointer compression
-echo "$CXX  $CPPFLAGS $PKG_CFLAGS $CXXFLAGS"
 ${CXX} ${PKG_LIBS} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -DV8_ENABLE_CHECKS -xc++ inst/test.cpp -o pointercomprtest
 ./pointercomprtest >/dev/null 2>> configure.log
-if [ $? -eq 0 ]; then
+if [ $? -eq 0 ] || [ ! -f pointercomprtest ]; then
   echo "Pointer compression is disabled"
   PKG_CFLAGS="$(echo "$PKG_CFLAGS") -DV8_ENABLE_CHECKS"
 else
