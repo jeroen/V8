@@ -69,7 +69,7 @@ fi
 # Test if we need to enable pointer compression (Usually 8.4 and up)
 echo "Running feature test for pointer compression..."
 ${CXX} ${PKG_CFLAGS} ${PKG_LIBS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest
-./pctest 2>>configure.log
+{ ./pctest; } 2>> configure.log
 if [ $? -eq 0 ]; then
   echo "Pointer compression not needed"
   PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_CHECKS"
