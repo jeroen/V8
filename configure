@@ -11,7 +11,6 @@ PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
-PKG_LIBS_STATIC="-lv8_{base,libplatform,nosnapshot,libbase,libsampler,initializers,init} -ltorque_{base,generated_initializers}"
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
 # Find compiler
@@ -29,7 +28,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   if [ $(command -v brew) ]; then
     BREWDIR=$(brew --prefix)
   else
-    curl -sfL "https://jeroen.github.io/autobrew/$PKG_BREW_NAME" > autobrew
+    curl -sfL "https://autobrew.github.io/scripts/$PKG_BREW_NAME" > autobrew
     source autobrew
   fi
   V8HOME="$BREWDIR/opt/$PKG_BREW_NAME"
