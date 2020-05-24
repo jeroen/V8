@@ -3,10 +3,12 @@ cache: packages
 latex: false
 fortran: false
 
+r_check_args: '--no-manual'
+
 matrix:
   include:
-    - r: 3.3
-    - r: 3.3
+    - r: 3.4
+    - r: 3.4
       addons:
         apt:
           sources:
@@ -20,12 +22,19 @@ matrix:
     - os: osx
       brew_packages: v8
     - os: osx
+      osx_image: xcode11.4
+      disable_homebrew: true
+    - os: osx
+      osx_image: xcode10.1
+      disable_homebrew: true
+    - os: osx
       before_install:
         - brew install v8@3.15
         - brew link --force v8@3.15
     - os: osx
       disable_homebrew: true
-    - os: osx
+    - r: 3.6
+      os: osx
       osx_image: xcode7.3
       disable_homebrew: true
       before_install: sed -i.bak 's/-isysroot /-I/g' $(R RHOME)/etc/Makeconf
