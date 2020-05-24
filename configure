@@ -68,8 +68,7 @@ fi
 
 # Test if we need to enable pointer compression (Usually 8.4 and up)
 ${CXX} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} ${PKG_LIBS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest
-./pctest 2>>configure.log &&
-rm -Rf pctest*
+./pctest 2>>configure.log
 if [ $? -eq 0 ]; then
   echo "Pointer compression not needed"
   PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_CHECKS"
@@ -77,6 +76,7 @@ else
   echo "Enabling pointer compression"
   PKG_CFLAGS="$PKG_CFLAGS -DV8_COMPRESS_POINTERS"
 fi
+rm -Rf pctest*
 
 # Assume a modern V8 API
 sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/Makevars.in > src/Makevars
