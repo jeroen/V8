@@ -1,3 +1,7 @@
+3.1.0
+ - Fix configure script for pointer compression in upcoming V8 engine 8.4
+ - MacOS: binary packagess now ship with V8 engine 8.3
+
 3.0.2
  - Windows: fix text encoding bug introduced in 3.0 for non-ascii text.
  - Fix unit test for big-endian systems
