@@ -33,7 +33,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   fi
   V8HOME="$BREWDIR/opt/$PKG_BREW_NAME"
   PKG_CFLAGS="-I${V8HOME}/include -I${V8HOME}/libexec/include"
-  PKG_LIBS="-L${V8HOME}/{lib,libexec} $PKG_LIBS"
+  PKG_LIBS="-L${V8HOME}/libexec $PKG_LIBS"
 fi
 
 # For debugging
@@ -65,6 +65,19 @@ if [ $? -eq 0 ]; then
   sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/legacy/Makevars.in > src/Makevars
   exit 0
 fi
+
+# Test if we need to enable pointer compression (Usually 8.4 and up)
+echo "Running feature test for pointer compression..."
+${CXX} ${PKG_CFLAGS} ${PKG_LIBS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest
+{ ./pctest; } 2>> configure.log
+if [ $? -eq 0 ]; then
+  echo "Pointer compression not needed"
+  PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_CHECKS"
+else
+  echo "Enabling pointer compression"
+  PKG_CFLAGS="$PKG_CFLAGS -DV8_COMPRESS_POINTERS"
+fi
+rm -Rf pctest*
 
 # Assume a modern V8 API
 sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/Makevars.in > src/Makevars
