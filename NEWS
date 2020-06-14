@@ -1,3 +1,6 @@
+3.1.1
+ - Fix bug with pointer compression feature test for Debian / Anaconda
+
 3.1.0
  - Fix configure script for pointer compression in upcoming V8 engine 8.4
  - MacOS: binary packagess now ship with V8 engine 8.3
