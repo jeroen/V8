@@ -65,7 +65,7 @@ void start_v8_isolate(void *dll){
   isolate->SetFatalErrorHandler(fatal_cb);
 
   /* These are copied from Chromium */
-  static const int kWorkerMaxStackSize = 500 * 1024;
+  static const int kWorkerMaxStackSize = 2000 * 1024;
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
   isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
 }
