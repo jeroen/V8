@@ -31,6 +31,15 @@ static v8::Local<v8::String> ToJSString(const char * str){
   return safe_to_local(out);
 }
 
+static void message_cb(v8::Local<v8::Message> message, v8::Local<v8::Value> data){
+  v8::String::Utf8Value str(isolate, message->Get());
+  REprintf("V8 MESSAGE (level %d): %s", message->ErrorLevel(), ToCString(str));
+}
+
+static void fatal_cb(const char* location, const char* message){
+  REprintf("V8 FATAL ERROR in %s: %s", location, message);
+}
+
 // [[Rcpp::init]]
 void start_v8_isolate(void *dll){
 #ifdef V8_ICU_DATA_PATH
@@ -52,6 +61,8 @@ void start_v8_isolate(void *dll){
   isolate = v8::Isolate::New(create_params);
   if(!isolate)
     throw std::runtime_error("Failed to initiate V8 isolate");
+  isolate->AddMessageListener(message_cb);
+  isolate->SetFatalErrorHandler(fatal_cb);
 }
 
 /* Helper fun that compiles JavaScript source code */
