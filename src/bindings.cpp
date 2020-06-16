@@ -40,12 +40,6 @@ static void fatal_cb(const char* location, const char* message){
   REprintf("V8 FATAL ERROR in %s: %s", location, message);
 }
 
-/* These are copied from Chromium */
-static const int kWorkerMaxStackSize = 500 * 1024;
-static uintptr_t GetCurrentStackPosition() {
-  return reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
-}
-
 // [[Rcpp::init]]
 void start_v8_isolate(void *dll){
 #ifdef V8_ICU_DATA_PATH
@@ -69,7 +63,11 @@ void start_v8_isolate(void *dll){
     throw std::runtime_error("Failed to initiate V8 isolate");
   isolate->AddMessageListener(message_cb);
   isolate->SetFatalErrorHandler(fatal_cb);
-  isolate->SetStackLimit(GetCurrentStackPosition() - kWorkerMaxStackSize);
+
+  /* These are copied from Chromium */
+  static const int kWorkerMaxStackSize = 500 * 1024;
+  uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
+  isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
 }
 
 /* Helper fun that compiles JavaScript source code */
