@@ -49,8 +49,9 @@ void start_v8_isolate(void *dll){
   }
 #endif
 #if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 704
-  static std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+  std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   v8::V8::InitializePlatform(platform.get());
+  platform.release(); //UBSAN complains if platform is destroyed when out of scope
 #else
   v8::V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
 #endif
