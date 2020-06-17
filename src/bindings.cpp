@@ -65,10 +65,13 @@ void start_v8_isolate(void *dll){
   isolate->AddMessageListener(message_cb);
   isolate->SetFatalErrorHandler(fatal_cb);
 
-  /* These are copied from Chromium */
+#ifdef __linux__
+  /* This should fix packages hitting stack limit on Fedora.
+   * CurrentStackPosition trick copied from chromium. */
   static const int kWorkerMaxStackSize = 2000 * 1024;
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
   isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
+#endif
 }
 
 /* Helper fun that compiles JavaScript source code */

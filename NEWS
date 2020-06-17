@@ -1,6 +1,6 @@
 3.2.0
  - Fix bug with pointer compression feature-test on Debian / Anaconda
- - Increase JS stack limit, because Fedora was hitting it for some packages
+ - Linux: increase JS stack limit, because of problems with new libv8 on Fedora.
  - Add FatalErrorHandler and MessageListener callbacks (that just print stuff)
  - Fix UBSAN error during teardown (package unload)
 
