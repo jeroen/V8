@@ -1,5 +1,8 @@
-3.1.1
- - Fix bug with pointer compression feature test for Debian / Anaconda
+3.2.0
+ - Fix bug with pointer compression feature-test on Debian / Anaconda
+ - Linux: increase JS stack limit, because of problems with new libv8 on Fedora.
+ - Add FatalErrorHandler and MessageListener callbacks (that just print stuff)
+ - Fix UBSAN error during teardown (package unload)
 
 3.1.0
  - Fix configure script for pointer compression in upcoming V8 engine 8.4

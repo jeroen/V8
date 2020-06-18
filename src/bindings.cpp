@@ -31,6 +31,15 @@ static v8::Local<v8::String> ToJSString(const char * str){
   return safe_to_local(out);
 }
 
+static void message_cb(v8::Local<v8::Message> message, v8::Local<v8::Value> data){
+  v8::String::Utf8Value str(isolate, message->Get());
+  REprintf("V8 MESSAGE (level %d): %s", message->ErrorLevel(), ToCString(str));
+}
+
+static void fatal_cb(const char* location, const char* message){
+  REprintf("V8 FATAL ERROR in %s: %s", location, message);
+}
+
 // [[Rcpp::init]]
 void start_v8_isolate(void *dll){
 #ifdef V8_ICU_DATA_PATH
@@ -40,8 +49,9 @@ void start_v8_isolate(void *dll){
   }
 #endif
 #if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 704
-  static std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+  std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   v8::V8::InitializePlatform(platform.get());
+  platform.release(); //UBSAN complains if platform is destroyed when out of scope
 #else
   v8::V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
 #endif
@@ -52,6 +62,16 @@ void start_v8_isolate(void *dll){
   isolate = v8::Isolate::New(create_params);
   if(!isolate)
     throw std::runtime_error("Failed to initiate V8 isolate");
+  isolate->AddMessageListener(message_cb);
+  isolate->SetFatalErrorHandler(fatal_cb);
+
+#ifdef __linux__
+  /* This should fix packages hitting stack limit on Fedora.
+   * CurrentStackPosition trick copied from chromium. */
+  static const int kWorkerMaxStackSize = 2000 * 1024;
+  uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
+  isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
+#endif
 }
 
 /* Helper fun that compiles JavaScript source code */
