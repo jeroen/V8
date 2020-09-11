@@ -14,10 +14,9 @@ PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
 # Find compiler
-CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
-CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
+CXXFLAGS=$(${R_HOME}/bin/R CMD config CXX14FLAGS)
 LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
-CXX=$(${R_HOME}/bin/R CMD config CXX)
+CXX=$(${R_HOME}/bin/R CMD config CXX14)
 CXXCPP="$CXX -E"
 
 # Check for custom locations
@@ -69,7 +68,7 @@ fi
 
 # Test if we need to enable pointer compression (Usually 8.4 and up)
 echo "Running feature test for pointer compression..."
-${CXX} ${CPPFLAGS} ${PKG_CFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest ${LDFLAGS} ${PKG_LIBS}
+${CXX} ${CXXFLAGS} ${PKG_CFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest ${LDFLAGS} ${PKG_LIBS}
 { ./pctest; } 2>> configure.log
 if [ $? -eq 0 ]; then
   echo "Pointer compression not needed"
