@@ -58,11 +58,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# V8_MAJOR_VERSION=$(grep V8_MAJOR_VERSION /usr/include/v8-version.h | awk '{print $3}')
-# V8_MINOR_VERSION=$(grep V8_MINOR_VERSION /usr/include/v8-version.h | awk '{print $3}')
-# V8_BUILD_NUMBER=$(grep V8_BUILD_NUMBER /usr/include/v8-version.h | awk '{print $3}')
-# V8_VERSION = $V8_MAJOR_VERSION \* 100000 \+ $V8_MINOR_VERSION \* 1000 \+ $V8_BUILD_NUMBER
-
 ${CXX} ${CXXFLAGS} ${PKG_CFLAGS} -DV8_ENABLE_CHECKS tools/v8_version.cpp -o v8ver ${LDFLAGS} ${PKG_LIBS}
 v8_version=$(./v8ver)
 rm -rf v8ver
