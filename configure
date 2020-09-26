@@ -17,7 +17,7 @@ PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
 CXX=$(${R_HOME}/bin/R CMD config CXX11)
-CXX_STD=CXX11
+PKG_CXX_STD="CXX11"
 CXXCPP="$CXX -E"
 
 # Check for custom locations
@@ -77,7 +77,7 @@ if [ $v8_version -ge 807077 ] ; then
   CXXFLAGS=$(${R_HOME}/bin/R CMD config CXX14FLAGS)
   LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
   CXX=$(${R_HOME}/bin/R CMD config CXX14)
-  CXX_STD=CXX14
+  PKG_CXX_STD="CXX14"
 fi
 
 # Test if we need to enable pointer compression (Usually 8.4 and up)
@@ -94,5 +94,5 @@ fi
 rm -Rf pctest*
 
 # Assume a modern V8 API
-sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/Makevars.in > src/Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|@PKG_CXX_STD@|$PKG_CXX_STD|" src/Makevars.in > src/Makevars
 exit 0
