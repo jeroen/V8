@@ -58,16 +58,17 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-${CXX} ${CXXFLAGS} ${PKG_CFLAGS} tools/v8_version.cpp -o v8ver ${LDFLAGS} ${PKG_LIBS}
-v8_version=$(./v8ver)
-rm -rf v8ver
-
 # Test for legacy libv8 version
-if [ $v8_version -le 316000 ] ; then
+${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} src/legacy/test.cpp >/dev/null 2>&1
+if [ $? -eq 0 ]; then
   echo "Found legacy version of libv8"
   PKG_LIBS=$(echo "$PKG_LIBS" | sed -e "s/-lv8_libplatform//")
   sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/legacy/Makevars.in > src/Makevars
   exit 0
+  else
+  ${CXX} ${CXXFLAGS} ${PKG_CFLAGS} tools/v8_version.cpp -o v8ver ${LDFLAGS} ${PKG_LIBS}
+  v8_version=$(./v8ver)
+  rm -rf v8ver
 fi
 
 # Test if C++14 is required
