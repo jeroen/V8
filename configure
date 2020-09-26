@@ -14,9 +14,10 @@ PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
 # Find compiler
-CXXFLAGS=$(${R_HOME}/bin/R CMD config CXX14FLAGS)
+CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
-CXX=$(${R_HOME}/bin/R CMD config CXX14)
+CXX=$(${R_HOME}/bin/R CMD config CXX11)
+CXX_STD=CXX11
 CXXCPP="$CXX -E"
 
 # Check for custom locations
@@ -57,13 +58,31 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# V8_MAJOR_VERSION=$(grep V8_MAJOR_VERSION /usr/include/v8-version.h | awk '{print $3}')
+# V8_MINOR_VERSION=$(grep V8_MINOR_VERSION /usr/include/v8-version.h | awk '{print $3}')
+# V8_BUILD_NUMBER=$(grep V8_BUILD_NUMBER /usr/include/v8-version.h | awk '{print $3}')
+# V8_VERSION = $V8_MAJOR_VERSION \* 100000 \+ $V8_MINOR_VERSION \* 1000 \+ $V8_BUILD_NUMBER
+
+${CXX} ${CXXFLAGS} ${PKG_CFLAGS} -DV8_ENABLE_CHECKS tools/v8_version.cpp -o v8ver ${LDFLAGS} ${PKG_LIBS}
+v8_version=$(./v8ver)
+rm -rf v8ver
+
 # Test for legacy libv8 version
-${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} src/legacy/test.cpp >/dev/null 2>&1
-if [ $? -eq 0 ]; then
+if [ $v8_version -le 316000 ] ; then
   echo "Found legacy version of libv8"
   PKG_LIBS=$(echo "$PKG_LIBS" | sed -e "s/-lv8_libplatform//")
   sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/legacy/Makevars.in > src/Makevars
   exit 0
+fi
+
+# Test if C++14 is required
+if [ $v8_version -ge 807077 ] ; then
+  echo "V8 requires C++14"
+
+  CXXFLAGS=$(${R_HOME}/bin/R CMD config CXX14FLAGS)
+  LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
+  CXX=$(${R_HOME}/bin/R CMD config CXX14)
+  CXX_STD=CXX14
 fi
 
 # Test if we need to enable pointer compression (Usually 8.4 and up)
