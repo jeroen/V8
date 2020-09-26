@@ -58,7 +58,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-${CXX} ${CXXFLAGS} ${PKG_CFLAGS} -DV8_ENABLE_CHECKS tools/v8_version.cpp -o v8ver ${LDFLAGS} ${PKG_LIBS}
+${CXX} ${CXXFLAGS} ${PKG_CFLAGS} tools/v8_version.cpp -o v8ver ${LDFLAGS} ${PKG_LIBS}
 v8_version=$(./v8ver)
 rm -rf v8ver
 
