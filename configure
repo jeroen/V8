@@ -13,11 +13,21 @@ PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
+# Use CXX14 if available
+R CMD config CXX14 >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+echo "Using C++14"
+CXXV=CXX14
+else
+echo "Not using C++14"
+CXXV=CXX11
+fi
+
 # Find compiler
 CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
 LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
-CXX=$(${R_HOME}/bin/R CMD config CXX)
+CXX="$(${R_HOME}/bin/R CMD config ${CXXV}) $(${R_HOME}/bin/R CMD config ${CXXV}STD)"
 CXXCPP="$CXX -E"
 
 # Check for custom locations
@@ -81,5 +91,5 @@ fi
 rm -Rf pctest*
 
 # Assume a modern V8 API
-sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/Makevars.in > src/Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|@cxxstd@|$CXXV|" src/Makevars.in > src/Makevars
 exit 0
