@@ -13,9 +13,9 @@ PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
-# Use CXX14 if available
-R CMD config CXX14 >/dev/null 2>&1
-if [ $? -eq 0 ]; then
+# Upon failure, some versions of R return error, others just empty
+HASCXX14=$(R CMD config CXX14)
+if [ $? -eq 0 ] && [ "$HASCXX14"]; then
 echo "Using C++14"
 CXXV=CXX14
 else
