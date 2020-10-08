@@ -15,7 +15,7 @@ PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
 # Upon failure, some versions of R return error, others just empty
 HASCXX14=$(R CMD config CXX14)
-if [ $? -eq 0 ] && [ "$HASCXX14"]; then
+if [ $? -eq 0 ] && [ "$HASCXX14" ]; then
 echo "Using C++14"
 CXXV=CXX14
 else
@@ -91,5 +91,5 @@ fi
 rm -Rf pctest*
 
 # Assume a modern V8 API
-sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|@cxxstd@|$CXXV|" src/Makevars.in > src/Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|$CXXV|" src/Makevars.in > src/Makevars
 exit 0
