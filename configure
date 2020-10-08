@@ -24,10 +24,10 @@ CXX_STD=CXX11
 fi
 
 # Find compiler
-CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
 LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
 CXX="$(${R_HOME}/bin/R CMD config ${CXX_STD}) $(${R_HOME}/bin/R CMD config ${CXX_STD}STD)"
+CXXFLAGS=$(${R_HOME}/bin/R CMD config ${CXX_STD}FLAGS)
 CXXCPP="$CXX -E"
 
 # Check for custom locations
