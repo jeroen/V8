@@ -13,21 +13,21 @@ PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
-# Upon failure, some versions of R return error, others just empty
+# Upon failure, some versions of R return error, others succes with empty output
 HASCXX14=$(R CMD config CXX14)
 if [ $? -eq 0 ] && [ "$HASCXX14" ]; then
 echo "Using C++14"
-CXXV=CXX14
+CXX_STD=CXX14
 else
 echo "Not using C++14"
-CXXV=CXX11
+CXX_STD=CXX11
 fi
 
 # Find compiler
 CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
 LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
-CXX="$(${R_HOME}/bin/R CMD config ${CXXV}) $(${R_HOME}/bin/R CMD config ${CXXV}STD)"
+CXX="$(${R_HOME}/bin/R CMD config ${CXX_STD}) $(${R_HOME}/bin/R CMD config ${CXX_STD}STD)"
 CXXCPP="$CXX -E"
 
 # Check for custom locations
@@ -91,5 +91,5 @@ fi
 rm -Rf pctest*
 
 # Assume a modern V8 API
-sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|$CXXV|" src/Makevars.in > src/Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makevars.in > src/Makevars
 exit 0
