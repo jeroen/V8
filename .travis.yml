@@ -14,8 +14,13 @@ matrix:
           sources:
             - sourceline: 'ppa:cran/travis'
           packages: libnode-dev
-    - r: release
-    - r: release
+    - dist: xenial
+    - dist: xenial
+      addons:
+        apt:
+          packages: libnode-dev
+    - dist: bionic
+    - dist: bionic
       addons:
         apt:
           packages: libnode-dev
