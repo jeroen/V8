@@ -1,3 +1,6 @@
+3.3.0
+ - Use CXX14 when available, required as of libv8 version 8.7.80
+
 3.2.0
  - Fix bug with pointer compression feature-test on Debian / Anaconda
  - Linux: increase JS stack limit, because of problems with new libv8 on Fedora.
