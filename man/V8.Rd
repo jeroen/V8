@@ -146,5 +146,5 @@ ct3$console()
 
 }
 \references{
-A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{http://arxiv.org/abs/1403.2805}
+A Mapping Between JSON Data and R Objects (Ooms, 2014): \url{https://arxiv.org/abs/1403.2805}
 }

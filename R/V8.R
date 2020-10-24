@@ -59,7 +59,7 @@
 #' we provide backports of libv8 (via libnode-dev), see the
 #' [readme](https://github.com/jeroen/v8#backports-for-xenial-and-bionic) for details.
 #'
-#' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): <http://arxiv.org/abs/1403.2805>
+#' @references A Mapping Between JSON Data and R Objects (Ooms, 2014): <https://arxiv.org/abs/1403.2805>
 #' @export v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose `console` API (`console.log`, `console.warn`, `console.error`).
