@@ -42,7 +42,7 @@
 #' (and should) only exchange data types that have a sensible JSON representation.
 #' One exception is raw vectors which are converted to/from Uint8Array buffers, see
 #' below. All other arguments and objects are automatically converted according to the mapping
-#' described in [Ooms (2014)](http://arxiv.org/abs/1403.2805), and implemented
+#' described in [Ooms (2014)](https://arxiv.org/abs/1403.2805), and implemented
 #' by the jsonlite package in [fromJSON()] and [toJSON()].
 #'
 #' As for version 3.0 of this R package, Raw vectors are converted to `Uint8Array`

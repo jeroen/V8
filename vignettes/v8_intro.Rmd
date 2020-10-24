@@ -61,7 +61,7 @@ ct$source(system.file("js/crossfilter.js", package="V8"))
 
 ## Data Interchange
 
-By default all data interchange between R and JavaScript happens via JSON using the bidirectional mapping implemented in the [jsonlite](http://arxiv.org/abs/1403.2805) package.
+By default all data interchange between R and JavaScript happens via JSON using the bidirectional mapping implemented in the [jsonlite](https://arxiv.org/abs/1403.2805) package.
 
 ```{r}
 ct$assign("mydata", mtcars)

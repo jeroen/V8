@@ -8,8 +8,7 @@ Description: An R interface to V8: Google's open source JavaScript and WebAssemb
     engine. This package can be compiled either with V8 version 6 and up, a NodeJS
     shared library, or the legacy 3.14/3.15 branch of V8.
 License: MIT + file LICENSE
-URL: https://jeroen.cran.dev/V8 (docs)
-    https://github.com/jeroen/v8 (devel)
+URL: https://github.com/jeroen/v8 (devel)
     https://v8.dev (upstream)
 BugReports: https://github.com/jeroen/v8/issues
 SystemRequirements: V8 engine version 6+ is needed for modern JS and WASM support. On 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/wasm.R
 \name{wasm}
 \alias{wasm}
-\title{Run WebAssembly}
+\title{Experimental WebAssembly}
 \usage{
 wasm(data)
 }
@@ -10,7 +10,9 @@ wasm(data)
 \item{data}{either raw vector or file path with the binary wasm program}
 }
 \description{
-Load a WebAssembly program. Returns a list of exported functions.
+Experimental wrapper to load a WebAssembly program. Returns a list of
+exported functions. This will probably be moved into it's own package
+once WebAssembly matures.
 }
 \examples{
 # Load example wasm program
