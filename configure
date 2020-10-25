@@ -18,7 +18,7 @@ CXX14=$(R CMD config CXX14)
 
 # Upon failure, some versions of R return error, others succes with empty output
 if [ $? -eq 0 ] && [ "$CXX14" ]; then
-echo "Using C++14"
+echo "Found C++14 compiler: $CXX14"
 CXX_STD=CXX14
 CXX="$CXX14 $(${R_HOME}/bin/R CMD config CXX14STD)"
 CXXFLAGS=$(${R_HOME}/bin/R CMD config CXX14FLAGS)
@@ -52,6 +52,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 # For debugging
+echo "Using CXXCPP=$CXXCPP"
 echo "Using PKG_CFLAGS=$PKG_CFLAGS"
 echo "Using PKG_LIBS=$PKG_LIBS"
 
