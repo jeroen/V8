@@ -24,6 +24,8 @@ matrix:
       addons:
         apt:
           packages: libnode-dev
+    - dist: bionic
+      env: DOWNLOAD_STATIC_LIBV8=1
     - os: osx
       brew_packages: v8
     - os: osx
