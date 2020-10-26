@@ -17,16 +17,16 @@ PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 CXX14=$(${R_HOME}/bin/R CMD config CXX14)
 
 # Upon failure, some versions of R return error, others succes with empty output
-if [ $? -eq 0 ] && [ "$CXX14" ]; then
+if [ $? -ne 0 ] || [ -z "$CXX14" ]; then
+echo "Not using CXX14"
+CXX_STD=CXX11
+CXX="$(${R_HOME}/bin/R CMD config CXX)"
+CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
+else
 echo "Found C++14 compiler: $CXX14"
 CXX_STD=CXX14
 CXX="$CXX14 $(${R_HOME}/bin/R CMD config CXX14STD)"
 CXXFLAGS=$(${R_HOME}/bin/R CMD config CXX14FLAGS)
-else
-echo "Not using C++14"
-CXX_STD=CXX11
-CXX="$(${R_HOME}/bin/R CMD config CXX)"
-CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
 fi
 
 # Find compiler
