@@ -50,7 +50,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   PKG_CFLAGS="-I${V8HOME}/include -I${V8HOME}/libexec/include"
   PKG_LIBS="-L${V8HOME}/libexec $PKG_LIBS"
 elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
-  # This requires at least GCC-5, i.e. anything except for centos-7
+  # This requires x86_64 and at least GCC-5, i.e. anything except for centos-7
   ${R_HOME}/bin/R -e 'download.file("http://jeroen.github.io/V8/v8-8.3.110.13-linux.tar.gz", "libv8.tar.gz")'
   tar xzf libv8.tar.gz
   PKG_CFLAGS="-I${PWD}/v8/include"
@@ -71,7 +71,7 @@ if [ $? -ne 0 ]; then
   echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
   echo " * brew: $PKG_BREW_NAME (OSX)"
   echo " * csw: $PKG_CSW_NAME (Solaris)"
-  echo "Alternatively, on Linux or MacOS you can set environment variable:"
+  echo "Alternatively, on Linux (x86_64) or MacOS you can set environment variable:"
   echo "    DOWNLOAD_STATIC_LIBV8=1"
   echo "to automatically download a static version of libv8."
   echo "To use a custom libv8, set INCLUDE_DIR and LIB_DIR manually via:"
