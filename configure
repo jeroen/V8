@@ -40,7 +40,7 @@ if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
   PKG_CFLAGS="-I$INCLUDE_DIR $PKG_CFLAGS"
   PKG_LIBS="-L$LIB_DIR $PKG_LIBS"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  if [ $(command -v brew) ]; then
+  if [ $(command -v brew) ] && [ -z "$DOWNLOAD_STATIC_LIBV8" ]; then
     BREWDIR=$(brew --prefix)
   else
     curl -sfL "https://autobrew.github.io/scripts/$PKG_BREW_NAME" > autobrew
@@ -71,7 +71,7 @@ if [ $? -ne 0 ]; then
   echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
   echo " * brew: $PKG_BREW_NAME (OSX)"
   echo " * csw: $PKG_CSW_NAME (Solaris)"
-  echo "On Linux you can also set env variable DOWNLOAD_STATIC_LIBV8=1 to"
+  echo "On Linux and MacOS you can also set env variable DOWNLOAD_STATIC_LIBV8=1 to"
   echo "  automatically download a static version of libv8."
   echo "To use a custom libv8, set INCLUDE_DIR and LIB_DIR manually via:"
   echo "R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'"
