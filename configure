@@ -4,7 +4,6 @@
 # If your libv8 is installed in a custom location you need to set
 # INCLUDE_DIR and LIB_DIR manually via e.g:
 # R CMD INSTALL --configure-vars='INCLUDE_DIR=/.../include LIB_DIR=/.../lib'
-
 PKG_DEB_NAME="libv8-dev or libnode-dev"
 PKG_RPM_NAME="v8-devel"
 PKG_CSW_NAME="libv8_dev"
@@ -12,6 +11,13 @@ PKG_BREW_NAME="v8"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
+
+# On CI: use static V8 by default
+if [ "$GITHUB_ACTIONS" ] || [ "$TRAVIS" ]; then
+if [ -z "$DISABLE_STATIC_LIBV8" ] && [ "$(uname -m)" = "x86_64" ]; then
+DOWNLOAD_STATIC_LIBV8=1
+fi
+fi
 
 # Use CXX14 when available, required as of libv8 version 8.7.80
 CXX14=$(${R_HOME}/bin/R CMD config CXX14)
