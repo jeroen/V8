@@ -4,7 +4,7 @@ if [ $? -ne 0 ] || [ -z "$IS_GCC4" ]; then
 else
   URL="http://jeroen.github.io/V8/v8-6.8.275.32-gcc48.tar.gz"
 fi
-${R_HOME}/bin/R -e "curl::curl_download('$URL','libv8.tar.gz',quiet=FALSE)"
+${R_HOME}/bin/R -q -e "curl::curl_download('$URL','libv8.tar.gz',quiet=FALSE)"
 tar xzf libv8.tar.gz
 PKG_CFLAGS="-I${PWD}/v8/include"
 PKG_LIBS="-L${PWD}/v8/lib -lv8_monolith"
