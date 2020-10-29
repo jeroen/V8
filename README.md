@@ -36,7 +36,9 @@ Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
 install.packages("V8")
 ```
 
-This way, you can install the V8 package on any x64 Linux system, without separate system requirements. Alternatively, you can still install libv8 from your distribution as described below.
+This way, you can install the V8 package on any x64 Linux system, without separate system requirements. We enable this by default on Travis and Github-Actions, but for local installations, you need to opt-in via the env var above.
+
+Alternatively, it is also still possible to install libv8 from your distribution as described below.
 
 ### Arch
 
