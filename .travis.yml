@@ -5,6 +5,9 @@ fortran: false
 
 r_check_args: '--no-manual'
 
+# Test against the actual system V8
+env: DISABLE_STATIC_LIBV8=1
+
 matrix:
   include:
     - r: 3.4
