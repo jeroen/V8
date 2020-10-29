@@ -11,21 +11,34 @@ An R interface to Google's open source JavaScript engine. This
 package can now be compiled either with V8 version 6+ (LTS) from nodejs
 or with the legacy 3.14/3.15 version of V8.
 
-## Documentation
+## Getting started
 
 About the R package:
 
  - Vignette: [Introduction to V8 for R](https://cran.r-project.org/web/packages/V8/vignettes/v8_intro.html)
  - Vignette: [Using NPM packages in V8 with browserify](https://cran.r-project.org/web/packages/V8/vignettes/npm.html)
  
-
-## Installation
-
 Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
 
 ```r
 install.packages("V8")
 ```
+
+On Linux you need a suitable libv8 installation, see below.
+
+
+### Linux: Static libv8
+
+__NEW:__ As of V8 3.4 there is a new option on Linux to automatically download a suitable static build of libv8 during package installation. To use this in R simply set an environment variable `DOWNLOAD_STATIC_LIBV8=1`, for example:
+
+```r
+Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
+install.packages("V8")
+```
+
+This way, you can install the V8 package on any x64 Linux system, without separate system requirements. We enable this by default on Travis and Github-Actions, but for local installations, you need to opt-in via the env var above.
+
+Alternatively, it is also still possible to install libv8 from your distribution as described below.
 
 ### Arch
 
