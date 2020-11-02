@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env	bash
 # Anticonf (tm) script by Jeroen Ooms (2020)
 # Package requires either libv8 6 and up, or legacy branch (3.14 / 3.15).
 # If your libv8 is installed in a custom location you need to set
