@@ -5,6 +5,7 @@
    that do not have libv8, or ship with a very old V8.
  - The above should work for all x86_64 Linux systems with at least gcc-4.8.5
    and is enabled by default on Travis and Github Actions.
+ - Do not assume bash in configure script
 
 3.3.1
  - Fix a bug in the configure script
