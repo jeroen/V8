@@ -1,4 +1,3 @@
-#!/usr/bin/env	bash
 # Anticonf (tm) script by Jeroen Ooms (2020)
 # Package requires either libv8 6 and up, or legacy branch (3.14 / 3.15).
 # If your libv8 is installed in a custom location you need to set
@@ -12,32 +11,35 @@ PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 
+UNAME=`uname`
+UARCH=`uname -m`
+
 # On CI: use static V8 by default
 if [ "$GITHUB_ACTIONS" ] || [ "$TRAVIS" ]; then
-if [ -z "$DISABLE_STATIC_LIBV8" ] && [ "$(uname -m)" = "x86_64" ]; then
+if [ -z "$DISABLE_STATIC_LIBV8" ] && [ "$UARCH" = "x86_64" ]; then
 DOWNLOAD_STATIC_LIBV8=1
 fi
 fi
 
 # Use CXX14 when available, required as of libv8 version 8.7.80
-CXX14=$(${R_HOME}/bin/R CMD config CXX14)
+CXX14=`${R_HOME}/bin/R CMD config CXX14`
 
 # Upon failure, some versions of R return error, others succes with empty output
 if [ $? -ne 0 ] || [ -z "$CXX14" ]; then
 echo "Not using CXX14"
 CXX_STD=CXX11
-CXX="$(${R_HOME}/bin/R CMD config CXX)"
-CXXFLAGS=$(${R_HOME}/bin/R CMD config CXXFLAGS)
+CXX=`${R_HOME}/bin/R CMD config CXX`
+CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
 else
 echo "Found C++14 compiler: $CXX14"
 CXX_STD=CXX14
-CXX="$CXX14 $(${R_HOME}/bin/R CMD config CXX14STD)"
-CXXFLAGS=$(${R_HOME}/bin/R CMD config CXX14FLAGS)
+CXX="$CXX14 `${R_HOME}/bin/R CMD config CXX14STD`"
+CXXFLAGS=`${R_HOME}/bin/R CMD config CXX14FLAGS`
 fi
 
 # Find compiler
-CPPFLAGS=$(${R_HOME}/bin/R CMD config CPPFLAGS)
-LDFLAGS=$(${R_HOME}/bin/R CMD config LDFLAGS)
+CPPFLAGS=`${R_HOME}/bin/R CMD config CPPFLAGS`
+LDFLAGS=`${R_HOME}/bin/R CMD config LDFLAGS`
 CXXCPP="$CXX -E"
 
 # Check for custom locations
@@ -45,19 +47,19 @@ if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
   echo "Found INCLUDE_DIR and/or LIB_DIR!"
   PKG_CFLAGS="-I$INCLUDE_DIR $PKG_CFLAGS"
   PKG_LIBS="-L$LIB_DIR $PKG_LIBS"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  if [ $(command -v brew) ] && [ -z "$DOWNLOAD_STATIC_LIBV8" ]; then
-    BREWDIR=$(brew --prefix)
+elif [ "$UNAME" = "Darwin" ]; then
+  if [ `command -v brew` ] && [ -z "$DOWNLOAD_STATIC_LIBV8" ]; then
+    BREWDIR=`brew --prefix`
   else
     curl -sfL "https://autobrew.github.io/scripts/$PKG_BREW_NAME" > autobrew
-    source autobrew
+    . autobrew
   fi
   V8HOME="$BREWDIR/opt/$PKG_BREW_NAME"
   PKG_CFLAGS="-I${V8HOME}/include -I${V8HOME}/libexec/include"
   PKG_LIBS="-L${V8HOME}/libexec $PKG_LIBS"
 elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
   ${R_HOME}/bin/R -q -e 'curl::curl_download("http://jeroen.github.io/V8/get-v8-linux.sh","get-v8-linux.sh")'
-  source get-v8-linux.sh
+  . get-v8-linux.sh
 fi
 
 # For debugging
@@ -89,7 +91,7 @@ fi
 ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} src/legacy/test.cpp >/dev/null 2>&1
 if [ $? -eq 0 ]; then
   echo "Found legacy version of libv8"
-  PKG_LIBS=$(echo "$PKG_LIBS" | sed -e "s/-lv8_libplatform//")
+  PKG_LIBS=`echo "$PKG_LIBS" | sed -e "s/-lv8_libplatform//"`
   sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/legacy/Makevars.in > src/Makevars
   exit 0
 fi
