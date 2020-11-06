@@ -32,6 +32,3 @@ RoxygenNote: 7.1.1
 Roxygen: list(load = "installed", markdown = TRUE)
 Language: en-US
 Encoding: UTF-8
-Remotes: jeroen/webutils,
-    jeroen/jsonlite,
-    r-lib/gert
