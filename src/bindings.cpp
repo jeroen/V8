@@ -171,7 +171,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
     value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
     Rcpp::RawVector data(buffer->ByteLength());
-    memcpy(data.begin(), buffer->GetContents().Data(), data.size());
+    memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
     return data;
   } else {
     //convert to string without jsonify
@@ -241,7 +241,7 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::
   // Initiate ArrayBuffer and ArrayBufferView (uint8 typed array)
   v8::Handle<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
   v8::Handle<v8::Uint8Array> typed_array = v8::Uint8Array::New(buffer, 0, data.size());
-  memcpy(buffer->GetContents().Data(), data.begin(), data.size());
+  memcpy(buffer->GetBackingStore()->Data(), data.begin(), data.size());
 
   // Assign to object (delete first if exists)
   v8::Local<v8::String> name = ToJSString(key.get_cstring());
