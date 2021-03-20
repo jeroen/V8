@@ -202,7 +202,7 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
 
   // Compile source code
   v8::TryCatch trycatch(isolate);
-  v8::Handle<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
+  v8::Local<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
   if(script.IsEmpty()) {
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::invalid_argument(ToCString(exception));
@@ -210,7 +210,7 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
 
   // Run the script to get the result.
   v8::MaybeLocal<v8::Value> res = script->Run(ctx.checked_get()->Get(isolate));
-  v8::Handle<v8::Value> result = safe_to_local(res);
+  v8::Local<v8::Value> result = safe_to_local(res);
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
@@ -243,8 +243,8 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::
   v8::TryCatch trycatch(isolate);
 
   // Initiate ArrayBuffer and ArrayBufferView (uint8 typed array)
-  v8::Handle<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
-  v8::Handle<v8::Uint8Array> typed_array = v8::Uint8Array::New(buffer, 0, data.size());
+  v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
+  v8::Local<v8::Uint8Array> typed_array = v8::Uint8Array::New(buffer, 0, data.size());
 #if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 901
   memcpy(buffer->GetBackingStore()->Data(), data.begin(), data.size());
 #else
@@ -276,7 +276,7 @@ bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> 
 
   // Try to compile, catch errors
   v8::TryCatch trycatch(isolate);
-  v8::Handle<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
+  v8::Local<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
   return !script.IsEmpty();
 }
 
