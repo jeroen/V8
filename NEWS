@@ -1,3 +1,6 @@
+3.4.1
+ - Minor compatibility fixes by Jan Marvin for new versions of libv8.
+
 3.4.0
  - When setting envvar DOWNLOAD_STATIC_LIBV8=1 on Linux at build-time, the
    configure script automatically downloads a static libv8, instead of looking
