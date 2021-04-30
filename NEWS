@@ -1,3 +1,6 @@
+3.4.2
+ - Add Windows binaries for ucrt targets
+
 3.4.1
  - Minor compatibility fixes by Jan Marvin for new versions of libv8.
 
