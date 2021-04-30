@@ -1,0 +1,17 @@
+CXX_STD = CXX17
+RWINLIB =../windows/ucrt64
+PKG_CPPFLAGS = -I$(RWINLIB)/include -DV8_COMPRESS_POINTERS
+PKG_LIBS = \
+	-L$(RWINLIB)/lib \
+	-lv8_monolith \
+	-lws2_32 -lwinmm -ldbghelp -lshlwapi -lssp -lz
+
+all: clean winlibs
+
+clean:
+	rm -f $(SHLIB) $(OBJECTS)
+
+winlibs:
+	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/ucrtlibs.R"
+
+.PHONY: all winlibs clean
