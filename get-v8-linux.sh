@@ -1,6 +1,8 @@
 IS_MUSL=$(ldd --version 2>&1 | grep musl)
 if [ $? -eq 0 ] && [ "$IS_MUSL" ]; then
   URL="http://jeroen.github.io/V8/v8-8.3.110.13-musl.tar.gz"
+elif [ "$(uname -m | grep arm)" ]; then
+  URL="http://jeroen.github.io/V8/v8-8.3.110.13-arm64.tar.gz"
 else
   IS_GCC4=$($CXX --version | grep -P '^g++.*[^\d.]4(\.\d){2}')
   if [ $? -eq 0 ] && [ "$IS_GCC4" ]; then
