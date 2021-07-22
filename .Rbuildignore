@@ -15,3 +15,6 @@
 ^appveyor.yml$
 ^revdep/
 ^configure.log$
+^\.github$
+^v8/include/
+^v8/lib/
