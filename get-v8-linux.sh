@@ -15,3 +15,4 @@ ${R_HOME}/bin/R -q -e "curl::curl_download('$URL','libv8.tar.gz',quiet=FALSE)"
 tar xzf libv8.tar.gz
 PKG_CFLAGS="-I${PWD}/v8/include"
 PKG_LIBS="-L${PWD}/v8/lib -lv8_monolith"
+rm -f libv8.tar.gz
