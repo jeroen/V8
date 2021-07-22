@@ -16,3 +16,4 @@
 ^revdep/
 ^configure.log$
 ^\.github$
+^V8/v8/
