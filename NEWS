@@ -1,5 +1,7 @@
-3,4,3
- - Default to static libv8 on legacy Ubuntu distros that have libv8-3.14.5
+3.5.0
+ - On legacy systems which still have libv8 version 3.x we now try to download
+   a more recent static libv8. We plan to deprecate support for libv8 3.x, which
+   is now over 10 years old, and does not support ES6 (modern JavaScript).
 
 3.4.2
  - Add Windows binaries for ucrt targets
