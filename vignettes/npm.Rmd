@@ -59,7 +59,7 @@ If no bundle is available for your library, you might be able to create one from
 
 ![browserify logo](http://jeroen.github.io/V8/browserify.png)
 
-[Browserify](http://browserify.org/) is a tool to bundle an npm package with all of its dependencies into a single js file that does not require disk access. It is mainly designed to make npm packages suitable for use on a webpage but it is useful with embedded V8 as well. 
+[Browserify](https://browserify.org/) is a tool to bundle an npm package with all of its dependencies into a single js file that does not require disk access. It is mainly designed to make npm packages suitable for use on a webpage but it is useful with embedded V8 as well. 
 
 ## Browserify example: js-beautify
 

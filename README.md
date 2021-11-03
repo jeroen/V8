@@ -54,7 +54,7 @@ makepkg -si
 
 ### Debian / Ubuntu 
 
-Installation from source on Linux requires [`libv8`](https://developers.google.com/v8/intro). On Ubuntu / Debian you need to install either [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev), or [libnode-dev](https://packages.ubuntu.com/eoan/libnode-dev). On the latest systems, `libv8-dev` is actually an alias for `libnode-dev` so they are the same:
+Installation from source on Linux requires [`libv8`](https://v8.dev/). On Ubuntu / Debian you need to install either [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev), or [libnode-dev](https://packages.ubuntu.com/eoan/libnode-dev). On the latest systems, `libv8-dev` is actually an alias for `libnode-dev` so they are the same:
 
 ```sh
 # Debian and Ubuntu
