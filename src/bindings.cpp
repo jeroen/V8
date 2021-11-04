@@ -77,6 +77,9 @@ void start_v8_isolate(void *dll){
 /* Helper fun that compiles JavaScript source code */
 static v8::Local<v8::Script> compile_source(std::string src, v8::Local<v8::Context> context){
   v8::Local<v8::String> source = ToJSString(src.c_str());
+  if(source.IsEmpty()){
+    throw std::runtime_error("Failed to load JavaScript source. Check memory/stack limits.");
+  }
   v8::MaybeLocal<v8::Script> script = v8::Script::Compile(context, source);
   return safe_to_local(script);
 }
@@ -208,7 +211,7 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
     if(*exception){
       throw std::invalid_argument(ToCString(exception));
     } else {
-      throw std::invalid_argument("Failed to load script (stack limit?)");
+      throw std::invalid_argument("Failed to interpret script. Check memory/stack limits.");
     }
   }
 
