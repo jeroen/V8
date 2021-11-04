@@ -14,8 +14,12 @@ PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
 UNAME=`uname`
 UARCH=`uname -m`
 
-# On CI or legacy Ubuntu: use static V8 by default
-if [ "$GITHUB_ACTIONS" ] || [ "$TRAVIS" ] || [ -f "/usr/lib/libv8.so.3.14.5" ]; then
+# Test if this a RHEL distro, but not Fedora
+if test -f "/etc/redhat-release" && ! grep -Fq Fedora "/etc/redhat-release"; then
+IS_RHEL=1
+fi
+
+if [ "$IS_RHEL"] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ]; then
 if [ -z "$DISABLE_STATIC_LIBV8" ] && [ "$UARCH" = "x86_64" ]; then
 DOWNLOAD_STATIC_LIBV8=1
 fi

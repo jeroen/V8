@@ -1,3 +1,7 @@
+3.6.0
+ - Make DOWNLOAD_STATIC_LIBV8 the default on RHEL/CentOS based distros because
+   these include a very old or no libv8.
+
 3.5.0
  - On legacy systems which still have libv8 version 3.x we now try to download
    a more recent static libv8. We plan to deprecate support for libv8 3.x, which
