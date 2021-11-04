@@ -66,7 +66,7 @@ void start_v8_isolate(void *dll){
   isolate->SetFatalErrorHandler(fatal_cb);
 
 #ifdef __linux__
-  /* This should fix packages hitting stack limit on Fedora.
+  /* Workaround for packages hitting stack limit on Fedora, such as ggdag.
    * CurrentStackPosition trick copied from chromium. */
   static const int kWorkerMaxStackSize = 2000 * 1024;
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
@@ -211,7 +211,7 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
     if(*exception){
       throw std::invalid_argument(ToCString(exception));
     } else {
-      throw std::invalid_argument("Failed to interpret script. Check memory/stack limits.");
+      throw std::runtime_error("Failed to interpret script. Check memory/stack limits.");
     }
   }
 
@@ -318,6 +318,8 @@ ctxptr make_context(bool set_console){
   // emscripted requires a print function
   global->Set(ToJSString("print"), v8::FunctionTemplate::New(isolate, ConsoleLog));
   v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, global);
+  if(*context == NULL)
+    throw std::runtime_error("Failed to create new context. Check memory stack limits.");
   v8::Context::Scope context_scope(context);
 
   v8::Local<v8::String> console = ToJSString("console");
