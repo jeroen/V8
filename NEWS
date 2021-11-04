@@ -1,4 +1,10 @@
 3.6.0
+ - Try to give better error message when unable to allocate, probably due to
+   hitting the stack limit. Previously we would see 'string conversion failed'
+   which was very confusing.
+ - The same stacklimit is now used across all platforms. Previously we would only
+   set it on Linux, but apparently it is also needed on Windows sometimes.
+ - Disable stacklimit when running in ASAN (which blows up the stack size)
  - Make DOWNLOAD_STATIC_LIBV8 the default on RHEL/CentOS based distros because
    these include a very old or no libv8.
 
