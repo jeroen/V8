@@ -65,7 +65,6 @@ void start_v8_isolate(void *dll){
   isolate->AddMessageListener(message_cb);
   isolate->SetFatalErrorHandler(fatal_cb);
 
-#ifdef __linux__
 #ifdef __SANITIZE_ADDRESS__
   /* Disable stack limit when using sanitizers (highest possible value, backwards) */
   isolate->SetStackLimit(1);
@@ -75,7 +74,6 @@ void start_v8_isolate(void *dll){
   static const int kWorkerMaxStackSize = 2000 * 1024;
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
   isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
-#endif
 #endif
 }
 
