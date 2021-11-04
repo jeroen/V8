@@ -2,8 +2,8 @@
 #include "V8_types.h"
 
 /* __has_feature is a clang-ism, while __SANITIZE_ADDRESS__ is a gcc-ism */
-#if defined(__has_feature) && ! defined(__SANITIZE_ADDRESS__)
-#if __has_feature(address_sanitizer)
+#if defined(__clang__) && !defined(__SANITIZE_ADDRESS__)
+#if defined(__has_feature) && __has_feature(address_sanitizer)
 #define __SANITIZE_ADDRESS__ 1
 #endif
 #endif
