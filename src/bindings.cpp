@@ -205,7 +205,11 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
   v8::Local<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
   if(script.IsEmpty()) {
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
-    throw std::invalid_argument(ToCString(exception));
+    if(*exception){
+      throw std::invalid_argument(ToCString(exception));
+    } else {
+      throw std::invalid_argument("Failed to load script (stack limit?)");
+    }
   }
 
   // Run the script to get the result.
