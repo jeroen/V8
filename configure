@@ -19,6 +19,7 @@ if test -f "/etc/redhat-release" && ! grep -Fq Fedora "/etc/redhat-release"; the
 IS_RHEL=1
 fi
 
+# Default to downloading static V8 on CI and legacy systems
 if [ "$IS_RHEL" ] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ]; then
 if [ -z "$DISABLE_STATIC_LIBV8" ] && [ "$UARCH" = "x86_64" ]; then
 DOWNLOAD_STATIC_LIBV8=1
