@@ -28,18 +28,18 @@ On Linux you need a suitable libv8 installation, see below.
 
 ### Linux: Static libv8
 
-__NEW:__ As of V8 3.4 there is a new option on Linux to automatically download a suitable static build of libv8 during package installation. To use this in R simply set an environment variable `DOWNLOAD_STATIC_LIBV8=1`, for example:
+__NEW:__ As of V8 3.4 there is a new option for x64 Linux platforms to automatically download a suitable static build of libv8 during package installation. To use this in R set an environment variable `DOWNLOAD_STATIC_LIBV8=1` during installation, for example:
 
 ```r
 Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
 install.packages("V8")
 ```
 
-This way, you can install the V8 package on any x64 Linux system, without separate system requirements. We enable this by default on Travis and Github-Actions, but for local installations, you need to opt-in via the env var above.
+This way, you can install the R package on any x64 Linux system, without local system requirements. We enable this by default on CI and also on Linux distros that are known to have no suitable version of libv8 available. But for local installations, you need to opt-in via the env var above.
 
-Alternatively, it is also still possible to install libv8 from your distribution as described below.
+It is also still possible to install libv8 from your distribution as described below.
 
-### Arch
+### Arch Linux
 
 Arch users are advised to install the [`v8-r`](https://aur.archlinux.org/packages/v8-r/) package, which has been configured to work well with R. Installation can done through your preferred AUR helper such as yay, Trizen, etc. However, since V8 contains a large codebase and (re-)compilation takes a while, users may prefer to build and update it manually. For example,
 

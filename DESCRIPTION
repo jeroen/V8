@@ -11,11 +11,10 @@ License: MIT + file LICENSE
 URL: https://github.com/jeroen/v8 (devel)
     https://v8.dev (upstream)
 BugReports: https://github.com/jeroen/v8/issues
-SystemRequirements: V8 engine version 6+ is needed for modern JS and WASM support. On 
-    Debian / Ubuntu install either libv8-dev or libnode-dev, on Fedora use v8-devel. 
-    The readme has instructions for installing backports on Ubuntu Xenial and Bionic. 
-    It is still possible to build this package against the legacy libv8 version 3.14
-    branch, but these engines only support traditional JavaScript (ES5).
+SystemRequirements: V8 engine version 6+ is needed for ES6 and WASM support. On 
+    Debian / Ubuntu install either libv8-dev or libnode-dev, on Fedora use v8-devel.
+    Alternatively, we provide static libv8 binaries most platforms, see the README
+    for details.
 NeedsCompilation: yes
 VignetteBuilder: knitr
 Imports:
