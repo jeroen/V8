@@ -7,6 +7,7 @@
  - Disable stacklimit when running in ASAN (which blows up the stack size)
  - Make DOWNLOAD_STATIC_LIBV8 the default on RHEL/CentOS based distros because
    these include a very old or no libv8.
+ - Check and warn against very old libv8 when attaching the package.
 
 3.5.0
  - On legacy systems which still have libv8 version 3.x we now try to download
