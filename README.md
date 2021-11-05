@@ -37,7 +37,7 @@ On Linux you need a suitable libv8 installation, see below.
 
 ### Linux: Static libv8
 
-__NEW:__ As of V8 3.4 there is a new option for x64 Linux platforms to automatically download a suitable static build of libv8 during package installation. To use this in R set an environment variable `DOWNLOAD_STATIC_LIBV8=1` during installation, for example:
+__NEW:__ As of V8 3.4 there is a new option for x64 Linux platforms to automatically download a suitable static build of libv8 during package installation. To use this, set an environment variable `DOWNLOAD_STATIC_LIBV8` during installation, for example:
 
 ```r
 Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
