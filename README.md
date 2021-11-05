@@ -18,6 +18,15 @@ About the R package:
  - Vignette: [Introduction to V8 for R](https://cran.r-project.org/web/packages/V8/vignettes/v8_intro.html)
  - Vignette: [Using NPM packages in V8 with browserify](https://cran.r-project.org/web/packages/V8/vignettes/npm.html)
  
+To see some quick examples in R run:
+
+```r
+library(V8)
+example(v8)
+```
+
+## Installation
+ 
 Binary packages for __OS-X__ or __Windows__ can be installed directly from CRAN:
 
 ```r
@@ -38,18 +47,6 @@ install.packages("V8")
 This way, you can install the R package on any x64 Linux system, without local system requirements. We enable this by default on CI and also on Linux distros that are known to have no suitable version of libv8 available. But for local installations, you need to opt-in via the env var above.
 
 It is also still possible to install libv8 from your distribution as described below.
-
-### Arch Linux
-
-Arch users are advised to install the [`v8-r`](https://aur.archlinux.org/packages/v8-r/) package, which has been configured to work well with R. Installation can done through your preferred AUR helper such as yay, Trizen, etc. However, since V8 contains a large codebase and (re-)compilation takes a while, users may prefer to build and update it manually. For example,
-
-```sh
-## Arch
-cd /tmp
-yay -G v8-r   
-cd v8-r
-makepkg -si
-```
 
 
 ### Debian / Ubuntu 
@@ -76,21 +73,6 @@ sudo apt-get install libnode-dev
 
 After installing `libnode-dev` you need to reinstall the R package, and you should be good to go.
 
-### Travis CI
-
-The above PPA is enabled by default in Travis for R 3.5 and up. You can use the following configuration to check R packges that depend on V8:
-
-```yaml
-dist: xenial
-addons:
-  apt:
-    packages: libnode-dev
-```
-
-You should delete the travis repository package cache if you switch from `libv8-dev` to `libnode-dev`.
-
-The [.travis.yml](https://github.com/jeroen/V8/blob/master/.travis.yml) in the V8 repository shows other possible configurations.
-
 ### Fedora / Redhat
 
 On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8):
@@ -114,6 +96,19 @@ yum install epel-release
 yum module enable nodejs:13
 yum install v8-devel
 ```
+
+### Arch Linux
+
+Arch users are advised to install the [`v8-r`](https://aur.archlinux.org/packages/v8-r/) package, which has been configured to work well with R. Installation can done through your preferred AUR helper such as yay, Trizen, etc. However, since V8 contains a large codebase and (re-)compilation takes a while, users may prefer to build and update it manually. For example,
+
+```sh
+## Arch
+cd /tmp
+yay -G v8-r   
+cd v8-r
+makepkg -si
+```
+
 
 ### Homebrew
 
