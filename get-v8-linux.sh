@@ -1,14 +1,14 @@
 IS_MUSL=$(ldd --version 2>&1 | grep musl)
 if [ $? -eq 0 ] && [ "$IS_MUSL" ]; then
-  URL="http://jeroen.github.io/V8/v8-8.3.110.13-musl.tar.gz"
+  URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-alpine.tar.gz"
 elif [ "$(uname -m | grep 'ar[mc]')" ]; then
-  URL="http://jeroen.github.io/V8/v8-8.3.110.13-arm64.tar.gz"
+  URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-arm64.tar.gz"
 else
   IS_GCC4=$($CXX --version | grep -P '^g++.*[^\d.]4(\.\d){2}')
   if [ $? -eq 0 ] && [ "$IS_GCC4" ]; then
-    URL="http://jeroen.github.io/V8/v8-6.8.275.32-gcc48.tar.gz"
+    URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-6.8.275.32-gcc-4.8.tar.gz"
   else
-    URL="http://jeroen.github.io/V8/v8-8.3.110.13-linux.tar.gz"
+    URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-amd64.tar.gz"
   fi
 fi
 ${R_HOME}/bin/R -q -e "curl::curl_download('$URL','libv8.tar.gz',quiet=FALSE)"
