@@ -1,3 +1,6 @@
+3.6.1
+ - Updated static libv8 for Mac and Linux to v8-v8-9.6.180.12
+
 3.6.0
  - Try to give better error message when unable to allocate, probably due to
    hitting the stack limit. Previously we would see 'string conversion failed'
