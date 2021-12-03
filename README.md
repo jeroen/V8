@@ -81,20 +81,17 @@ On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8):
 sudo yum install v8-devel
 ````
 
-On __CentOS / RHEL__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
+On __CentOS 7 / RHEL 7__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
 
 ```sh
 sudo yum install epel-release
 sudo yum install v8-devel
 ```
 
-Not that on __CentOS / RHEL 8__, you first need to enable the `node:13` module repository:
+On __CentOS 8 / RHEL 8__, we can use the `node:16-epel` module repository:
 
 ```sh
-# Needed on EPEL 8 only
-yum install epel-release 
-yum module enable nodejs:13
-yum install v8-devel
+yum --refresh --enablerepo=epel-testing-modular install @nodejs:16-epel/minimal v8-devel 
 ```
 
 ### Arch Linux
