@@ -37,7 +37,7 @@ On Linux you need a suitable libv8 installation, see below.
 
 ### Linux: Static libv8
 
-__NEW:__ As of V8 3.4 there is a new option for x64 Linux platforms to automatically download a suitable static build of libv8 during package installation. To use this, set an environment variable `DOWNLOAD_STATIC_LIBV8` during installation, for example:
+On amd64/arm64 Linux platforms it is possible to automatically download a suitable static build of libv8 during package installation. To use this, set an environment variable `DOWNLOAD_STATIC_LIBV8` during installation, for example:
 
 ```r
 Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
@@ -46,8 +46,7 @@ install.packages("V8")
 
 This way, you can install the R package on any x64 Linux system, without local system requirements. We enable this by default on CI and also on Linux distros that are known to have no suitable version of libv8 available. But for local installations, you need to opt-in via the env var above.
 
-It is also still possible to install libv8 from your distribution as described below.
-
+Alternatively, it is also still possible to install libv8 from your distribution as described below. This may be needed for servers running other architectures, or when building the R package without internet access.
 
 ### Debian / Ubuntu 
 
@@ -58,37 +57,22 @@ Installation from source on Linux requires [`libv8`](https://v8.dev/). On Ubuntu
 sudo apt-get install -y libv8-dev
 ```
 
-### Backports for Xenial and Bionic
-
-Ubuntu versions before 19.04 ship with a rather old V8 engine in libv8-dev. The R package can be compiled against this, but the engine only supports ES5, so some "modern" JavaScript syntax may not work. A lot of JS libraries these days require this.
-
-A recent version of the V8 engine is available in `libnode-dev` from our the [cran/v8](https://launchpad.net/~cran/+archive/ubuntu/v8) PPA:
-
-```sh
-# Ubuntu Xenial (16.04) and Bionic (18.04) only
-sudo add-apt-repository ppa:cran/v8
-sudo apt-get update
-sudo apt-get install libnode-dev
-```
-
-After installing `libnode-dev` you need to reinstall the R package, and you should be good to go.
-
 ### Fedora / Redhat
 
-On __Fedora__ we need [v8-devel](https://apps.fedoraproject.org/packages/v8):
+On __Fedora__ we need v8-devel (which Fedora provides as part of [nodejs](https://src.fedoraproject.org/rpms/nodejs)):
 
 ```sh
 sudo yum install v8-devel
 ````
 
-On __CentOS 7 / RHEL 7__ we install [v8-devel](https://apps.fedoraproject.org/packages/v8-devel) via EPEL:
+On __CentOS 7 / RHEL 7__ we install first need to enable EPEL:
 
 ```sh
 sudo yum install epel-release
 sudo yum install v8-devel
 ```
 
-On __CentOS 8 / RHEL 8__, we can use the `node:16-epel` module repository:
+On __CentOS 8 / RHEL 8__, `v8-devel` is we need to use the `node:16-epel` module repository:
 
 ```sh
 yum --refresh --enablerepo=epel-testing-modular install @nodejs:16-epel/minimal v8-devel 
