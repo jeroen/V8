@@ -72,10 +72,10 @@ sudo yum install epel-release
 sudo yum install v8-devel
 ```
 
-On __CentOS 8 / RHEL 8__, `v8-devel` is we need to use the `node:16-epel` module repository:
+On __CentOS 8 / RHEL 8__, `v8-devel` can be installed from the `nodejs:16-epel` module repository:
 
 ```sh
-yum --refresh --enablerepo=epel-testing-modular install @nodejs:16-epel/minimal v8-devel 
+sudo yum --refresh install @nodejs:16-epel/minimal v8-devel 
 ```
 
 ### Arch Linux
