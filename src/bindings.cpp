@@ -1,6 +1,10 @@
 #include <libplatform/libplatform.h>
 #include "V8_types.h"
 
+#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) < 803
+#define PerformMicrotaskCheckpoint RunMicrotasks
+#endif
+
 /* __has_feature is a clang-ism, while __SANITIZE_ADDRESS__ is a gcc-ism */
 #if defined(__clang__) && !defined(__SANITIZE_ADDRESS__)
 #if defined(__has_feature) && __has_feature(address_sanitizer)
@@ -202,7 +206,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
 }
 
 // [[Rcpp::export]]
-Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false){
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false, bool await = false){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -235,18 +239,17 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
     throw std::runtime_error(ToCString(exception));
   }
 
-  if (result->IsPromise()) {
+  if (await && result->IsPromise()) {
     v8::Local<v8::Promise> promise = result.As<v8::Promise>();
     while (promise->State() == v8::Promise::kPending) {
-      while (v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait)){
+      if (v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait)){
         isolate->PerformMicrotaskCheckpoint();
       }
-      isolate->PerformMicrotaskCheckpoint();
     }
     if (promise->State() == v8::Promise::kRejected) {
-      REprintf("Promise rejected...\n");
+      result = promise->Result();
     } else {
-      REprintf("Promise OK..\n");
+      result = promise->Result();
     }
   }
 
