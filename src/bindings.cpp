@@ -239,11 +239,13 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
     throw std::runtime_error(ToCString(exception));
   }
 
+  // See https://groups.google.com/g/v8-users/c/r8nn6m6Lsj4/m/WrjLpk1PBAAJ
   if (await && result->IsPromise()) {
     v8::Local<v8::Promise> promise = result.As<v8::Promise>();
     while (promise->State() == v8::Promise::kPending) {
       v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait);
       isolate->PerformMicrotaskCheckpoint();
+      Rcpp::checkUserInterrupt();
     }
     if (promise->State() == v8::Promise::kRejected) {
       v8::String::Utf8Value rejectmsg(isolate, promise->Result());
