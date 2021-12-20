@@ -50,6 +50,10 @@ convert arguments and return value between R and JavaScript (using JSON). To pas
 literal JavaScript arguments that should not be converted to JSON, wrap them in
 \code{JS()}, see examples.
 
+If a call to \code{ct$eval()},\code{ct$get()}, or \code{ct$call()} returns a JavaScript promise,
+you can set \code{await = TRUE} to wait for the promise to be resolved. It will then
+return the result of the promise, or an error in case the promise is rejected.
+
 The \code{ct$validate} function is used to test
 if a piece of code is valid JavaScript syntax within the context, and always
 returns TRUE or FALSE.
