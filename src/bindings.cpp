@@ -27,6 +27,7 @@ void ctx_finalizer( v8::Persistent<v8::Context>* context ){
 }
 
 static v8::Isolate* isolate = NULL;
+static v8::Platform* platformptr = NULL;
 
 // Extracts a C string from a V8 Utf8Value.
 static const char* ToCString(const v8::String::Utf8Value& value) {
@@ -58,6 +59,7 @@ void start_v8_isolate(void *dll){
 #if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 704
   std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   v8::V8::InitializePlatform(platform.get());
+  platformptr = platform.get();
   platform.release(); //UBSAN complains if platform is destroyed when out of scope
 #else
   v8::V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
@@ -227,6 +229,16 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
 
   // Run the script to get the result.
   v8::MaybeLocal<v8::Value> res = script->Run(ctx.checked_get()->Get(isolate));
+
+  /* See also: https://docs.google.com/document/d/18vaABH1mR35PQr8XPHZySuQYgSjJbWFyAW63LW2m8-w  */
+  while (v8::platform::PumpMessageLoop(platformptr, isolate, isolate->HasPendingBackgroundTasks() ?
+    v8::platform::MessageLoopBehavior::kWaitForWork : v8::platform::MessageLoopBehavior::kDoNotWait)){
+    //REprintf("Running background tasks...");
+  }
+  /* Jeroen: this should not be needed if we set a microtask policy but I can't get this to work
+   isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kAuto); */
+  isolate->PerformMicrotaskCheckpoint();
+
   v8::Local<v8::Value> result = safe_to_local(res);
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
