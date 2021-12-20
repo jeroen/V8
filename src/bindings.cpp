@@ -229,20 +229,25 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
 
   // Run the script to get the result.
   v8::MaybeLocal<v8::Value> res = script->Run(ctx.checked_get()->Get(isolate));
-
-  /* See also: https://docs.google.com/document/d/18vaABH1mR35PQr8XPHZySuQYgSjJbWFyAW63LW2m8-w  */
-  while (v8::platform::PumpMessageLoop(platformptr, isolate, isolate->HasPendingBackgroundTasks() ?
-    v8::platform::MessageLoopBehavior::kWaitForWork : v8::platform::MessageLoopBehavior::kDoNotWait)){
-    //REprintf("Running background tasks...");
-  }
-  /* Jeroen: this should not be needed if we set a microtask policy but I can't get this to work
-   isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kAuto); */
-  isolate->PerformMicrotaskCheckpoint();
-
   v8::Local<v8::Value> result = safe_to_local(res);
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
+  }
+
+  if (result->IsPromise()) {
+    v8::Local<v8::Promise> promise = result.As<v8::Promise>();
+    while (promise->State() == v8::Promise::kPending) {
+      while (v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait)){
+        isolate->PerformMicrotaskCheckpoint();
+      }
+      isolate->PerformMicrotaskCheckpoint();
+    }
+    if (promise->State() == v8::Promise::kRejected) {
+      REprintf("Promise rejected...\n");
+    } else {
+      REprintf("Promise OK..\n");
+    }
   }
 
   // Serialize to JSON or Raw
