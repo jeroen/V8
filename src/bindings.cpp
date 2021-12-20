@@ -247,7 +247,8 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
       }
     }
     if (promise->State() == v8::Promise::kRejected) {
-      result = promise->Result();
+      v8::String::Utf8Value rejectmsg(isolate, promise->Result());
+      throw std::runtime_error(ToCString(rejectmsg));
     } else {
       result = promise->Result();
     }
