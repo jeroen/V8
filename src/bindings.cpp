@@ -242,9 +242,8 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
   if (await && result->IsPromise()) {
     v8::Local<v8::Promise> promise = result.As<v8::Promise>();
     while (promise->State() == v8::Promise::kPending) {
-      if (v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait)){
-        isolate->PerformMicrotaskCheckpoint();
-      }
+      v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait);
+      isolate->PerformMicrotaskCheckpoint();
     }
     if (promise->State() == v8::Promise::kRejected) {
       v8::String::Utf8Value rejectmsg(isolate, promise->Result());
