@@ -66,7 +66,8 @@ void start_v8_isolate(void *dll){
   platformptr = platform.get();
   platform.release(); //UBSAN complains if platform is destroyed when out of scope
 #else
-  v8::V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
+  platformptr = v8::platform::CreateDefaultPlatform();
+  v8::V8::InitializePlatform(platformptr);
 #endif
   v8::V8::Initialize();
   v8::Isolate::CreateParams create_params;
