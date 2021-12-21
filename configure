@@ -28,7 +28,7 @@ fi
 # Default to static V8 on supported production platforms
 if [ -z "$DISABLE_STATIC_LIBV8" ]; then
 if [ "$IS_MACOS" ] || [ "$IS_UBUNTU" ] || [ "$IS_RHEL" ] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ]; then
-if [ "$UARCH" = "x86_64" ] || [ "$UARCH" = "arm64" ]; then
+if [ "$UARCH" = "x86_64" ] || [ "$UARCH" = "arm64" ] || [ "$UARCH" = "aarch64" ]; then
 DOWNLOAD_STATIC_LIBV8=1
 fi
 fi
