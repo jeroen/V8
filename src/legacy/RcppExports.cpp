@@ -93,7 +93,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_V8_make_context", (DL_FUNC) &_V8_make_context, 1},
     {"_V8_context_enable_typed_arrays", (DL_FUNC) &_V8_context_enable_typed_arrays, 1},
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
-    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 3},
+    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 4},
     {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
     {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},
     {"_V8_write_array_buffer", (DL_FUNC) &_V8_write_array_buffer, 3},

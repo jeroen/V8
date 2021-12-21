@@ -8,6 +8,8 @@
    current installation.
  - Updated static libv8 for Mac and Linux to v8-v8-9.6.180.12
  - Windows ucrt: update libv8 to 9.1.269.38
+ - Legacy libv8 versions (3.xx) are no longer supported. Package will still
+   build but the examples and vignette now assume support for promises.
 
 3.6.0
  - Try to give better error message when unable to allocate, probably due to
