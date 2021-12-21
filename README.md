@@ -1,15 +1,14 @@
 # V8
 
-> Embedded JavaScript Engine for R
+> Embedded JavaScript and WebAssembly Engine for R
 
-[![Build Status](https://travis-ci.org/jeroen/V8.svg?branch=master)](https://travis-ci.org/jeroen/V8)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jeroen/V8?branch=master&svg=true)](https://ci.appveyor.com/project/jeroen/V8)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/V8)](http://cran.r-project.org/package=V8)
 [![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/V8)](http://cran.r-project.org/web/packages/V8/index.html)
 
-An R interface to Google's open source JavaScript engine. This 
-package can now be compiled either with V8 version 6+ (LTS) from nodejs
-or with the legacy 3.14/3.15 version of V8.
+An R interface to V8: Google's open source JavaScript and WebAssembly 
+engine. This package can be compiled either with V8 version 6 and up or NodeJS
+when built as a shared library.
 
 ## Getting started
 
