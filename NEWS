@@ -3,6 +3,8 @@
    you can set await = TRUE to wait for the promise to be resolved. It will
    then return the result of the promise, or an error in case the promise is
    rejected.
+ - New function wasm_features() lists the supported WASM capabilities on the
+   current installation.
 
 3.6.1
  - Updated static libv8 for Mac and Linux to v8-v8-9.6.180.12
