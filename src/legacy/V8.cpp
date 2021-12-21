@@ -171,7 +171,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
 }
 
 // [[Rcpp::export]]
-Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false){
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false, bool await = false){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("Context has been disposed.");

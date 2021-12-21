@@ -1,6 +1,10 @@
 #include <libplatform/libplatform.h>
 #include "V8_types.h"
 
+#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) < 803
+#define PerformMicrotaskCheckpoint RunMicrotasks
+#endif
+
 /* __has_feature is a clang-ism, while __SANITIZE_ADDRESS__ is a gcc-ism */
 #if defined(__clang__) && !defined(__SANITIZE_ADDRESS__)
 #if defined(__has_feature) && __has_feature(address_sanitizer)
@@ -27,6 +31,7 @@ void ctx_finalizer( v8::Persistent<v8::Context>* context ){
 }
 
 static v8::Isolate* isolate = NULL;
+static v8::Platform* platformptr = NULL;
 
 // Extracts a C string from a V8 Utf8Value.
 static const char* ToCString(const v8::String::Utf8Value& value) {
@@ -58,6 +63,7 @@ void start_v8_isolate(void *dll){
 #if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 704
   std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   v8::V8::InitializePlatform(platform.get());
+  platformptr = platform.get();
   platform.release(); //UBSAN complains if platform is destroyed when out of scope
 #else
   v8::V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
@@ -93,6 +99,19 @@ static v8::Local<v8::Script> compile_source(std::string src, v8::Local<v8::Conte
   v8::MaybeLocal<v8::Script> script = v8::Script::Compile(context, source);
   return safe_to_local(script);
 }
+
+static void pump_promises(){
+  v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait);
+  isolate->PerformMicrotaskCheckpoint();
+  Rcpp::checkUserInterrupt();
+}
+
+/* Try to resolve pending promises */
+static void ConsolePump(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  pump_promises();
+  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+}
+
 
 /* console.log */
 static void ConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -200,7 +219,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
 }
 
 // [[Rcpp::export]]
-Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false){
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize = false, bool await = false){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -231,6 +250,30 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
+  }
+
+  /* PumpMessageLoop is needed to load wasm from the background threads
+   After this we still need to call PerformMicrotaskCheckpoint to resolve outstanding promises
+   This may be better, but HasPendingBackgroundTasks() requires v8 8.3, see also
+   https://docs.google.com/document/d/18vaABH1mR35PQr8XPHZySuQYgSjJbWFyAW63LW2m8-w
+  */
+
+  // while (v8::platform::PumpMessageLoop(platformptr, isolate, isolate->HasPendingBackgroundTasks() ?
+  //   v8::platform::MessageLoopBehavior::kWaitForWork : v8::platform::MessageLoopBehavior::kDoNotWait)){
+  // }
+
+
+  // See https://groups.google.com/g/v8-users/c/r8nn6m6Lsj4/m/WrjLpk1PBAAJ
+  if (await && result->IsPromise()) {
+    v8::Local<v8::Promise> promise = result.As<v8::Promise>();
+    while (promise->State() == v8::Promise::kPending)
+      pump_promises();
+    if (promise->State() == v8::Promise::kRejected) {
+      v8::String::Utf8Value rejectmsg(isolate, promise->Result());
+      throw std::runtime_error(ToCString(rejectmsg));
+    } else {
+      result = promise->Result();
+    }
   }
 
   // Serialize to JSON or Raw
@@ -308,6 +351,7 @@ v8::Local<v8::Object> console_template(){
   console->Set(ToJSString("log"), v8::FunctionTemplate::New(isolate, ConsoleLog));
   console->Set(ToJSString("warn"), v8::FunctionTemplate::New(isolate, ConsoleWarn));
   console->Set(ToJSString("error"), v8::FunctionTemplate::New(isolate, ConsoleError));
+  console->Set(ToJSString("pump"), v8::FunctionTemplate::New(isolate, ConsolePump));
 
   // R callback interface
   v8::Local<v8::ObjectTemplate> console_r = v8::ObjectTemplate::New(isolate);

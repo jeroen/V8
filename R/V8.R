@@ -28,6 +28,10 @@
 #' literal JavaScript arguments that should not be converted to JSON, wrap them in
 #' `JS()`, see examples.
 #'
+#' If a call to `ct$eval()`,`ct$get()`, or `ct$call()` returns a JavaScript promise,
+#' you can set `await = TRUE` to wait for the promise to be resolved. It will then
+#' return the result of the promise, or an error in case the promise is rejected.
+#'
 #' The `ct$validate` function is used to test
 #' if a piece of code is valid JavaScript syntax within the context, and always
 #' returns TRUE or FALSE.
@@ -135,20 +139,20 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
   private <- environment();
 
   # Low level evaluate
-  evaluate_js <- function(src, serialize = FALSE){
-    get_str_output(context_eval(join(src), private$context, serialize))
+  evaluate_js <- function(src, serialize = FALSE, await = FALSE){
+    get_str_output(context_eval(join(src), private$context, serialize, await))
   }
 
   # Public methods
   this <- local({
-    eval <- function(src, serialize = FALSE){
+    eval <- function(src, serialize = FALSE, await = FALSE){
       # serialize=TRUE does not unserialize: user has to parse json/raw
-      evaluate_js(src, serialize = serialize)
+      evaluate_js(src, serialize = serialize, await = await)
     }
     validate <- function(src){
       context_validate(join(src), private$context)
     }
-    call <- function(fun, ..., auto_unbox = TRUE){
+    call <- function(fun, ..., auto_unbox = TRUE, await = FALSE){
       stopifnot(is.character(fun))
       stopifnot(this$validate(c("fun=", fun)));
       jsargs <- list(...);
@@ -167,7 +171,7 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
       src <- paste0("(", fun ,")(", jsargs, ");")
-      get_json_output(evaluate_js(src, serialize = TRUE))
+      get_json_output(evaluate_js(src, serialize = TRUE, await = await))
     }
     source <- function(file){
       if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
@@ -177,9 +181,9 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
       # Always assume UTF8, even on Windows.
       evaluate_js(readLines(file, encoding = "UTF-8", warn = FALSE))
     }
-    get <- function(name, ...){
+    get <- function(name, ..., await = FALSE){
       stopifnot(is.character(name))
-      get_json_output(evaluate_js(name, serialize = TRUE), ...)
+      get_json_output(evaluate_js(name, serialize = TRUE, await = await), ...)
     }
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))

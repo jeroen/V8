@@ -86,6 +86,35 @@ ct$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
 It looks a bit like `.Call` but then for JavaScript instead of C.
 
+## Promises
+
+If a call to `ct$eval()`, `ct$get()`, or `ct$call()` returns a JavaScript promise, you can set `await = TRUE` to wait for the promise to be resolved. It will then return the result of the promise, or an error in case the promise is rejected.
+
+```{r error=TRUE}
+js = 'function test_number(x){
+  var promise = new Promise(function(resolve, reject) {
+    if(x == 42)
+      resolve(true)
+    else
+      reject("This is wrong")
+  })
+  return promise;
+}'
+
+# Call will just show a promise
+ctx <- V8::v8()
+ctx$eval(js)
+
+# A promise does not return anything in itself:
+ctx$call("test_number", 42)
+
+# Resolve the promise to the result
+ctx$call("test_number", 42, await = TRUE)
+
+# A rejected promise will throw an error
+ctx$call("test_number", 41, await = TRUE)
+```
+
 ## Interactive JavaScript Console
 
 A fun way to learn JavaScript or debug a session is by entering the interactive console:

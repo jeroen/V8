@@ -2,9 +2,12 @@
 % Please edit documentation in R/wasm.R
 \name{wasm}
 \alias{wasm}
+\alias{wasm_features}
 \title{Experimental WebAssembly}
 \usage{
 wasm(data)
+
+wasm_features()
 }
 \arguments{
 \item{data}{either raw vector or file path with the binary wasm program}
@@ -14,10 +17,16 @@ Experimental wrapper to load a WebAssembly program. Returns a list of
 exported functions. This will probably be moved into it's own package
 once WebAssembly matures.
 }
+\details{
+The \code{wasm_features()} function uses the \href{https://github.com/GoogleChromeLabs/wasm-feature-detect}{wasm-feature-detect}
+JavaScript library to test which WASM capabilities are supported in the
+current version of libv8.
+}
 \examples{
 # Load example wasm program
 if(engine_info()$version > 6){
 instance <- wasm(system.file('wasm/add.wasm', package = 'V8'))
 instance$exports$add(12, 30)
 }
+wasm_features()
 }
