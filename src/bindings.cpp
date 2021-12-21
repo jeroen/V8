@@ -239,6 +239,16 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
     throw std::runtime_error(ToCString(exception));
   }
 
+  /* PumpMessageLoop is needed to load wasm from the background threads
+   After this we still need to call PerformMicrotaskCheckpoint to resolve outstanding promises
+   This may be better, but HasPendingBackgroundTasks() requires v8 8.3, see also
+   https://docs.google.com/document/d/18vaABH1mR35PQr8XPHZySuQYgSjJbWFyAW63LW2m8-w */
+
+  // while (v8::platform::PumpMessageLoop(platformptr, isolate, isolate->HasPendingBackgroundTasks() ?
+  //   v8::platform::MessageLoopBehavior::kWaitForWork : v8::platform::MessageLoopBehavior::kDoNotWait)){
+  // }
+
+
   // See https://groups.google.com/g/v8-users/c/r8nn6m6Lsj4/m/WrjLpk1PBAAJ
   if (await && result->IsPromise()) {
     v8::Local<v8::Promise> promise = result.As<v8::Promise>();
