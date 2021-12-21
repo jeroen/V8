@@ -18,3 +18,4 @@
 ^\.github$
 ^v8/include/
 ^v8/lib/
+^.deps/
