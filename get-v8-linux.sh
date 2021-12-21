@@ -11,9 +11,11 @@ else
     URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-amd64.tar.gz"
   fi
 fi
-${R_HOME}/bin/R -q -e "curl::curl_download('$URL','libv8.tar.gz',quiet=FALSE)"
-tar xzf libv8.tar.gz
-mv v8 .deps
+if [ ! -f ".deps/lib/libv8_monolith.a" ]; then
+  ${R_HOME}/bin/R -q -e "curl::curl_download('$URL','libv8.tar.gz',quiet=FALSE)"
+  tar xzf libv8.tar.gz
+  rm -f libv8.tar.gz
+  mv v8 .deps
+fi
 PKG_CFLAGS="-I${PWD}/.deps/include"
 PKG_LIBS="-L${PWD}/.deps/lib -lv8_monolith"
-rm -f libv8.tar.gz
