@@ -36,18 +36,16 @@ On Linux you need a suitable libv8 installation, see below.
 
 ### Linux: Static libv8
 
-On amd64/arm64 Linux platforms it is possible to automatically download a suitable static build of libv8 during package installation. To use this, set an environment variable `DOWNLOAD_STATIC_LIBV8` during installation, for example:
+On amd64/arm64 Linux/MacOS platforms it is possible (and recommended) to automatically download a suitable static build of libv8 during package installation. This is enabled by default on Ubuntu, RHEL, and MacOS. For other systems you can opt-in by setting an environment variable `DOWNLOAD_STATIC_LIBV8` during installation, for example:
 
 ```r
 Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
 install.packages("V8")
 ```
 
-This way, you can install the R package on any x64 Linux system, without local system requirements. We enable this by default on CI and also on Linux distros that are known to have no suitable version of libv8 available. But for local installations, you need to opt-in via the env var above.
+This way, you can install the R package on any x64 Linux system, without external system requirements. Alternatively, it is also still possible to install libv8 from your distribution as described below. This may be needed for servers running other architectures, or when building the R package without internet access.
 
-Alternatively, it is also still possible to install libv8 from your distribution as described below. This may be needed for servers running other architectures, or when building the R package without internet access.
-
-### Debian / Ubuntu 
+### Debian / Ubuntu
 
 Installation from source on Linux requires [`libv8`](https://v8.dev/). On Ubuntu / Debian you need to install either [libv8-dev](https://packages.ubuntu.com/bionic/libv8-dev), or [libnode-dev](https://packages.ubuntu.com/eoan/libnode-dev). On the latest systems, `libv8-dev` is actually an alias for `libnode-dev` so they are the same:
 
@@ -98,7 +96,7 @@ On __OS-X__ use [v8](https://github.com/Homebrew/homebrew-core/blob/master/Formu
 brew install v8
 ```
 
-On other systems you might need to install libv8 from source.
+But it is much easier to set `DOWNLOAD_STATIC_LIBV8` instead.
 
 
 ## Hello World

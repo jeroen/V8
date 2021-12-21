@@ -1,4 +1,4 @@
-# Anticonf (tm) script by Jeroen Ooms (2020)
+# Anticonf (tm) script by Jeroen Ooms (2021)
 # Package requires either libv8 6 and up, or legacy branch (3.14 / 3.15).
 # If your libv8 is installed in a custom location you need to set
 # INCLUDE_DIR and LIB_DIR manually via e.g:
@@ -19,8 +19,18 @@ if test -f "/etc/redhat-release" && ! grep -Fq Fedora "/etc/redhat-release"; the
 IS_RHEL=1
 fi
 
+# Test if Ubuntu
+if test -f "/etc/os-release" && grep -Fq Ubuntu "/etc/os-release"; then
+IS_UBUNTU=1
+fi
+
+# Test if MacOS
+if [ "$UNAME" = "Darwin" ]; then
+IS_MACOS=1
+fi
+
 # Default to downloading static V8 on CI and legacy systems
-if [ "$IS_RHEL" ] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ]; then
+if [ "$IS_MACOS" ] || [ "$IS_UBUNTU" ] || [ "$IS_RHEL" ] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ]; then
 if [ -z "$DISABLE_STATIC_LIBV8" ] && [ "$UARCH" = "x86_64" ]; then
 DOWNLOAD_STATIC_LIBV8=1
 fi
@@ -52,7 +62,7 @@ if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
   echo "Found INCLUDE_DIR and/or LIB_DIR!"
   PKG_CFLAGS="-I$INCLUDE_DIR $PKG_CFLAGS"
   PKG_LIBS="-L$LIB_DIR $PKG_LIBS"
-elif [ "$UNAME" = "Darwin" ]; then
+elif [ "$IS_MACOS" ]; then
   if [ `command -v brew` ] && [ -z "$DOWNLOAD_STATIC_LIBV8" ]; then
     BREWDIR=`brew --prefix`
     V8HOME="$BREWDIR/opt/$PKG_BREW_NAME"
@@ -68,8 +78,7 @@ elif [ "$UNAME" = "SunOS" ]; then
   curl -sfL "http://jeroen.github.io/V8/get-v8-sun.sh" > get-v8-sun.sh
   . ./get-v8-sun.sh
 elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
-  ${R_HOME}/bin/R -q -e 'curl::curl_download("http://jeroen.github.io/V8/get-v8-linux.sh","get-v8-linux.sh")'
-  . ./get-v8-linux.sh
+  ${R_HOME}/bin/R -q -e 'curl::curl_download("http://jeroen.github.io/V8/get-v8-linux.sh","get-v8-linux.sh")' && . ./get-v8-linux.sh || true
 fi
 
 # For debugging
