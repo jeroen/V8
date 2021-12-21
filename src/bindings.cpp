@@ -100,6 +100,19 @@ static v8::Local<v8::Script> compile_source(std::string src, v8::Local<v8::Conte
   return safe_to_local(script);
 }
 
+static void pump_promises(){
+  v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait);
+  isolate->PerformMicrotaskCheckpoint();
+  Rcpp::checkUserInterrupt();
+}
+
+/* Try to resolve pending promises */
+static void ConsolePump(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  pump_promises();
+  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+}
+
+
 /* console.log */
 static void ConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& args) {
   for (int i=0; i < args.Length(); i++) {
@@ -253,11 +266,8 @@ Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Cont
   // See https://groups.google.com/g/v8-users/c/r8nn6m6Lsj4/m/WrjLpk1PBAAJ
   if (await && result->IsPromise()) {
     v8::Local<v8::Promise> promise = result.As<v8::Promise>();
-    while (promise->State() == v8::Promise::kPending) {
-      v8::platform::PumpMessageLoop(platformptr, isolate, v8::platform::MessageLoopBehavior::kDoNotWait);
-      isolate->PerformMicrotaskCheckpoint();
-      Rcpp::checkUserInterrupt();
-    }
+    while (promise->State() == v8::Promise::kPending)
+      pump_promises();
     if (promise->State() == v8::Promise::kRejected) {
       v8::String::Utf8Value rejectmsg(isolate, promise->Result());
       throw std::runtime_error(ToCString(rejectmsg));
@@ -341,6 +351,7 @@ v8::Local<v8::Object> console_template(){
   console->Set(ToJSString("log"), v8::FunctionTemplate::New(isolate, ConsoleLog));
   console->Set(ToJSString("warn"), v8::FunctionTemplate::New(isolate, ConsoleWarn));
   console->Set(ToJSString("error"), v8::FunctionTemplate::New(isolate, ConsoleError));
+  console->Set(ToJSString("pump"), v8::FunctionTemplate::New(isolate, ConsolePump));
 
   // R callback interface
   v8::Local<v8::ObjectTemplate> console_r = v8::ObjectTemplate::New(isolate);
