@@ -44,5 +44,5 @@ r_assign <- function(name, value, args = '{}'){
 }
 
 no_jumps <- function(...){
-  tryCatch(..., interrupt = function(e){stop("Interruption")})
+  tryCatch(..., interrupt = function(e){stop('user interruption')})
 }
