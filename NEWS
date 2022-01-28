@@ -1,3 +1,6 @@
+4.1.0
+ - engine_info() now returns version as a numeric_version() type
+
 4.0.0
  - If a call to ct$eval(),ct$get(), or ct$call() returns a JavaScript promise,
    you can set await = TRUE to wait for the promise to be resolved. It will

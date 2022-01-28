@@ -347,7 +347,7 @@ stop <- function(x, ..., call. = FALSE){
 #' @export
 engine_info <- function(){
   list (
-    version = version()
+    version = numeric_version(version())
   )
 }
 
