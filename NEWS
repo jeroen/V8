@@ -1,5 +1,6 @@
 4.1.0
  - engine_info() now returns version as a numeric_version() type
+ - make js-to-r callback mechanism robust against -DRCPP_USE_UNWIND_PROTECT
 
 4.0.0
  - If a call to ct$eval(),ct$get(), or ct$call() returns a JavaScript promise,

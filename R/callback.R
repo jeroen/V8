@@ -44,5 +44,9 @@ r_assign <- function(name, value, args = '{}'){
 }
 
 no_jumps <- function(...){
-  tryCatch(..., interrupt = function(e){stop('user interruption')})
+  tryCatch(..., error = function(e){
+    structure(e$message, class = 'cb_error')
+  }, interrupt = function(e){
+    structure("User interruption during R evaluation", class = 'cb_error')
+  })
 }
