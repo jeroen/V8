@@ -347,8 +347,13 @@ stop <- function(x, ..., call. = FALSE){
 #' @export
 engine_info <- function(){
   list (
-    version = numeric_version(version())
+    version = v8_version_numeric()
   )
+}
+
+# normalizes e.g. 7.8.279.23-node.56
+v8_version_numeric <- function(){
+  numeric_version(sub('^([0-9.]+).*', '\\1', version()))
 }
 
 raw_to_js <- function(x){
