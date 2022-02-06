@@ -166,7 +166,7 @@ void r_callback(std::string cb, const v8::FunctionCallbackInfo<v8::Value>& args)
       Rcpp::String json(ToCString(arg2));
       out = r_call(fun, val, json);
     }
-    v8::Local<v8::String> outstr(ToJSString(std::string(out[0]).c_str()));
+    v8::Local<v8::String> outstr(ToJSString(std::string(out.at(0)).c_str()));
     if(out.inherits("cb_error")){
       args.GetIsolate()->ThrowException(outstr);
     } else {
