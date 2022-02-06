@@ -12,7 +12,7 @@
 #' @rdname wasm
 #' @param data either raw vector or file path with the binary wasm program
 #' @examples # Load example wasm program
-#' if(engine_info()$version > 6){
+#' if(engine_info()$numeric_version > 6){
 #' instance <- wasm(system.file('wasm/add.wasm', package = 'V8'))
 #' instance$exports$add(12, 30)
 #' }

@@ -1,5 +1,5 @@
 4.1.0
- - engine_info() now returns version as a numeric_version() type
+ - engine_info() now includes a 'numeric_version' field for easy comparison
  - make js-to-r callback mechanism robust against -DRCPP_USE_UNWIND_PROTECT
 
 4.0.0
