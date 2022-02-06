@@ -144,9 +144,9 @@ static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
   args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
-void r_callback(std::string fun, const v8::FunctionCallbackInfo<v8::Value>& args) {
+void r_callback(std::string cb, const v8::FunctionCallbackInfo<v8::Value>& args) {
   try {
-    Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[fun];
+    Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[cb];
     v8::String::Utf8Value arg0(args.GetIsolate(), args[0]);
     Rcpp::String fun(*arg0);
     Rcpp::CharacterVector out;
