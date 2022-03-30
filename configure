@@ -76,7 +76,7 @@ elif [ "$UNAME" = "SunOS" ]; then
   curl -sfL "http://jeroen.github.io/V8/get-v8-sun.sh" > get-v8-sun.sh
   . ./get-v8-sun.sh
 elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
-  ${R_HOME}/bin/R -q -e 'curl::curl_download("http://jeroen.github.io/V8/get-v8-linux.sh","get-v8-linux.sh")' && . ./get-v8-linux.sh || true
+  ${R_HOME}/bin/R -s -e 'curl::curl_download("http://jeroen.github.io/V8/get-v8-linux.sh","get-v8-linux.sh")' && . ./get-v8-linux.sh || true
 fi
 
 # For debugging
