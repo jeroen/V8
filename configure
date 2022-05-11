@@ -34,20 +34,29 @@ fi
 fi
 fi
 
-# Use CXX17 when available, required as of libv8 version 10.3.142
-CXX17=`${R_HOME}/bin/R CMD config CXX17`
+# Get the supported cpp version
+CXX=`${R_HOME}/bin/R CMD config CXX | awk '{print $1}'`
+CPPVER=`$CXX -dM -E -x c++ /dev/null | grep -F __cplusplus | awk '{print $3}'`
 
-# Upon failure, some versions of R return error, others succes with empty output
-if [ $? -ne 0 ] || [ -z "$CXX17" ]; then
-echo "Not using CXX17"
-CXX_STD=CXX11
-CXX=`${R_HOME}/bin/R CMD config CXX`
-CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
+if [ $CPPVER == 201703L ]; then
+  # Use CXX17 when available, required as of libv8 version 10.3.142
+  CXX17=`${R_HOME}/bin/R CMD config CXX17`
+  echo "Found C++17 compiler: $CXX17"
+  CXX_STD=CXX17
+  CXX="$CXX17 `${R_HOME}/bin/R CMD config CXX17STD`"
+  CXXFLAGS=`${R_HOME}/bin/R CMD config CXX17FLAGS`
+elif [ $CPPVER == 201402L ]; then
+  # Use CXX14 when available, required as of libv8 version 8.7.80
+  CXX14=`${R_HOME}/bin/R CMD config CXX14`
+  echo "Found C++14 compiler: $CXX14"
+  CXX_STD=CXX17
+  CXX="$CXX14 `${R_HOME}/bin/R CMD config CXX14STD`"
+  CXXFLAGS=`${R_HOME}/bin/R CMD config CXX14FLAGS`
 else
-echo "Found C++17 compiler: $CXX17"
-CXX_STD=CXX17
-CXX="$CXX17 `${R_HOME}/bin/R CMD config CXX17STD`"
-CXXFLAGS=`${R_HOME}/bin/R CMD config CXX17FLAGS`
+  echo "Using C++11 for $CPPVER"
+  CXX_STD=CXX11
+  CXX=`${R_HOME}/bin/R CMD config CXX`
+  CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
 fi
 
 # Find compiler
