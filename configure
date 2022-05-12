@@ -34,32 +34,12 @@ fi
 fi
 fi
 
-# Get the supported cpp version
-CXX=`${R_HOME}/bin/R CMD config CXX | awk '{print $1}'`
-CPPVER=`$CXX -dM -E -x c++ /dev/null | grep -F __cplusplus | awk '{print $3}'`
+# Configure default compiler version
+CXX_STD=CXX11
+CXX=`${R_HOME}/bin/R CMD config CXX`
+CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
 
-if [ $CPPVER == 201703L ]; then
-  # Use CXX17 when available, required as of libv8 version 10.3.142
-  CXX17=`${R_HOME}/bin/R CMD config CXX17`
-  echo "Found C++17 compiler: $CXX17"
-  CXX_STD=CXX17
-  CXX="$CXX17 `${R_HOME}/bin/R CMD config CXX17STD`"
-  CXXFLAGS=`${R_HOME}/bin/R CMD config CXX17FLAGS`
-elif [ $CPPVER == 201402L ]; then
-  # Use CXX14 when available, required as of libv8 version 8.7.80
-  CXX14=`${R_HOME}/bin/R CMD config CXX14`
-  echo "Found C++14 compiler: $CXX14"
-  CXX_STD=CXX17
-  CXX="$CXX14 `${R_HOME}/bin/R CMD config CXX14STD`"
-  CXXFLAGS=`${R_HOME}/bin/R CMD config CXX14FLAGS`
-else
-  echo "Using C++11 for $CPPVER"
-  CXX_STD=CXX11
-  CXX=`${R_HOME}/bin/R CMD config CXX`
-  CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
-fi
-
-# Find compiler
+# Find default flags
 CPPFLAGS=`${R_HOME}/bin/R CMD config CPPFLAGS`
 LDFLAGS=`${R_HOME}/bin/R CMD config LDFLAGS`
 CXXCPP="$CXX -E"
@@ -88,12 +68,37 @@ elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
   ${R_HOME}/bin/R -q -e 'curl::curl_download("http://jeroen.github.io/V8/get-v8-linux.sh","get-v8-linux.sh")' && . ./get-v8-linux.sh || true
 fi
 
+# Test for libv8
+echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -dM -E -xc++ - > configure.log
+# #define V8_MAJOR_VERSION XXX
+MAJOR=`cat configure.log | grep V8_MAJOR_VERSION | awk '{print $3}'`
+
+if [ $MAJOR -ge 10 ]; then
+  # since 10.2
+  CXX17=`${R_HOME}/bin/R CMD config CXX17`
+  echo "Found C++17 compiler: $CXX17"
+  CXX_STD=CXX17
+  CXX="$CXX17 `${R_HOME}/bin/R CMD config CXX17STD`"
+  CXXFLAGS=`${R_HOME}/bin/R CMD config CXX17FLAGS`
+elif [ $MAJOR -ge 8 ]; then
+  # since 8.7
+  CXX14=`${R_HOME}/bin/R CMD config CXX14`
+  echo "Found C++14 compiler: $CXX14"
+  CXX_STD=CXX14
+  CXX="$CXX14 `${R_HOME}/bin/R CMD config CXX14STD`"
+  CXXFLAGS=`${R_HOME}/bin/R CMD config CXX14FLAGS`
+fi
+
+# Find final compiler
+CPPFLAGS=`${R_HOME}/bin/R CMD config CPPFLAGS`
+LDFLAGS=`${R_HOME}/bin/R CMD config LDFLAGS`
+CXXCPP="$CXX -E"
+
 # For debugging
 echo "Using CXXCPP=$CXXCPP"
 echo "Using PKG_CFLAGS=$PKG_CFLAGS"
 echo "Using PKG_LIBS=$PKG_LIBS"
 
-# Test for libv8
 echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -xc++ - >/dev/null 2>configure.log
 if [ $? -ne 0 ]; then
   echo "-----------------------------[ ANTICONF ]-------------------------------"
