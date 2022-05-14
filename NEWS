@@ -1,3 +1,6 @@
+4.2.0
+ - Use CXX17 on supported platforms. C++17 is required as of libv8 10.2
+
 4.1.0
  - engine_info() now includes a 'numeric_version' field for easy comparison
  - make js-to-r callback mechanism robust against -DRCPP_USE_UNWIND_PROTECT
