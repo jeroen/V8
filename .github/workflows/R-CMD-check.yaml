@@ -19,13 +19,15 @@ jobs:
           - {os: macOS-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
           - {os: windows-2022,   r: 'devel'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
+          - {os: ubuntu-20.04,   r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-20.04,   r: 'release'}
+          - {os: ubuntu-20.04,   r: 'release', disable-static: 'true'}
           - {os: ubuntu-18.04,   r: 'oldrel-4'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      DISABLE_STATIC_LIBV8: ${{ matrix.config.disable-static }}
 
     steps:
       - uses: actions/checkout@v2
