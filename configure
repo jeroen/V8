@@ -133,6 +133,17 @@ else
 fi
 rm -Rf pctest*
 
+echo "Running feature test for sandbox..."
+${CXX} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -DV8_ENABLE_SANDBOX tools/test.cpp -o pctest ${LDFLAGS} ${PKG_LIBS} -ldl -pthread  2>> configure.log
+{ ./pctest; } 2>> configure.log
+if [ $? -eq 0 ]; then
+  echo "Enabling sandbox"
+  PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_SANDBOX"
+else
+  echo "Sandbox not needed"
+fi
+rm -Rf pctest*
+
 # Assume a modern V8 API
 sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makevars.in > src/Makevars
 exit 0
