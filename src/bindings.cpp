@@ -132,7 +132,6 @@ static void ConsoleWarn(const v8::FunctionCallbackInfo<v8::Value>& args) {
     v8::String::Utf8Value str(args.GetIsolate(), args[i]);
     Rf_warningcall_immediate(R_NilValue, ToCString(str));
   }
-  Rprintf("\n");
   args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
