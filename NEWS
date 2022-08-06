@@ -1,3 +1,6 @@
+4.2.1
+ - Fix a feature test for NodeJS 18 (#145)
+
 4.2.0
  - Use CXX17 on supported platforms. C++17 is required as of libv8 10.2
 
