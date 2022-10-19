@@ -15,10 +15,7 @@ SHLIB_LINK = $(SHLIB_LD) $(SHLIB_LDFLAGS) $(LIBR0) $(PKG_LIBS) $(LDFLAGS)
 all: $(SHLIB)
 
 $(SHLIB): $(OBJECTS)
-	@if test  "z$(OBJECTS)" != "z"; then \
-	  echo $(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS); \
-	  $(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS); \
-	fi
+	$(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS)
 
 clean:
 	@rm -Rf .libs _libs
