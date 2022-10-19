@@ -1,0 +1,27 @@
+
+.PHONY: all clean
+
+SHLIB=V8.so
+OBJECTS=@objects@
+
+PKG_CXXFLAGS=$(CXX_VISIBILITY)
+PKG_CPPFLAGS=@cflags@
+PKG_LIBS=@libs@
+CXX_STD=CXX11
+
+# NOTE: We add $(PKG_LIBS) here before $(LDFLAGS), so that the library
+# paths preferred by V8 can be used rather than the ones that R itself
+# is configured with. This is mainly relevant for Homebrew installations.
+#
+# https://github.com/jeroen/V8/issues/150
+SHLIB_LINK = $(SHLIB_LD) $(SHLIB_LDFLAGS) $(LIBR0) $(PKG_LIBS) $(LDFLAGS)
+
+all: $(SHLIB)
+
+$(SHLIB): $(OBJECTS)
+	$(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS)
+
+clean:
+	@rm -Rf .libs _libs
+	@rm -f $(OBJECTS)
+

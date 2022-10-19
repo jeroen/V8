@@ -2,11 +2,13 @@
 .Rproj.user
 .Rhistory
 .RData
+autobrew
 homebrew
 src/*.o
 src/*.so
 src/*.dll
 src/Makevars
+src/Makefile
 .DS_Store
 src/gcc_version.txt
 windows
