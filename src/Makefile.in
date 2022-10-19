@@ -1,5 +1,5 @@
 
-.PHONY: all clean echo
+.PHONY: all clean
 
 SHLIB=V8.so
 OBJECTS=@objects@
