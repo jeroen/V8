@@ -1,0 +1,26 @@
+
+.PHONY: all clean echo
+
+SHLIB = V8.so
+OBJECTS = bindings.o RcppExports.o
+
+PKG_CXXFLAGS=$(CXX_VISIBILITY)
+PKG_CPPFLAGS=@cflags@
+PKG_LIBS=@libs@
+CXX_STD=CXX11
+
+SHLIB_LDFLAGS = $(SHLIB_LDFLAGS_R)
+SHLIB_LINK = $(SHLIB_LD) $(SHLIB_LDFLAGS) $(LIBR0) $(PKG_LIBS) $(LDFLAGS)
+
+all: $(SHLIB)
+
+$(SHLIB): $(OBJECTS)
+	@if test  "z$(OBJECTS)" != "z"; then \
+	  echo $(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS); \
+	  $(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS); \
+	fi
+
+clean:
+	@rm -Rf .libs _libs
+	@rm -f $(OBJECTS)
+

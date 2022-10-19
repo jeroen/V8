@@ -134,5 +134,5 @@ fi
 rm -Rf pctest*
 
 # Assume a modern V8 API
-sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makevars.in > src/Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makefile.in > src/Makefile
 exit 0
