@@ -9,7 +9,11 @@ PKG_CPPFLAGS=@cflags@
 PKG_LIBS=@libs@
 CXX_STD=CXX11
 
-SHLIB_LDFLAGS = $(SHLIB_LDFLAGS_R)
+# NOTE: We add $(PKG_LIBS) here before $(LDFLAGS), so that the library
+# paths preferred by V8 can be used rather than the ones that R itself
+# is configured with. This is mainly relevant for Homebrew installations.
+#
+# https://github.com/jeroen/V8/issues/150
 SHLIB_LINK = $(SHLIB_LD) $(SHLIB_LDFLAGS) $(LIBR0) $(PKG_LIBS) $(LDFLAGS)
 
 all: $(SHLIB)
