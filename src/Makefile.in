@@ -1,8 +1,8 @@
 
 .PHONY: all clean echo
 
-SHLIB = V8.so
-OBJECTS = bindings.o RcppExports.o
+SHLIB=V8.so
+OBJECTS=@objects@
 
 PKG_CXXFLAGS=$(CXX_VISIBILITY)
 PKG_CPPFLAGS=@cflags@

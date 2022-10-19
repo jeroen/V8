@@ -133,6 +133,14 @@ else
 fi
 rm -Rf pctest*
 
+# Get the list of object names
+OBJECTS=$(cd src; echo *.cpp | sed 's|[.]cpp|.o|g')
+
 # Assume a modern V8 API
-sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makefile.in > src/Makefile
+sed -e "s|@cflags@|$PKG_CFLAGS|" \
+    -e "s|@libs@|$PKG_LIBS|" \
+    -e "s|CXX11|${CXX_STD}|" \
+    -e "s|@objects@|$OBJECTS|" \
+    src/Makefile.in > src/Makefile
+
 exit 0
