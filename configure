@@ -92,7 +92,7 @@ echo "Using PKG_CFLAGS=$PKG_CFLAGS"
 echo "Using PKG_LIBS=$PKG_LIBS"
 
 # Test for libv8
-echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -xc++ - >/dev/null 2>configure.log
+echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} -xc++ - >/dev/null 2>configure.log
 if [ $? -ne 0 ]; then
   echo "-----------------------------[ ANTICONF ]-------------------------------"
   echo "Configuration failed to find the libv8 engine library. Try installing:"
@@ -112,7 +112,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Test for legacy libv8 version
-${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} src/legacy/test.cpp >/dev/null 2>&1
+${CXXCPP} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} src/legacy/test.cpp >/dev/null 2>&1
 if [ $? -eq 0 ]; then
   echo "Found legacy version of libv8"
   PKG_LIBS=`echo "$PKG_LIBS" | sed -e "s/-lv8_libplatform//"`
@@ -122,7 +122,7 @@ fi
 
 # Test if we need to enable pointer compression (Usually 8.4 and up)
 echo "Running feature test for pointer compression..."
-${CXX} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest ${LDFLAGS} ${PKG_LIBS} -ldl -pthread
+${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest ${PKG_LIBS} ${LDFLAGS} -ldl -pthread
 { ./pctest; } 2>> configure.log
 if [ $? -eq 0 ]; then
   echo "Pointer compression not needed"
