@@ -253,6 +253,7 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
         }
       }
     }
+
     #reg.finalizer(environment(), function(e){}, TRUE)
     reset()
     lockEnvironment(environment(), TRUE)
