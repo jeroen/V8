@@ -210,7 +210,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     Rcpp::RawVector data(buffer->ByteLength());
 #if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 1005
     memcpy(data.begin(), buffer->Data(), data.size());
-#elif (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 905
+#elif (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 901
     memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
 #else
     memcpy(data.begin(), buffer->GetContents().Data(), data.size());
@@ -316,8 +316,7 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
 
 #if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 1005
   memcpy(buffer->Data(), data.begin(), data.size());
-#elif (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 905
-  //this shared-ptr gives an ubsan error when it finalizes
+#elif (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 901
   memcpy(buffer->GetBackingStore()->Data(), data.begin(), data.size());
 #else
   memcpy(buffer->GetContents().Data(), data.begin(), data.size());
