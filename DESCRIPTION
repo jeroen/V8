@@ -26,7 +26,7 @@ Suggests:
     testthat,
     knitr,
     rmarkdown
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Roxygen: list(load = "installed", markdown = TRUE)
 Language: en-US
 Encoding: UTF-8

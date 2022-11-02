@@ -22,13 +22,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // context_eval
-Rcpp::RObject context_eval(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx, bool serialize, bool await);
+Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize, bool await);
 RcppExport SEXP _V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP, SEXP serializeSEXP, SEXP awaitSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type src(srcSEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
     Rcpp::traits::input_parameter< bool >::type serialize(serializeSEXP);
     Rcpp::traits::input_parameter< bool >::type await(awaitSEXP);
     rcpp_result_gen = Rcpp::wrap(context_eval(src, ctx, serialize, await));
@@ -36,37 +36,37 @@ BEGIN_RCPP
 END_RCPP
 }
 // write_array_buffer
-bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx);
 RcppExport SEXP _V8_write_array_buffer(SEXP keySEXP, SEXP dataSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type key(keySEXP);
     Rcpp::traits::input_parameter< Rcpp::RawVector >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
     rcpp_result_gen = Rcpp::wrap(write_array_buffer(key, data, ctx));
     return rcpp_result_gen;
 END_RCPP
 }
 // context_validate
-bool context_validate(Rcpp::String src, Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+bool context_validate(Rcpp::String src, ctxptr ctx);
 RcppExport SEXP _V8_context_validate(SEXP srcSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type src(srcSEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
     rcpp_result_gen = Rcpp::wrap(context_validate(src, ctx));
     return rcpp_result_gen;
 END_RCPP
 }
 // context_null
-bool context_null(Rcpp::XPtr< v8::Persistent<v8::Context>> ctx);
+bool context_null(ctxptr ctx);
 RcppExport SEXP _V8_context_null(SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context>> >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
     rcpp_result_gen = Rcpp::wrap(context_null(ctx));
     return rcpp_result_gen;
 END_RCPP
@@ -83,12 +83,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // context_enable_typed_arrays
-bool context_enable_typed_arrays(Rcpp::XPtr< v8::Persistent<v8::Context> > ctx);
+bool context_enable_typed_arrays(ctxptr ctx);
 RcppExport SEXP _V8_context_enable_typed_arrays(SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::XPtr< v8::Persistent<v8::Context> > >::type ctx(ctxSEXP);
+    Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
     rcpp_result_gen = Rcpp::wrap(context_enable_typed_arrays(ctx));
     return rcpp_result_gen;
 END_RCPP
