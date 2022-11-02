@@ -133,6 +133,20 @@ else
 fi
 rm -Rf pctest*
 
+# Provide macros to avoid calling 'buffer->GetBackingStore()->Data()' due to
+# a UBSAN warning: https://github.com/jeroen/V8/issues/152
+if [ "$IS_MACOS" ] || [ "$IS_UBUNTU" ] || [ "$IS_RHEL" ] || [ "$CI" ]; then
+node_version="/usr/include/node/node_version.h"
+major=$(grep -m 1 NODE_MAJOR_VERSION $node_version | sed 's/^.* //g')
+minor=$(grep -m 1 NODE_MINOR_VERSION $node_version | sed 's/^.* //g')
+echo "found nodejs $major.$minor"
+if [ ${major} -le 16 ]; then
+  PKG_CFLAGS="$PKG_CFLAGS -DNODE_JS_16"
+elif [ ${major} -eq 18 ] && [ ${minor} -ge 8 ]; then
+  PKG_CFLAGS="$PKG_CFLAGS -DNODE_JS_18"
+fi
+fi
+
 # Assume a modern V8 API
 sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makevars.in > src/Makevars
 exit 0
