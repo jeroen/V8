@@ -1,7 +1,21 @@
 #include <libplatform/libplatform.h>
 #include "V8_types.h"
 
-#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) < 803
+/* use conditional apis below */
+#define V8_VERSION_TOTAL (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION)
+
+/* we dont assume <node/node_version.h> is installed */
+#ifdef ISNODEJS
+#if V8_MAJOR_VERSION == 10
+#define NODEJS_LTS_API 18
+#elif V8_MAJOR_VERSION == 9
+#define NODEJS_LTS_API 16
+#elif V8_MAJOR_VERSION == 8
+#define NODEJS_LTS_API 14
+#endif
+#endif
+
+#if V8_VERSION_TOTAL < 803
 #define PerformMicrotaskCheckpoint RunMicrotasks
 #endif
 
@@ -60,7 +74,7 @@ void start_v8_isolate(void *dll){
     v8::V8::InitializeICUDefaultLocation(V8_ICU_DATA_PATH);
   }
 #endif
-#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 704
+#if V8_VERSION_TOTAL >= 704
   std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
   v8::V8::InitializePlatform(platform.get());
   platformptr = platform.get();
@@ -208,12 +222,13 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
     v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
     value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
     Rcpp::RawVector data(buffer->ByteLength());
-#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 1005
+#if V8_VERSION_TOTAL >= 1005 || NODEJS_LTS_API == 18
     memcpy(data.begin(), buffer->Data(), data.size());
-#elif (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 901
-    memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
-#else
+#elif V8_VERSION_TOTAL < 901 || NODEJS_LTS_API == 16
     memcpy(data.begin(), buffer->GetContents().Data(), data.size());
+#else
+    /* Try to avoid this API: https://github.com/jeroen/V8/issues/152 */
+    memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
 #endif
     return data;
   } else {
@@ -314,12 +329,12 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
   v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
   v8::Local<v8::Uint8Array> typed_array = v8::Uint8Array::New(buffer, 0, data.size());
 
-#if (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 1005
+#if V8_VERSION_TOTAL >= 1005 || NODEJS_LTS_API == 18
   memcpy(buffer->Data(), data.begin(), data.size());
-#elif (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION) >= 901
-  memcpy(buffer->GetBackingStore()->Data(), data.begin(), data.size());
-#else
+#elif V8_VERSION_TOTAL < 901 || NODEJS_LTS_API == 16
   memcpy(buffer->GetContents().Data(), data.begin(), data.size());
+#else
+  memcpy(buffer->GetBackingStore()->Data(), data.begin(), data.size());
 #endif
 
   // Assign to object (delete first if exists)
