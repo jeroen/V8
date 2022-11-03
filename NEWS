@@ -1,5 +1,6 @@
 4.2.2
  - Fix a sanitizer error by avoiding a broken API on NodeJS (#152)
+ - You can override build flags by setting V8_PKG_LIBS / V8_PKG_CFLAGS
 
 4.2.1
  - Fix a feature test for NodeJS 18 (#145)
