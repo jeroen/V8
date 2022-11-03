@@ -133,6 +133,16 @@ else
 fi
 rm -Rf pctest*
 
+
+# Test the runtime V8 version is nodejs
+${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} tools/version.cpp -o v8version ${PKG_LIBS} ${LDFLAGS} -ldl -pthread || true
+V8VERSION=$(./v8version) || true
+case $V8VERSION in
+  *"node"*)
+    PKG_CFLAGS="$PKG_CFLAGS -DISNODEJS=$V8VERSION"
+esac
+rm -Rf v8version*
+
 # Assume a modern V8 API
 sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makevars.in > src/Makevars
 exit 0
