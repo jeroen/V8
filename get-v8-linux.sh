@@ -40,13 +40,16 @@ else
   fi
 fi
 if [ ! -f ".deps/lib/libv8_monolith.a" ]; then
-  ${R_HOME}/bin/R -s -e "curl::curl_download('$URL','libv8.tar.gz',quiet=FALSE)"
-  tar xzf libv8.tar.gz
-  rm -f libv8.tar.gz
-  mv v8 .deps
+  if ${R_HOME}/bin/R -s -e "curl::curl_download('$URL','libv8.tar.gz',quiet=FALSE)"; then
+    tar xzf libv8.tar.gz
+    rm -f libv8.tar.gz
+    mv v8 .deps
+  fi
 fi
-PKG_CFLAGS="-I${PWD}/.deps/include"
-PKG_LIBS="-L${PWD}/.deps/lib -lv8_monolith"
+if [ -f ".deps/lib/libv8_monolith.a" ]; then
+  PKG_CFLAGS="-I${PWD}/.deps/include"
+  PKG_LIBS="-L${PWD}/.deps/lib -lv8_monolith"
+fi
 }
 
 download_libs
