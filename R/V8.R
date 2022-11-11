@@ -72,11 +72,11 @@
 #' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
+#' @import Rcpp
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
-#' @importFrom Rcpp sourceCpp
 #' @importFrom utils head loadhistory savehistory tail
-#' @useDynLib V8
+#' @useDynLib V8, .registration = TRUE
 #' @examples # Create a new context
 #' ctx <- v8();
 #'
