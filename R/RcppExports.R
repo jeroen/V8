@@ -2,30 +2,30 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 version <- function() {
-    .Call('_V8_version', PACKAGE = 'V8')
+    .Call(`_V8_version`)
 }
 
 context_eval <- function(src, ctx, serialize = FALSE, await = FALSE) {
-    .Call('_V8_context_eval', PACKAGE = 'V8', src, ctx, serialize, await)
+    .Call(`_V8_context_eval`, src, ctx, serialize, await)
 }
 
 write_array_buffer <- function(key, data, ctx) {
-    .Call('_V8_write_array_buffer', PACKAGE = 'V8', key, data, ctx)
+    .Call(`_V8_write_array_buffer`, key, data, ctx)
 }
 
 context_validate <- function(src, ctx) {
-    .Call('_V8_context_validate', PACKAGE = 'V8', src, ctx)
+    .Call(`_V8_context_validate`, src, ctx)
 }
 
 context_null <- function(ctx) {
-    .Call('_V8_context_null', PACKAGE = 'V8', ctx)
+    .Call(`_V8_context_null`, ctx)
 }
 
 make_context <- function(set_console) {
-    .Call('_V8_make_context', PACKAGE = 'V8', set_console)
+    .Call(`_V8_make_context`, set_console)
 }
 
 context_enable_typed_arrays <- function(ctx) {
-    .Call('_V8_context_enable_typed_arrays', PACKAGE = 'V8', ctx)
+    .Call(`_V8_context_enable_typed_arrays`, ctx)
 }
 
