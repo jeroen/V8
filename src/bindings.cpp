@@ -227,7 +227,7 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
 #elif V8_VERSION_TOTAL < 901 || NODEJS_LTS_API == 16
     memcpy(data.begin(), buffer->GetContents().Data(), data.size());
 #else
-    /* Try to avoid this API: https://github.com/jeroen/V8/issues/152 */
+    /* Try to avoid this API: github.com/jeroen/V8/issues/152 */
     memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
 #endif
     return data;
