@@ -24,6 +24,11 @@ if test -f "/etc/redhat-release" && grep -Fq "release 7" "/etc/redhat-release"; 
 IS_CENTOS7=1
 fi
 
+# Detect libcxx
+if grep -Fq "stdlib=libc++" <<<"$CXX $CXXFLAGS"; then
+IS_LIBCXX=1
+fi
+
 IS_MUSL=$(ldd --version 2>&1 | grep musl)
 if [ $? -eq 0 ] && [ "$IS_MUSL" ]; then
   URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-alpine.tar.gz"
@@ -35,6 +40,8 @@ else
     URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-6.8.275.32-gcc-4.8.tar.gz"
   elif [ "$IS_CENTOS7" ]; then
     URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-6.8.275.32-gcc-4.8.tar.gz"
+  elif [ "$IS_LIBCXX" ]; then
+    URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-10.8.168.25-libcxx.tar.gz"
   else
     URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-amd64.tar.gz"
   fi
