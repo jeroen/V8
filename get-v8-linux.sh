@@ -4,13 +4,20 @@ if [ "$USER" = "salsaci" ]; then
   return;
 fi
 
+# Detect libcxx
+if grep -Fq "clang++" <<<"$CXX"; then
+if printf "#include <string>\n#ifndef _LIBCPP_VERSION\n#error not libcxx\n#endif" | $CXX -E -xc++ - > /dev/null 2>&1; then
+IS_LIBCXX="with libc++"
+fi
+fi
+
 # Gets the R target architecture in case of qemu-containers, e.g
 # https://hub.docker.com/r/i386/debian
 # Which reports uname -m: x86_64 (only i386 seems to have this issue)
 RARCH=$(${R_HOME}/bin/Rscript -e 'cat(R.Version()$arch)')
 case $RARCH in
   x86_64 | arm64 | aarch64)
-    echo "Target architecture: $RARCH"
+    echo "Target architecture: $RARCH $IS_LIBCXX"
     ;;
   *)
   echo "Unexpected architecture: $RARCH"
@@ -22,11 +29,6 @@ esac
 # https://github.com/jeroen/V8/issues/137
 if test -f "/etc/redhat-release" && grep -Fq "release 7" "/etc/redhat-release"; then
 IS_CENTOS7=1
-fi
-
-# Detect libcxx
-if grep -Fq "stdlib=libc++" <<<"$CXX $CXXFLAGS"; then
-IS_LIBCXX=1
 fi
 
 IS_MUSL=$(ldd --version 2>&1 | grep musl)
