@@ -5,8 +5,8 @@ if [ "$USER" = "salsaci" ]; then
 fi
 
 # Detect libcxx
-if grep -Fq "clang++" <<<"$CXX"; then
-if printf "#include <string>\n#ifndef _LIBCPP_VERSION\n#error not libcxx\n#endif" | $CXX -E -xc++ - > /dev/null 2>&1; then
+if echo "$CXX" | grep -Fq "clang"; then
+if printf "#include <string>\n#ifndef _LIBCPP_VERSION\n#error not libcxx\n#endif" | $CXX -E -xc++ - >/dev/null 2>&1; then
 IS_LIBCXX="with libc++"
 fi
 fi
