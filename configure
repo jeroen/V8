@@ -137,9 +137,13 @@ fi
 echo "Running feature test for sandbox..."
 ${CXX} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/test.cpp -o pctest ${LDFLAGS} ${PKG_LIBS} -ldl -pthread
 { ./pctest; } 2> configure.log
-if [ $? -ne 0 ] && grep -Fq "sandbox" "configure.log"; then
-  echo "Enabling sandbox"
-  PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_SANDBOX"
+if [ $? -ne 0 ]; then
+  if grep -Fq "sandbox" "configure.log"; then
+    echo "Enabling sandbox"
+    PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_SANDBOX"
+  else
+    grep 'mismatch' configure.log && exit 1
+  fi
 else
   echo "Sandbox not enabled"
 fi
