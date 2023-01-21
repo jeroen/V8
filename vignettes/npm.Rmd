@@ -32,11 +32,7 @@ Recent versions of V8 do have an event loop (required for async in ES6) and WASM
 |------------|--------|-----------|------|---------|-----|------
 | Browser    | ✔      | ✔        | ✔    | -       | ✔   |✔   |
 | Node       | ✔      | ✔        | ✔    | ✔       | -   |✔   |
-| V8 (6+)    | ✔      | ✔        | -    | -        | -   |✔   |
-| Legacy V8 (3.14)  | ✔      | -        | -    | -        | -   |-
-
-As of 2019, we support modern V8 (ES6+) on all important systems. See the [installation instructions](https://github.com/jeroen/V8#installation) for more details.
-
+| V8         | ✔      | ✔        | -    | -        | -   |✔   |
 
 ## Using JavaScript libraries
 
