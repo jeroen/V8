@@ -5,10 +5,3 @@
     warning("This system has a very old version of libv8. Some packages may not work.", call. = FALSE)
   }
 }
-
-.onLoad <- function(libname, pkgname){
-  # Test for development
-  # ct <- v8()
-  # ct$source(system.file("js/underscore.js", package = pkgname))
-  # rm(ct)
-}

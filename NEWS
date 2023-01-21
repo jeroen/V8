@@ -1,5 +1,6 @@
 4.3.0
  - Add feature test for V8_ENABLE_SANDBOX, required by some V8 10.8+ (#144)
+ - Unbundle 3rd party JS libs that are only needed for examples.
 
 4.2.2
  - Fix a sanitizer error by avoiding a broken API on NodeJS (#152)

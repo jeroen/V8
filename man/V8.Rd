@@ -120,7 +120,7 @@ ctx$validate("foo = function(x){2*x}") #TRUE
 ctx$validate("function(x){2*x}") #FALSE
 
 # Use a JavaScript library
-ctx$source(system.file("js/underscore.js", package="V8"))
+ctx$source("https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js")
 ctx$call("_.filter", mtcars, JS("function(x){return x.mpg < 15}"))
 
 # Example from underscore manual

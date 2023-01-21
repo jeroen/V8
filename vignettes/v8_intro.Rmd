@@ -49,14 +49,9 @@ However note that V8 by itself is just the naked JavaScript engine. Currently, t
 
 The `ct$source` method is a convenience function for loading JavaScript libraries from a file or url.
 
-```{r, eval=FALSE}
-ct$source(system.file("js/underscore.js", package="V8"))
+```{r}
+ct$source('https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js')
 ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter.min.js")
-```
-
-```{r echo=FALSE, results='hide'}
-ct$source(system.file("js/underscore.js", package="V8"))
-ct$source(system.file("js/crossfilter.js", package="V8"))
 ```
 
 ## Data Interchange
