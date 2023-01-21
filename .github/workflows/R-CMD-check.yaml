@@ -10,19 +10,20 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} ${{ matrix.config.disable-static }} (${{ matrix.config.r }})
 
     strategy:
       fail-fast: false
       matrix:
         config:
           - {os: macOS-latest,   r: 'release'}
+          - {os: macOS-latest,   r: 'release', disable-static: 'disable-static'}
           - {os: windows-latest, r: 'release'}
           - {os: windows-2022,   r: 'devel'}
           - {os: ubuntu-22.04,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-22.04,   r: 'release'}
           - {os: ubuntu-20.04,   r: 'release'}
-          - {os: ubuntu-20.04,   r: 'release', disable-static: 'true'}
+          - {os: ubuntu-20.04,   r: 'release', disable-static: 'disable-static'}
           - {os: ubuntu-18.04,   r: 'oldrel-4'}
 
     env:
@@ -31,7 +32,10 @@ jobs:
       DISABLE_STATIC_LIBV8: ${{ matrix.config.disable-static }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - if: runner.os == 'macos' && matrix.config.disable-static
+        run: brew install v8 || true
 
       - uses: r-lib/actions/setup-pandoc@v2
 
