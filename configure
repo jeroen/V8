@@ -122,7 +122,7 @@ if [ $? -eq 0 ]; then
   exit 0
 fi
 
-# Test if we need to enable pointer compression (Usually 8.4 and up)
+# Test if we need to enable pointer compression (Usually V8 8.4 and up, except for NodeJS)
 echo "Running feature test for pointer compression..."
 ${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest ${PKG_LIBS} ${LDFLAGS} -ldl -pthread
 { ./pctest; } 2>> configure.log
