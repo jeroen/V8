@@ -132,22 +132,22 @@ if [ $? -eq 0 ]; then
 else
   echo "Enabling pointer compression"
   PKG_CFLAGS="$PKG_CFLAGS -DV8_COMPRESS_POINTERS"
-fi
 
-echo "Running feature test for sandbox..."
-${CXX} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/test.cpp -o pctest ${LDFLAGS} ${PKG_LIBS} -ldl -pthread
-{ ./pctest; } 2> configure.log
-if [ $? -ne 0 ]; then
-  if grep -Fq "sandbox" "configure.log"; then
-    echo "Enabling sandbox"
-    PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_SANDBOX"
+  echo "Running feature test for sandbox..."
+  ${CXX} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} tools/test.cpp -o pctest ${LDFLAGS} ${PKG_LIBS} -ldl -pthread
+  { ./pctest; } 2> configure.log
+  if [ $? -ne 0 ]; then
+    if grep -Fq "sandbox" "configure.log"; then
+      echo "Enabling sandbox"
+      PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_SANDBOX"
+    else
+      grep 'mismatch' configure.log && exit 1
+    fi
   else
-    grep 'mismatch' configure.log && exit 1
+    echo "Sandbox not enabled"
   fi
-else
-  echo "Sandbox not enabled"
+  rm -Rf pctest*
 fi
-rm -Rf pctest*
 
 # Test the runtime V8 version is nodejs
 ${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} tools/version.cpp -o v8version ${PKG_LIBS} ${LDFLAGS} -ldl -pthread || true
