@@ -124,7 +124,9 @@ static void pump_promises(){
 /* Try to resolve pending promises */
 static void ConsolePump(const v8::FunctionCallbackInfo<v8::Value>& args) {
   pump_promises();
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  if(!v8::Undefined(args.GetIsolate()).IsEmpty()){
+    args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  }
 }
 
 
@@ -136,7 +138,9 @@ static void ConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& args) {
     Rprintf("%s", ToCString(str));
   }
   Rprintf("\n");
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  if(!v8::Undefined(args.GetIsolate()).IsEmpty()){
+    args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  }
 }
 
 /* console.warn */
@@ -146,7 +150,9 @@ static void ConsoleWarn(const v8::FunctionCallbackInfo<v8::Value>& args) {
     v8::String::Utf8Value str(args.GetIsolate(), args[i]);
     Rf_warningcall_immediate(R_NilValue, ToCString(str));
   }
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  if(!v8::Undefined(args.GetIsolate()).IsEmpty()){
+    args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  }
 }
 
 /* console.error */
@@ -154,7 +160,9 @@ static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
   if(args.Length()){
     args.GetIsolate()->ThrowException(args[0]);
   }
-  args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  if(!v8::Undefined(args.GetIsolate()).IsEmpty()){
+    args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+  }
 }
 
 void r_callback(std::string cb, const v8::FunctionCallbackInfo<v8::Value>& args) {
