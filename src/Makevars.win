@@ -1,13 +1,10 @@
-VERSION = 6.2.414.50-vista
-CXX_STD = CXX11
-RWINLIB =../windows/libv8-$(VERSION)
-PKG_CPPFLAGS = -I$(RWINLIB)/include -DV8_ENABLE_CHECKS
+CXX_STD = CXX17
+RWINLIB =../windows/mingw$(WIN)
+PKG_CPPFLAGS = -I$(RWINLIB)/include $(subst $(WIN),,-DV8_COMPRESS_POINTERS64)
 PKG_LIBS = \
-	-L$(RWINLIB)/lib${subst gcc ,-,${R_COMPILED_BY}}${R_ARCH} \
-	-L$(RWINLIB)/lib${R_ARCH} \
-	-lv8_base -lv8_libplatform  -lv8_nosnapshot \
-	-lv8_libbase -lv8_libsampler -lv8_builtins_setup -lv8_builtins_generators \
-	-lws2_32 -lwinmm -ldbghelp -lshlwapi
+	-L$(RWINLIB)/lib \
+	-lv8_monolith \
+	-lws2_32 -lwinmm -ldbghelp -lshlwapi -lssp -lz
 
 all: clean winlibs
 
@@ -15,6 +12,6 @@ clean:
 	rm -f $(SHLIB) $(OBJECTS)
 
 winlibs:
-	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/winlibs.R" $(VERSION)
+	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/winlibs.R"
 
 .PHONY: all winlibs clean

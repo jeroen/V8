@@ -1,4 +1,6 @@
 4.3.0
+ - MacOS: update libv8 to 11.2
+ - Windows: use libv8 version 9.1 on all R >= 4.0, drop support for Win2008/Vista
  - Add feature test for V8_ENABLE_SANDBOX, required by some V8 10.8+ (#144)
  - Unbundle 3rd party JS libs that are only needed for examples.
 
