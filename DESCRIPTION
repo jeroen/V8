@@ -1,17 +1,16 @@
 Package: V8
 Type: Package
 Title: Embedded JavaScript and WebAssembly Engine for R
-Version: 4.3.0
+Version: 4.3.1
 Authors@R: c(
     person("Jeroen", "Ooms", role = c("aut", "cre"), email = "jeroen@berkeley.edu",
       comment = c(ORCID = "0000-0002-4035-0289")),
     person("Jan Marvin", "Garbuszus", role = "ctb"))
-Description: An R interface to V8: Google's open source JavaScript and WebAssembly 
-    engine. This package can be compiled either with V8 version 6 and up or NodeJS
-    when built as a shared library.
+Description: An R interface to V8 <https://v8.dev>: Google's open source JavaScript
+    and WebAssembly engine. This package can be compiled either with V8 version 6 
+    and up or NodeJS when built as a shared library.
 License: MIT + file LICENSE
-URL: https://github.com/jeroen/v8 (devel)
-    https://v8.dev (upstream)
+URL: https://jeroen.r-universe.dev/V8
 BugReports: https://github.com/jeroen/v8/issues
 SystemRequirements: V8 engine version 6+ is needed for ES6 and WASM support. On
     Linux you can build against libv8-dev (Debian) or v8-devel (Fedora). We also
