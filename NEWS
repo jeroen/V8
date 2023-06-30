@@ -1,3 +1,6 @@
+4.3.2
+  - Fix another version comparison issue
+
 4.3.1
  - Fix getRversion() type requested by CRAN
 
