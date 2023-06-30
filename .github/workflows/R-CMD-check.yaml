@@ -52,3 +52,5 @@ jobs:
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
+        env:
+          _R_CALLS_INVALID_NUMERIC_VERSION_: true
