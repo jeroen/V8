@@ -24,9 +24,7 @@ current version of libv8.
 }
 \examples{
 # Load example wasm program
-if(engine_info()$numeric_version > 6){
 instance <- wasm(system.file('wasm/add.wasm', package = 'V8'))
 instance$exports$add(12, 30)
-}
 wasm_features()
 }
