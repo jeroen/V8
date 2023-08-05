@@ -1,3 +1,6 @@
+4.3.4
+  - MacOS: update libv8 to 11.5
+
 4.3.3
   - Fix yet more version comparisons
 
