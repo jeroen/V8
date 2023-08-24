@@ -173,17 +173,10 @@ ct$eval('var cf = crossfilter || console.error("failed to load crossfilter!")')
 
 ## The Global Namespace
 
-Unlike what you might be used to from Node or your browser, the global namespace for a new context if very minimal. By default it contains only a few objects: `global` (a reference to itself), `console` (for `console.log` and friends) and `print` (an alias of console.log needed by some JavaScript libraries)
+Unlike what you might be used to from Node or your browser, the global namespace for a new context is very minimal. By default it contains only a few objects: `global` (a reference to itself), `console` (for `console.log` and friends) and `print` (an alias of console.log needed by some JavaScript libraries)
 
 ```{r}
-ct <- v8(typed_arrays = FALSE);
-ct$get(JS("Object.keys(global)"))
-```
-
-If typed arrays are enabled it contains some additional functions:
-
-```{r}
-ct <- v8(typed_arrays = TRUE);
+ct <- v8();
 ct$get(JS("Object.keys(global)"))
 ```
 
