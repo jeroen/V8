@@ -20,9 +20,9 @@ case $RARCH in
     echo "Target architecture: $RARCH $IS_LIBCXX"
     ;;
   *)
-  echo "Unexpected architecture: $RARCH"
-  return;
-  ;;
+    echo "Unexpected architecture: $RARCH"
+    return;
+    ;;
 esac
 
 # RHDT compilers are using an older libc++
@@ -33,7 +33,11 @@ fi
 
 IS_MUSL=$(ldd --version 2>&1 | grep musl)
 if [ $? -eq 0 ] && [ "$IS_MUSL" ]; then
-  URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-alpine.tar.gz"
+  if [ "$RARCH" = "arm64" ] || [ "$RARCH" = "aarch64" ]; then
+    return; #dont have this binary yet
+  else
+    URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-alpine.tar.gz"
+  fi
 elif [ "$RARCH" = "arm64" ] || [ "$RARCH" = "aarch64" ]; then
   URL="https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.6.180.12-arm64.tar.gz"
 else
