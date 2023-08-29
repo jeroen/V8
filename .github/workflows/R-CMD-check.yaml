@@ -20,6 +20,7 @@ jobs:
           - {os: macOS-latest,   r: 'release', disable-static: 'disable-static'}
           - {os: windows-latest, r: '3.6'}
           - {os: windows-latest, r: '4.1'}
+          - {os: windows-latest, r: '4.2'}
           - {os: windows-latest, r: 'release'}
           - {os: windows-2022,   r: 'devel'}
           - {os: ubuntu-22.04,   r: 'devel', http-user-agent: 'release'}

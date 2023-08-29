@@ -1,5 +1,6 @@
 4.3.4
   - MacOS: update libv8 to 11.5
+  - Windows (R-4.3 and up): update libv8 to 11.8
   - Update wasm_features() detection with new wasm features
 
 4.3.3
