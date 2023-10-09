@@ -1,6 +1,13 @@
 CXX_STD = CXX17
-RWINLIB =../windows/mingw$(WIN)
-PKG_CPPFLAGS = -I$(RWINLIB)/include $(subst $(WIN),,-DV8_COMPRESS_POINTERS64)
+RWINLIB = ../windows/libv8
+
+# old multilib bundles
+ifeq ($(R_COMPILED_BY),gcc 8.3.0)
+RWINLIB = ../windows/libv8$(R_ARCH)
+endif
+
+# Enables pointer compression except for on 32-bit (legacy)
+PKG_CPPFLAGS = -I$(RWINLIB)/include -DV8_COMPRESS_POINTERS$(subst 64,,$(WIN))
 PKG_LIBS = \
 	-L$(RWINLIB)/lib \
 	-lv8_monolith \

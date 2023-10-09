@@ -1,20 +1,20 @@
-# Download a suitable libv8 build
-if(grepl('Windows Server 2008', osVersion)){
-  stop("Windows Vista/2008 is no longer supported")
-}
-if(!file.exists('../windows/ucrt64/include/v8.h')){
-  cdn <- if(getRversion() >= "4.3.0"){
-    'https://github.com/jeroen/V8/releases/download/v3.6.0/v8-11.8.7-ucrt.tar.xz'
+if(!file.exists('../windows/libv8/include/v8.h')){
+  unlink("../windows", recursive = TRUE)
+  url <- if(grepl("aarch", R.version$platform)){
+    "https://github.com/r-windows/bundles/releases/download/v8-11.8.172.13/v8-11.8.172.13-clang-aarch64.tar.xz"
+  } else if(grepl("clang", Sys.getenv('R_COMPILED_BY'))){
+    "https://github.com/r-windows/bundles/releases/download/v8-11.8.172.13/v8-11.8.172.13-clang-x86_64.tar.xz"
+  } else if(getRversion() >= "4.3") {
+    "https://github.com/r-windows/bundles/releases/download/v8-11.8.172.13/v8-11.8.172.13-ucrt-x86_64.tar.xz"
+  } else if(getRversion() >= "4.2") {
+    "https://github.com/r-windows/bundles/releases/download/v8-11.8.172.13/v8-9.1.269.38-win-ucrt.tar.xz"
   } else {
-    ifelse(isTRUE(grepl('ucrt', R.version$crt)),
-           'https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.1.269.38-win-ucrt.pkg.tar.xz',
-           'https://github.com/jeroen/V8/releases/download/v3.6.0/v8-9.1.269.38-win-msvcrt.tar.xz')
+    "https://github.com/r-windows/bundles/releases/download/v8-11.8.172.13/v8-9.1.269.38-win-msvcrt.tar.xz"
   }
-  download.file(cdn, "libv8.tar.xz", quiet = TRUE)
+  download.file(url, basename(url), quiet = TRUE)
   dir.create("../windows", showWarnings = FALSE)
-  untar('libv8.tar.xz', exdir = "../windows", tar = 'internal')
-  unlink('libv8.tar.xz')
-  if(isTRUE(grepl('ucrt', R.version$crt))){
-    file.rename("../windows/ucrt64", "../windows/mingw64")
-  }
+  untar(basename(url), exdir = "../windows", tar = 'internal')
+  unlink(basename(url))
+  setwd("../windows")
+  file.rename(list.files(), 'libv8')
 }
