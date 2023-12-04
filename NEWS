@@ -1,3 +1,6 @@
+4.4.1
+  - Fix a printf warning for CRAN
+
 4.4.0
   - Windows (R-4.3 and up): update libv8 to 11.8.172.13 + arm64 support.
 
