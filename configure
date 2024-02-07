@@ -9,7 +9,7 @@ PKG_CSW_NAME="libv8_dev"
 PKG_BREW_NAME="v8"
 PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
-PKG_CFLAGS="-I/usr/include/v8 -I/usr/include/v8-3.14"
+PKG_CFLAGS="-I/usr/include/v8"
 
 # Allow users to override PKG_LIBS and PKG_CFLAGS
 if [ "$V8_PKG_LIBS" ]; then
@@ -34,7 +34,7 @@ fi
 
 # Default to static V8 on supported production platforms
 if [ -z "$DISABLE_STATIC_LIBV8" ]; then
-if [ "$IS_MACOS" ] || [ "$IS_UBUNTU" ] || [ "$IS_RHEL" ] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ]; then
+if [ "$IS_MACOS" ] || [ "$IS_UBUNTU" ] || [ "$IS_RHEL" ] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ] || [ -f "/usr/include/v8-3.14/v8.h" ]; then
 if [ "$UARCH" = "x86_64" ] || [ "$UARCH" = "arm64" ] || [ "$UARCH" = "aarch64" ]; then
 DOWNLOAD_STATIC_LIBV8=1
 fi
