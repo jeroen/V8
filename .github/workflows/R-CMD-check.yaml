@@ -16,7 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest,   r: 'release'}
+          - {os: macOS-13,   r: 'release'}
+          - {os: macOS-14,   r: 'release'}
           - {os: macOS-latest,   r: 'release', disable-static: 'disable-static'}
           - {os: windows-latest, r: '3.6'}
           - {os: windows-latest, r: '4.1'}
