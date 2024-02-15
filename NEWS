@@ -1,6 +1,7 @@
 4.4.2
   - Prevent Fedora from accidentally building against the legacy v8-314 library
     instead of the current v8-devel on that system.
+  - Remove bundled underscore.js and examples
 
 4.4.1
   - Fix a printf warning for CRAN
