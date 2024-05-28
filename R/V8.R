@@ -324,6 +324,18 @@ print.V8 <- function(x, ...){
   }
 }
 
+#' @export
+#' @rawNamespace if (getRversion() >= "4.3.0") S3method(base::`@`, V8) else export("@")
+`@.V8` <- function(object, name, ...){
+  object[[name]]
+}
+
+### enable tab completion
+#' @rawNamespace if (getRversion() >= "4.3.0" && !is.null(asNamespace("utils")$.AtNames)) S3method(utils::.AtNames,V8)
+.AtNames.V8 <- function(x, pattern) {
+  utils::findMatches(pattern, ls(x))
+}
+
 # Pretty format function headers
 format_function <- function(fun, name = deparse(substitute(fun))){
   #header <- sub("\\{$", "", capture.output(fun)[1])

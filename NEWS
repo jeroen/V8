@@ -1,3 +1,6 @@
+5.0.0
+  - Enable @ instead of $ syntax for accessing v8 fields
+
 4.4.2
   - Prevent Fedora from accidentally building against the legacy v8-314 library
     instead of the current v8-devel on that system.
