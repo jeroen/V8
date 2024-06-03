@@ -1,4 +1,5 @@
 5.0.0
+  - Drop support for legacy v8-314 library
   - Enable @ instead of $ syntax for accessing v8 fields
 
 4.4.2

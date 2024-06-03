@@ -67,8 +67,7 @@
 #' @export v8 new_context
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose `console` API (`console.log`, `console.warn`, `console.error`).
-#' @param typed_arrays (deprecated) enable typed arrays in legacy libv8. Deprecated because
-#' typed arrays are natively supported in recent versions of libv8.
+#' @param ... ignored parameters for past/future versions.
 #' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
@@ -134,7 +133,7 @@
 #' # exit
 #' }
 #'
-v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
+v8 <- function(global = "global", console = TRUE, ...) {
   # Private fields
   private <- environment();
 
@@ -200,9 +199,6 @@ v8 <- function(global = "global", console = TRUE, typed_arrays = TRUE) {
       private$created <- Sys.time();
       if(length(global)){
         context_eval(paste("var", global, "= this;", collapse = "\n"), private$context)
-      }
-      if(isTRUE(typed_arrays)){
-        context_enable_typed_arrays(private$context)
       }
       invisible()
     }

@@ -7,7 +7,7 @@
 \alias{engine_info}
 \title{Run JavaScript in a V8 context}
 \usage{
-v8(global = "global", console = TRUE, typed_arrays = TRUE)
+v8(global = "global", console = TRUE, ...)
 
 engine_info()
 }
@@ -16,8 +16,7 @@ engine_info()
 
 \item{console}{expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).}
 
-\item{typed_arrays}{(deprecated) enable typed arrays in legacy libv8. Deprecated because
-typed arrays are natively supported in recent versions of libv8.}
+\item{...}{ignored parameters for past/future versions.}
 }
 \description{
 The \code{\link[=v8]{v8()}} function (formerly called \code{new_context}) creates a

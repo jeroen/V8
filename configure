@@ -113,15 +113,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Test for legacy libv8 version
-${CXXCPP} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} src/legacy/test.cpp >/dev/null 2>&1
-if [ $? -eq 0 ]; then
-  echo "Found legacy version of libv8"
-  PKG_LIBS=`echo "$PKG_LIBS" | sed -e "s/-lv8_libplatform//"`
-  sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/legacy/Makevars.in > src/Makevars
-  exit 0
-fi
-
 # Test if we need to enable pointer compression (Usually V8 8.4 and up, except for NodeJS)
 echo "Running feature test for pointer compression..."
 ${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest1 ${PKG_LIBS} ${LDFLAGS} -ldl -pthread

@@ -416,8 +416,3 @@ ctxptr make_context(bool set_console){
   ctx_type *ptr = new ctx_type(isolate, context);
   return ctxptr(ptr);
 }
-
-// [[Rcpp::export]]
-bool context_enable_typed_arrays(ctxptr ctx){
-  return true;
-}

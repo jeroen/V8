@@ -25,7 +25,3 @@ make_context <- function(set_console) {
     .Call(`_V8_make_context`, set_console)
 }
 
-context_enable_typed_arrays <- function(ctx) {
-    .Call(`_V8_context_enable_typed_arrays`, ctx)
-}
-
