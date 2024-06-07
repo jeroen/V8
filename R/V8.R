@@ -329,7 +329,7 @@ print.V8 <- function(x, ...){
 ### enable tab completion
 #' @rawNamespace if (getRversion() >= "4.3.0" && !is.null(asNamespace("utils")$.AtNames)) S3method(utils::.AtNames,V8)
 .AtNames.V8 <- function(x, pattern) {
-  utils::findMatches(pattern, ls(x))
+  asNamespace("utils")$findMatches(pattern, ls(x))
 }
 
 # Pretty format function headers
