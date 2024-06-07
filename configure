@@ -66,7 +66,7 @@ CXX_STD=CXX14
 CXX="$CXX14 `${R_HOME}/bin/R CMD config CXX14STD`"
 CXXFLAGS=`${R_HOME}/bin/R CMD config CXX14FLAGS`
 else
-echo "Using default C++11 compiler: $CXX14"
+echo "Using default C++11 compiler"
 CXX_STD=CXX11
 CXX=`${R_HOME}/bin/R CMD config CXX`
 CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
