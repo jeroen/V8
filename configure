@@ -41,13 +41,21 @@ fi
 fi
 fi
 
-# Use CXX17 when available, required as of libv8 version 10.2
+# Use CXX20 when available, required as of libv8 version 12.7
+CXX20=`${R_HOME}/bin/R CMD config CXX20` || unset CXX20
+
+# Otherwise use CXX17 when available, required as of libv8 version 10.2
 CXX17=`${R_HOME}/bin/R CMD config CXX17` || unset CXX17
 
 # Otherwise use CXX14 when available, required as of libv8 version 8.7.80
 CXX14=`${R_HOME}/bin/R CMD config CXX14` || unset CXX14
 
-if [ "$CXX17" ]; then
+if [ "$CXX20" ]; then
+echo "Found C++20 compiler: $CXX20"
+CXX_STD=CXX20
+CXX="$CXX20 `${R_HOME}/bin/R CMD config CXX20STD`"
+CXXFLAGS=`${R_HOME}/bin/R CMD config CXX20FLAGS`
+elif [ "$CXX17" ]; then
 echo "Found C++17 compiler: $CXX17"
 CXX_STD=CXX17
 CXX="$CXX17 `${R_HOME}/bin/R CMD config CXX17STD`"
