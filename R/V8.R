@@ -321,7 +321,7 @@ print.V8 <- function(x, ...){
 }
 
 #' @export
-#' @rawNamespace if (getRversion() >= "4.3.0") S3method(base::`@`, V8) else export("@")
+#' @rawNamespace if (getRversion() >= "4.3.0") S3method(base::`@`, V8)
 `@.V8` <- function(object, name, ...){
   object[[name]]
 }

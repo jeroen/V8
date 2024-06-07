@@ -1,7 +1,7 @@
 5.0.0
   - Drop support for legacy v8-314 library
   - Compile with C++20 when available (required as of libv8 version 12.7)
-  - Enable @ instead of $ syntax for accessing v8 fields
+  - Enable @ accessor for v8 objects in R >= 4.3.0
 
 4.4.2
   - Prevent Fedora from accidentally building against the legacy v8-314 library
