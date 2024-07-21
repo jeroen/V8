@@ -70,7 +70,7 @@ JSON is used for data interchange between R and JavaScript. Therefore you can
 One exception is raw vectors which are converted to/from Uint8Array buffers, see
 below. All other arguments and objects are automatically converted according to the mapping
 described in \href{https://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
-by the jsonlite package in \code{\link[=fromJSON]{fromJSON()}} and \code{\link[=toJSON]{toJSON()}}.
+by the jsonlite package in \code{\link[jsonlite:fromJSON]{jsonlite::fromJSON()}} and \code{\link[jsonlite:fromJSON]{jsonlite::toJSON()}}.
 
 As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
 typed arrays, and vice versa. This makes it possible to efficiently copy large chunks
