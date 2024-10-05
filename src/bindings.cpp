@@ -16,7 +16,9 @@
 #endif
 
 #if !defined(ISNODEJS) || NODEJS_LTS_API > 16
-#define HasFixedArray
+#define FixedArrayParam ,v8::Local<v8::FixedArray> import_arributes
+#else
+#define FixedArrayParam
 #endif
 
 #if V8_VERSION_TOTAL < 803
@@ -81,11 +83,8 @@ static void fatal_cb(const char* location, const char* message){
 
 static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context);
 
-static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> context, v8::Local<v8::String> specifier,
-#ifdef HasFixedArray
-                                                        v8::Local<v8::FixedArray> import_arributes,
-#endif
-                                                        v8::Local<v8::Module> referrer) {
+static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> context, v8::Local<v8::String> specifier
+                                                        FixedArrayParam, v8::Local<v8::Module> referrer) {
   v8::String::Utf8Value name(context->GetIsolate(), specifier);
   return read_module(*name, context);
 }
@@ -118,9 +117,7 @@ static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
     v8::Local<v8::ScriptOrModule> referrer,
 #endif
     v8::Local<v8::String> specifier
-#ifdef HasFixedArray
-    ,v8::Local<v8::FixedArray> import_arributes
-#endif
+    FixedArrayParam
 ) {
   return dynamic_module_loader(context, specifier);
 }
