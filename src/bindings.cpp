@@ -15,6 +15,12 @@
 #endif
 #endif
 
+#if !defined(ISNODEJS) || NODEJS_LTS_API > 16
+#define FixedArrayParam ,v8::Local<v8::FixedArray> import_arributes
+#else
+#define FixedArrayParam
+#endif
+
 #if V8_VERSION_TOTAL < 803
 #define PerformMicrotaskCheckpoint RunMicrotasks
 #endif
@@ -47,6 +53,15 @@ void ctx_finalizer(ctx_type* context ){
 static v8::Isolate* isolate = NULL;
 static v8::Platform* platformptr = NULL;
 
+static std::string read_text(std::string filename) {
+  std::ifstream t(filename);
+  if(t.fail())
+    throw std::runtime_error("Failed to open file: " + filename);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  return buffer.str();
+}
+
 // Extracts a C string from a V8 Utf8Value.
 static const char* ToCString(const v8::String::Utf8Value& value) {
   return *value ? *value : "<string conversion failed>";
@@ -65,6 +80,76 @@ static void message_cb(v8::Local<v8::Message> message, v8::Local<v8::Value> data
 static void fatal_cb(const char* location, const char* message){
   REprintf("V8 FATAL ERROR in %s: %s", location, message);
 }
+
+static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context);
+
+static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> context, v8::Local<v8::String> specifier
+                                                        FixedArrayParam, v8::Local<v8::Module> referrer) {
+  v8::String::Utf8Value name(context->GetIsolate(), specifier);
+  return read_module(*name, context);
+}
+
+static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> context, v8::Local<v8::String> specifier) {
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
+  v8::MaybeLocal<v8::Promise> promise(resolver->GetPromise());
+  v8::String::Utf8Value name(context->GetIsolate(), specifier);
+  try {
+    v8::Local<v8::Module> module = read_module(*name, context);
+    v8::Local<v8::Value> retValue;
+    if (!module->Evaluate(context).ToLocal(&retValue))
+      throw std::runtime_error("Failure loading module");
+    resolver->Resolve(context, module->GetModuleNamespace()).FromMaybe(false);
+  } catch(const std::exception& err) {
+    std::string errmsg(std::string("problem loading module ") + *name + ": " + err.what());
+    resolver->Reject(context, ToJSString(errmsg.c_str())).FromMaybe(false);
+  } catch(...) {
+    resolver->Reject(context, ToJSString("Unknown failure loading dynamic module")).FromMaybe(false);
+  }
+  return promise;
+}
+
+static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
+    v8::Local<v8::Context> context,
+#if V8_VERSION_TOTAL >= 908
+    v8::Local<v8::Data> host_defined_options,
+    v8::Local<v8::Value> resource_name,
+#else
+    v8::Local<v8::ScriptOrModule> referrer,
+#endif
+    v8::Local<v8::String> specifier
+    FixedArrayParam
+) {
+  return dynamic_module_loader(context, specifier);
+}
+
+static v8::ScriptOrigin make_origin(std::string filename){
+#if defined(ISNODEJS) && NODEJS_LTS_API < 18
+  return v8::ScriptOrigin(ToJSString( filename.c_str()), v8::Integer::New(isolate, 0),
+                          v8::Integer::New(isolate, 0), v8::False(isolate), v8::Local<v8::Integer>(),
+                          v8::Local<v8::Value>(), v8::False(isolate), v8::False(isolate), v8::True(isolate));
+#elif V8_VERSION_TOTAL < 1201
+  return v8::ScriptOrigin(isolate,ToJSString( filename.c_str()), 0, 0, false, -1,
+                          v8::Local<v8::Value>(), false, false, true);
+#else
+  return v8::ScriptOrigin(ToJSString( filename.c_str()), 0, 0, false, -1,
+                          v8::Local<v8::Value>(), false, false, true);
+#endif
+}
+
+/* Helper fun that compiles JavaScript source code */
+static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context){
+  v8::Local<v8::String> source_text = ToJSString(read_text(filename).c_str());
+  if(source_text.IsEmpty())
+    throw std::runtime_error("Failed to load JavaScript source. Check memory/stack limits.");
+  v8::ScriptCompiler::Source source(source_text, make_origin(filename));
+  v8::Local<v8::Module> module;
+  if (!v8::ScriptCompiler::CompileModule(isolate, &source).ToLocal(&module))
+    throw std::runtime_error("Failed to run CompileModule() source.");
+  if(!module->InstantiateModule(context, ResolveModuleCallback).FromMaybe(false))
+    throw std::runtime_error("Failed to run InstantiateModule().");
+  return module;
+}
+
 
 // [[Rcpp::init]]
 void start_v8_isolate(void *dll){
@@ -103,6 +188,7 @@ void start_v8_isolate(void *dll){
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
   isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
 #endif
+  isolate->SetHostImportModuleDynamicallyCallback(ResolveDynamicModuleCallback);
 }
 
 /* Helper fun that compiles JavaScript source code */
