@@ -182,7 +182,7 @@ void start_v8_isolate(void *dll){
 #if V8_VERSION_TOTAL >= 908
   isolate->SetHostImportModuleDynamicallyCallback(ResolveDynamicModuleCallback);
 #else
-  isolate->SetImportModuleDynamicallyCallback(ResolveDynamicModuleCallbackLegacy);
+  isolate->SetHostImportModuleDynamicallyCallback(ResolveDynamicModuleCallbackLegacy);
 #endif
 }
 
