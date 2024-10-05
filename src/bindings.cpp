@@ -104,28 +104,19 @@ static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> 
   return promise;
 }
 
-#if V8_VERSION_TOTAL >= 908
-
 static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
     v8::Local<v8::Context> context,
+#if V8_VERSION_TOTAL >= 908
     v8::Local<v8::Data> host_defined_options,
     v8::Local<v8::Value> resource_name,
-    v8::Local<v8::String> specifier,
-    v8::Local<v8::FixedArray> import_assertions) {
-  return dynamic_module_loader(context, specifier);
-}
-
 #else
-
-static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
-    v8::Local<v8::Context> context,
     v8::Local<v8::ScriptOrModule> referrer,
+#endif
     v8::Local<v8::String> specifier,
     v8::Local<v8::FixedArray> import_assertions) {
   return dynamic_module_loader(context, specifier);
 }
 
-#endif
 
 /* Helper fun that compiles JavaScript source code */
 static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context){
