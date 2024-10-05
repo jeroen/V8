@@ -77,10 +77,9 @@ static void fatal_cb(const char* location, const char* message){
 
 static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context);
 
-template <typename DUMMY>
 static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> context,
                                                         v8::Local<v8::String> specifier,
-                                                        DUMMY import_attributes,
+                                                        v8::Local<v8::FixedArray> import_attributes,
                                                         v8::Local<v8::Module> referrer) {
   v8::String::Utf8Value name(context->GetIsolate(), specifier);
   return read_module(*name, context);
@@ -118,12 +117,11 @@ static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
 
 #else
 
-template <typename DUMMY>
 static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
     v8::Local<v8::Context> context,
     v8::Local<v8::ScriptOrModule> referrer,
     v8::Local<v8::String> specifier,
-    DUMMY import_assertions) {
+    v8::Local<v8::FixedArray> import_assertions) {
   return dynamic_module_loader(context, specifier);
 }
 
