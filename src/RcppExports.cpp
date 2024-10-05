@@ -22,16 +22,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // context_eval
-Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize, bool await);
-RcppExport SEXP _V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP, SEXP serializeSEXP, SEXP awaitSEXP) {
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::String src_module, ctxptr ctx, bool serialize, bool await);
+RcppExport SEXP _V8_context_eval(SEXP srcSEXP, SEXP src_moduleSEXP, SEXP ctxSEXP, SEXP serializeSEXP, SEXP awaitSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type src(srcSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type src_module(src_moduleSEXP);
     Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
     Rcpp::traits::input_parameter< bool >::type serialize(serializeSEXP);
     Rcpp::traits::input_parameter< bool >::type await(awaitSEXP);
-    rcpp_result_gen = Rcpp::wrap(context_eval(src, ctx, serialize, await));
+    rcpp_result_gen = Rcpp::wrap(context_eval(src, src_module, ctx, serialize, await));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -49,14 +50,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // context_validate
-bool context_validate(Rcpp::String src, ctxptr ctx);
-RcppExport SEXP _V8_context_validate(SEXP srcSEXP, SEXP ctxSEXP) {
+bool context_validate(Rcpp::String src, Rcpp::String src_module, ctxptr ctx);
+RcppExport SEXP _V8_context_validate(SEXP srcSEXP, SEXP src_moduleSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type src(srcSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type src_module(src_moduleSEXP);
     Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
-    rcpp_result_gen = Rcpp::wrap(context_validate(src, ctx));
+    rcpp_result_gen = Rcpp::wrap(context_validate(src, src_module, ctx));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -85,9 +87,9 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
-    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 4},
+    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 5},
     {"_V8_write_array_buffer", (DL_FUNC) &_V8_write_array_buffer, 3},
-    {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
+    {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 3},
     {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},
     {"_V8_make_context", (DL_FUNC) &_V8_make_context, 1},
     {NULL, NULL, 0}

@@ -32,6 +32,18 @@
 #include <unistd.h>
 #endif
 
+// Helper function to read a file from disk
+std::string ReadFile(const std::string& file_path) {
+  std::ifstream file(file_path);
+  if (!file.is_open()) {
+    std::cerr << "Failed to open file: " << file_path << std::endl;
+    return "";
+  }
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  return buffer.str();
+}
+
 /* Note: Tov8::LocalChecked() aborts if x is empty */
 template <typename T>
 v8::Local<T> safe_to_local(v8::MaybeLocal<T> x){
@@ -113,6 +125,72 @@ static v8::Local<v8::Script> compile_source(std::string src, v8::Local<v8::Conte
   }
   v8::MaybeLocal<v8::Script> script = v8::Script::Compile(context, source);
   return safe_to_local(script);
+}
+
+// Function to compile a module
+v8::MaybeLocal<v8::Module> CompileModule(v8::Isolate* isolate, v8::Local<v8::Context> context, const std::string& source_code, const std::string& file_name) {
+  
+  v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, source_code.c_str(), v8::NewStringType::kNormal).ToLocalChecked();
+  
+  v8::ScriptOrigin origin(
+      v8::String::NewFromUtf8(isolate, file_name.c_str(), v8::NewStringType::kNormal).ToLocalChecked(),
+      0,                      // line offset
+      0,                      // column offset
+      true,                   // is cross origin
+      -1,                     // script id
+      v8::Local<v8::Value>(), // source map URL
+      false,                  // is opaque
+      false,                  // is WASM
+      true                    // is ES Module
+  );
+  
+  v8::ScriptCompiler::Source script_source(source, origin);
+  
+  v8::Local<v8::Module> module;
+  if (!v8::ScriptCompiler::CompileModule(isolate, &script_source).ToLocal(&module)) {
+    Rcpp::stop("Failed to compile module: ", file_name);
+  }
+  
+  return module;
+}
+
+static v8::Local<v8::Module> compile_module(std::string src, std::string src_module, v8::Local<v8::Context> context){
+  
+  std::string main_source = ReadFile(src_module);
+  
+  if (main_source.empty()) Rcpp::stop("unable to load file", src_module);
+  
+  // Step 2: Compile the main module
+  v8::MaybeLocal<v8::Module> maybe_main_module = CompileModule(isolate, context, main_source, src_module);
+  if (maybe_main_module.IsEmpty()) Rcpp::stop("unable to load main module", src_module);
+  
+  v8::Local<v8::Module> main_module = maybe_main_module.ToLocalChecked();
+  
+  v8::Maybe<bool> ok = main_module->InstantiateModule(context, [](v8::Local<v8::Context> context,
+                                                                  v8::Local<v8::String> specifier,
+                                                                  v8::Local<v8::FixedArray> import_assertions,
+                                                                  v8::Local<v8::Module> referrer) {
+    // loop ?
+    v8::String::Utf8Value utf8_specifier(context->GetIsolate(), specifier);
+    std::string import_path = *utf8_specifier;
+    
+    // Step 4: Resolve the import (e.g., load the mathModule.js)
+    std::string module_source = ReadFile(import_path);
+    if (module_source.empty()) {
+      Rcpp::stop("unable to load file", import_path);
+    }
+    
+    v8::MaybeLocal<v8::Module> imported_module = CompileModule(context->GetIsolate(), context, module_source, import_path);
+    
+    return imported_module; // return the compiled module
+  });
+  
+  
+  if (ok.IsNothing() || !ok.FromJust()) {
+    Rcpp::stop("Failed to instantiate main module.");
+  }
+  
+  return main_module;
 }
 
 static void pump_promises(){
@@ -240,8 +318,34 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
   }
 }
 
+void InjectAllExportsToContext(v8::Isolate* isolate, v8::Local<v8::Context> context, v8::Local<v8::Module> module) {
+  // Get the module namespace object (this holds the exports)
+  v8::Local<v8::Value> module_namespace_value = module->GetModuleNamespace();
+  
+  // Ensure we can convert this value to an object
+  if (!module_namespace_value->IsObject()) {
+    Rcpp::stop("Module namespace is not an object.");
+  }
+  
+  v8::Local<v8::Object> module_namespace = module_namespace_value.As<v8::Object>();
+  v8::Local<v8::Array> property_names = module_namespace->GetOwnPropertyNames(context).ToLocalChecked();
+  
+  for (uint32_t i = 0; i < property_names->Length(); ++i) {
+    v8::Local<v8::String> export_name = property_names->Get(context, i).ToLocalChecked().As<v8::String>();
+    v8::Local<v8::Value> export_value = module_namespace->Get(context, export_name).ToLocalChecked();
+    
+    if (export_value->IsUndefined() || export_value->IsNull()) {
+      std::cerr << "Exported value is undefined or null for: " << *v8::String::Utf8Value(isolate, export_name) << std::endl;
+      continue; // Skip null or undefined values
+    }
+    
+    context->Global()->Set(context, export_name, export_value).Check();
+  }
+}
+
+
 // [[Rcpp::export]]
-Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false, bool await = false){
+Rcpp::RObject context_eval(Rcpp::String src, Rcpp::String src_module, ctxptr ctx, bool serialize = false, bool await = false){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -255,36 +359,68 @@ Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false,
   v8::Local<v8::Context> context = ctx.checked_get()->Get(isolate);
   v8::Context::Scope context_scope(context);
 
+  v8::Local<v8::Value> result;
+  
   // Compile source code
   v8::TryCatch trycatch(isolate);
-  v8::Local<v8::Script> script = compile_source(src, context);
-  if(script.IsEmpty()) {
-    v8::String::Utf8Value exception(isolate, trycatch.Exception());
-    if(*exception){
-      throw std::invalid_argument(ToCString(exception));
-    } else {
-      throw std::runtime_error("Failed to interpret script. Check memory/stack limits.");
-    }
-  }
+  
+  if (src_module != NA_STRING) { // module
 
-  // Run the script to get the result.
-  v8::MaybeLocal<v8::Value> res = script->Run(context);
-  v8::Local<v8::Value> result = safe_to_local(res);
+    v8::Local<v8::Module> module = compile_module(src, src_module, context);
+    if(module.IsEmpty()) {
+      v8::String::Utf8Value exception(isolate, trycatch.Exception());
+      if(*exception){
+        throw std::invalid_argument(ToCString(exception));
+      } else {
+        throw std::runtime_error("Failed to interpret script. Check memory/stack limits.");
+      }
+    }
+
+    // status 2 = Initiated
+    if(module->GetStatus() != 2)
+      Rcpp::stop("Module not initiated");
+
+    result = module->Evaluate(context).ToLocalChecked();
+    
+    InjectAllExportsToContext(isolate, context, module);
+
+  }
+  
+  // if (src != "" && src_module != NA_STRING) {
+    
+    v8::Local<v8::Script> script = compile_source(src, context);
+    if(script.IsEmpty()) {
+      v8::String::Utf8Value exception(isolate, trycatch.Exception());
+      if(*exception){
+        throw std::invalid_argument(ToCString(exception));
+      } else {
+        throw std::runtime_error("Failed to interpret script. Check memory/stack limits.");
+      }
+    }
+    
+    // Run the script to get the result.
+    v8::MaybeLocal<v8::Value> res = script->Run(context);
+    result = safe_to_local(res);
+    
+    /* PumpMessageLoop is needed to load wasm from the background threads
+     After this we still need to call PerformMicrotaskCheckpoint to resolve outstanding promises
+     This may be better, but HasPendingBackgroundTasks() requires v8 8.3, see also
+     https://docs.google.com/document/d/18vaABH1mR35PQr8XPHZySuQYgSjJbWFyAW63LW2m8-w
+     */
+    
+    // while (v8::platform::PumpMessageLoop(platformptr, isolate, isolate->HasPendingBackgroundTasks() ?
+    //   v8::platform::MessageLoopBehavior::kWaitForWork : v8::platform::MessageLoopBehavior::kDoNotWait)){
+    // }
+    
+  // } else {
+  //   Rcpp::stop("input is missing");
+  // }
+  
+  
   if(result.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
   }
-
-  /* PumpMessageLoop is needed to load wasm from the background threads
-   After this we still need to call PerformMicrotaskCheckpoint to resolve outstanding promises
-   This may be better, but HasPendingBackgroundTasks() requires v8 8.3, see also
-   https://docs.google.com/document/d/18vaABH1mR35PQr8XPHZySuQYgSjJbWFyAW63LW2m8-w
-  */
-
-  // while (v8::platform::PumpMessageLoop(platformptr, isolate, isolate->HasPendingBackgroundTasks() ?
-  //   v8::platform::MessageLoopBehavior::kWaitForWork : v8::platform::MessageLoopBehavior::kDoNotWait)){
-  // }
-
 
   // See https://groups.google.com/g/v8-users/c/r8nn6m6Lsj4/m/WrjLpk1PBAAJ
   if (await && result->IsPromise()) {
@@ -346,8 +482,8 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
 }
 
 // [[Rcpp::export]]
-bool context_validate(Rcpp::String src, ctxptr ctx) {
 
+bool context_validate(Rcpp::String src, Rcpp::String src_module, ctxptr ctx) {
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -362,8 +498,13 @@ bool context_validate(Rcpp::String src, ctxptr ctx) {
 
   // Try to compile, catch errors
   v8::TryCatch trycatch(isolate);
-  v8::Local<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
-  return !script.IsEmpty();
+  if (src_module == NA_STRING) {
+    v8::Local<v8::Script> script = compile_source(src, ctx.checked_get()->Get(isolate));
+    return !script.IsEmpty();
+  } else {
+    v8::Local<v8::Module> module = compile_module(src, src_module, ctx.checked_get()->Get(isolate));
+    return !module.IsEmpty();
+  }
 }
 
 // [[Rcpp::export]]
@@ -407,8 +548,8 @@ ctxptr make_context(bool set_console){
   // See: https://stackoverflow.com/questions/49620965/v8-cannot-set-objecttemplate-with-name-console
   if(set_console){
     if(context->Global()->Has(context, console).FromMaybe(true)){
-       if(context->Global()->Delete(context, console).IsNothing())
-         Rcpp::warning("Could not delete console.");
+      if(context->Global()->Delete(context, console).IsNothing())
+        Rcpp::warning("Could not delete console.");
     }
     if(context->Global()->Set(context, console, console_template()).IsNothing())
       Rcpp::warning("Could not set console.");

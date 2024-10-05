@@ -138,22 +138,25 @@ v8 <- function(global = "global", console = TRUE, ...) {
   private <- environment();
 
   # Low level evaluate
-  evaluate_js <- function(src, serialize = FALSE, await = FALSE){
-    get_str_output(context_eval(join(src), private$context, serialize, await))
+  evaluate_js <- function(src, serialize = FALSE, await = FALSE, src_module = NA_character_){
+    get_str_output(context_eval(join(src), src_module, private$context, serialize, await))
   }
 
   # Public methods
   this <- local({
-    eval <- function(src, serialize = FALSE, await = FALSE){
+    eval <- function(src, serialize = FALSE, await = FALSE, src_module = NA_character_){
+      if (!is.na(src_module) && tools::file_ext(src_module) %in% c("js", "mjs"))
+        src_module <- path.expand(src_module)
+      
       # serialize=TRUE does not unserialize: user has to parse json/raw
-      evaluate_js(src, serialize = serialize, await = await)
+      evaluate_js(src, serialize = serialize, await = await, src_module = src_module)
     }
-    validate <- function(src){
-      context_validate(join(src), private$context)
+    validate <- function(src, src_module = NA_character_){
+      context_validate(join(src), src_module, private$context)
     }
     call <- function(fun, ..., auto_unbox = TRUE, await = FALSE){
       stopifnot(is.character(fun))
-      stopifnot(this$validate(c("fun=", fun)));
+      stopifnot(this$validate(c("fun=", fun)))
       jsargs <- list(...);
       if(!is.null(names(jsargs))){
         stop("Named arguments are not supported in JavaScript.")
@@ -198,7 +201,7 @@ v8 <- function(global = "global", console = TRUE, ...) {
       private$context <- make_context(private$console);
       private$created <- Sys.time();
       if(length(global)){
-        context_eval(paste("var", global, "= this;", collapse = "\n"), private$context)
+        context_eval(paste("var", global, "= this;", collapse = "\n"), NA_character_, private$context)
       }
       invisible()
     }

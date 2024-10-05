@@ -5,16 +5,16 @@ version <- function() {
     .Call(`_V8_version`)
 }
 
-context_eval <- function(src, ctx, serialize = FALSE, await = FALSE) {
-    .Call(`_V8_context_eval`, src, ctx, serialize, await)
+context_eval <- function(src, src_module, ctx, serialize = FALSE, await = FALSE) {
+    .Call(`_V8_context_eval`, src, src_module, ctx, serialize, await)
 }
 
 write_array_buffer <- function(key, data, ctx) {
     .Call(`_V8_write_array_buffer`, key, data, ctx)
 }
 
-context_validate <- function(src, ctx) {
-    .Call(`_V8_context_validate`, src, ctx)
+context_validate <- function(src, src_module, ctx) {
+    .Call(`_V8_context_validate`, src, src_module, ctx)
 }
 
 context_null <- function(ctx) {
