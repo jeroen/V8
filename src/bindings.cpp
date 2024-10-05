@@ -47,6 +47,15 @@ void ctx_finalizer(ctx_type* context ){
 static v8::Isolate* isolate = NULL;
 static v8::Platform* platformptr = NULL;
 
+static std::string read_text(std::string filename) {
+  std::ifstream t(filename);
+  if(t.fail())
+    throw std::runtime_error("Failed to find module file: " + filename);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  return buffer.str();
+}
+
 // Extracts a C string from a V8 Utf8Value.
 static const char* ToCString(const v8::String::Utf8Value& value) {
   return *value ? *value : "<string conversion failed>";
@@ -65,6 +74,61 @@ static void message_cb(v8::Local<v8::Message> message, v8::Local<v8::Value> data
 static void fatal_cb(const char* location, const char* message){
   REprintf("V8 FATAL ERROR in %s: %s", location, message);
 }
+
+static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context);
+
+static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> context,
+                                                        v8::Local<v8::String> specifier,
+                                                        v8::Local<v8::FixedArray> import_attributes,
+                                                        v8::Local<v8::Module> referrer) {
+  v8::String::Utf8Value name(context->GetIsolate(), specifier);
+  return read_module(*name, context);
+}
+
+static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
+                                                        v8::Local<v8::Context> context,
+                                                        v8::Local<v8::Data> host_defined_options,
+                                                        v8::Local<v8::Value> resource_name,
+                                                        v8::Local<v8::String> specifier,
+                                                        v8::Local<v8::FixedArray> import_assertions) {
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
+  v8::MaybeLocal<v8::Promise> promise(resolver->GetPromise());
+  v8::String::Utf8Value name(context->GetIsolate(), specifier);
+  try {
+    v8::Local<v8::Module> module = read_module(*name, context);
+    v8::Local<v8::Value> retValue;
+    if (!module->Evaluate(context).ToLocal(&retValue))
+      throw std::runtime_error("Failure loading module");
+    resolver->Resolve(context, module->GetModuleNamespace()).FromMaybe(false);
+  } catch(std::runtime_error err) {
+    resolver->Reject(context, ToJSString(err.what())).FromMaybe(false);
+  } catch(...) {
+    resolver->Reject(context, ToJSString("Unknown failure loading dynamic module")).FromMaybe(false);
+  }
+  return promise;
+}
+
+/* Helper fun that compiles JavaScript source code */
+static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context){
+  v8::Local<v8::String> source_text = ToJSString(read_text(filename).c_str());
+  if(source_text.IsEmpty())
+    throw std::runtime_error("Failed to load JavaScript source. Check memory/stack limits.");
+#if V8_VERSION_TOTAL < 1201
+  v8::ScriptOrigin origin(isolate,
+#else
+  v8::ScriptOrigin origin(
+#endif
+    ToJSString( filename.c_str()), 0, 0, false, -1,
+              v8::Local<v8::Value>(), false, false, true);
+  v8::ScriptCompiler::Source source(source_text, origin);
+  v8::Local<v8::Module> module;
+  if (!v8::ScriptCompiler::CompileModule(isolate, &source).ToLocal(&module))
+    throw std::runtime_error("Failed to run CompileModule() source. Check memory/stack limits.");
+  if(!module->InstantiateModule(context, ResolveModuleCallback).FromMaybe(false))
+    throw std::runtime_error("Failed to run InstantiateModule() source. Check memory/stack limits.");
+  return module;
+}
+
 
 // [[Rcpp::init]]
 void start_v8_isolate(void *dll){
@@ -103,6 +167,7 @@ void start_v8_isolate(void *dll){
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
   isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
 #endif
+  isolate->SetHostImportModuleDynamicallyCallback(ResolveDynamicModuleCallback);
 }
 
 /* Helper fun that compiles JavaScript source code */
