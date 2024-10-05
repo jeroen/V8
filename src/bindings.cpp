@@ -50,7 +50,7 @@ static v8::Platform* platformptr = NULL;
 static std::string read_text(std::string filename) {
   std::ifstream t(filename);
   if(t.fail())
-    throw std::runtime_error("Failed to find module file: " + filename);
+    throw std::runtime_error("Failed to open file: " + filename);
   std::stringstream buffer;
   buffer << t.rdbuf();
   return buffer.str();
@@ -100,8 +100,9 @@ static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
     if (!module->Evaluate(context).ToLocal(&retValue))
       throw std::runtime_error("Failure loading module");
     resolver->Resolve(context, module->GetModuleNamespace()).FromMaybe(false);
-  } catch(std::runtime_error err) {
-    resolver->Reject(context, ToJSString(err.what())).FromMaybe(false);
+  } catch(const std::exception& err) {
+    std::string errmsg(std::string("problem loading module ") + *name + ": " + err.what());
+    resolver->Reject(context, ToJSString(errmsg.c_str())).FromMaybe(false);
   } catch(...) {
     resolver->Reject(context, ToJSString("Unknown failure loading dynamic module")).FromMaybe(false);
   }
@@ -123,9 +124,9 @@ static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Con
   v8::ScriptCompiler::Source source(source_text, origin);
   v8::Local<v8::Module> module;
   if (!v8::ScriptCompiler::CompileModule(isolate, &source).ToLocal(&module))
-    throw std::runtime_error("Failed to run CompileModule() source. Check memory/stack limits.");
+    throw std::runtime_error("Failed to run CompileModule() source.");
   if(!module->InstantiateModule(context, ResolveModuleCallback).FromMaybe(false))
-    throw std::runtime_error("Failed to run InstantiateModule() source. Check memory/stack limits.");
+    throw std::runtime_error("Failed to run InstantiateModule().");
   return module;
 }
 
