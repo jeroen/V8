@@ -104,6 +104,8 @@ static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> 
   return promise;
 }
 
+#if V8_VERSION_TOTAL >= 908
+
 static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
     v8::Local<v8::Context> context,
     v8::Local<v8::Data> host_defined_options,
@@ -113,12 +115,16 @@ static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
   return dynamic_module_loader(context, specifier);
 }
 
-static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallbackLegacy(
+#else
+
+static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
     v8::Local<v8::Context> context,
     v8::Local<v8::ScriptOrModule> referrer,
     v8::Local<v8::String> specifier) {
   return dynamic_module_loader(context, specifier);
 }
+
+#endif
 
 /* Helper fun that compiles JavaScript source code */
 static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context){
@@ -179,11 +185,7 @@ void start_v8_isolate(void *dll){
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
   isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
 #endif
-#if V8_VERSION_TOTAL >= 908
   isolate->SetHostImportModuleDynamicallyCallback(ResolveDynamicModuleCallback);
-#else
-  isolate->SetHostImportModuleDynamicallyCallback(ResolveDynamicModuleCallbackLegacy);
-#endif
 }
 
 /* Helper fun that compiles JavaScript source code */
