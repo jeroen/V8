@@ -122,20 +122,26 @@ static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
   return dynamic_module_loader(context, specifier);
 }
 
+static v8::ScriptOrigin make_origin(std::string filename){
+#if defined(ISNODEJS) && NODEJS_LTS_API < 18
+  return v8::ScriptOrigin(ToJSString( filename.c_str()), v8::Integer::New(isolate, 0),
+                          v8::Integer::New(isolate, 0), v8::False(isolate), v8::Local<v8::Integer>(),
+                          v8::Local<v8::Value>(), v8::False(isolate), v8::False(isolate), v8::True(isolate));
+#elif V8_VERSION_TOTAL < 1201
+  return v8::ScriptOrigin(isolate,ToJSString( filename.c_str()), 0, 0, false, -1,
+                          v8::Local<v8::Value>(), false, false, true);
+#else
+  return v8::ScriptOrigin(ToJSString( filename.c_str()), 0, 0, false, -1,
+                          v8::Local<v8::Value>(), false, false, true);
+#endif
+}
 
 /* Helper fun that compiles JavaScript source code */
 static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context){
   v8::Local<v8::String> source_text = ToJSString(read_text(filename).c_str());
   if(source_text.IsEmpty())
     throw std::runtime_error("Failed to load JavaScript source. Check memory/stack limits.");
-#if V8_VERSION_TOTAL < 1201
-  v8::ScriptOrigin origin(isolate,
-#else
-  v8::ScriptOrigin origin(
-#endif
-    ToJSString( filename.c_str()), 0, 0, false, -1,
-              v8::Local<v8::Value>(), false, false, true);
-  v8::ScriptCompiler::Source source(source_text, origin);
+  v8::ScriptCompiler::Source source(source_text, make_origin(filename));
   v8::Local<v8::Module> module;
   if (!v8::ScriptCompiler::CompileModule(isolate, &source).ToLocal(&module))
     throw std::runtime_error("Failed to run CompileModule() source.");
