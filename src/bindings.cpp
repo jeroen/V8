@@ -104,7 +104,7 @@ static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> 
   return promise;
 }
 
-#if V8_VERSION_TOTAL >= 908
+#if V8_VERSION_TOTAL >= 905
 
 static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
     v8::Local<v8::Context> context,
