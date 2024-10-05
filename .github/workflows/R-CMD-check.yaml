@@ -19,14 +19,16 @@ jobs:
           - {os: macOS-13,   r: 'release'}
           - {os: macOS-14,   r: 'release'}
           - {os: macOS-latest,   r: 'release', disable-static: 'disable-static'}
+          - {os: windows-latest, r: '4.0'}
           - {os: windows-latest, r: '4.1'}
           - {os: windows-latest, r: '4.2'}
           - {os: windows-latest, r: '4.3'}
-          - {os: windows-latest, r: 'release'}
+          - {os: windows-latest, r: '4.4'}
           - {os: windows-2022,   r: 'devel'}
-          - {os: ubuntu-24.04,   r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest,  r: 'release'}
+          - {os: ubuntu-24.04,   r: 'release', disable-static: 'disable-static'}
           - {os: ubuntu-22.04,   r: 'release', disable-static: 'disable-static'}
-          - {os: ubuntu-20.04,   r: 'release'}
           - {os: ubuntu-20.04,   r: 'release', disable-static: 'disable-static'}
 
     env:
@@ -35,7 +37,7 @@ jobs:
       DISABLE_STATIC_LIBV8: ${{ matrix.config.disable-static }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - if: runner.os == 'macos' && matrix.config.disable-static
         run: brew install v8 || true
@@ -54,7 +56,3 @@ jobs:
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
-        env:
-          _R_CALLS_INVALID_NUMERIC_VERSION_: true
-        with:
-          upload-snapshots: true
