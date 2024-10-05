@@ -85,12 +85,7 @@ static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> c
   return read_module(*name, context);
 }
 
-static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
-                                                        v8::Local<v8::Context> context,
-                                                        v8::Local<v8::Data> host_defined_options,
-                                                        v8::Local<v8::Value> resource_name,
-                                                        v8::Local<v8::String> specifier,
-                                                        v8::Local<v8::FixedArray> import_assertions) {
+static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> context, v8::Local<v8::String> specifier) {
   v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
   v8::MaybeLocal<v8::Promise> promise(resolver->GetPromise());
   v8::String::Utf8Value name(context->GetIsolate(), specifier);
@@ -107,6 +102,22 @@ static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
     resolver->Reject(context, ToJSString("Unknown failure loading dynamic module")).FromMaybe(false);
   }
   return promise;
+}
+
+static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
+    v8::Local<v8::Context> context,
+    v8::Local<v8::Data> host_defined_options,
+    v8::Local<v8::Value> resource_name,
+    v8::Local<v8::String> specifier,
+    v8::Local<v8::FixedArray> import_assertions) {
+  return dynamic_module_loader(context, specifier);
+}
+
+static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallbackLegacy(
+    v8::Local<v8::Context> context,
+    v8::Local<v8::ScriptOrModule> referrer,
+    v8::Local<v8::String> specifier) {
+  return dynamic_module_loader(context, specifier);
 }
 
 /* Helper fun that compiles JavaScript source code */
@@ -168,7 +179,11 @@ void start_v8_isolate(void *dll){
   uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
   isolate->SetStackLimit(CurrentStackPosition - kWorkerMaxStackSize);
 #endif
+#if V8_VERSION_TOTAL >= 908
   isolate->SetHostImportModuleDynamicallyCallback(ResolveDynamicModuleCallback);
+#else
+  isolate->SetImportModuleDynamicallyCallback(ResolveDynamicModuleCallbackLegacy);
+#endif
 }
 
 /* Helper fun that compiles JavaScript source code */
