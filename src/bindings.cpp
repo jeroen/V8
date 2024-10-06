@@ -113,8 +113,10 @@ static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
 #if V8_VERSION_TOTAL >= 908
     v8::Local<v8::Data> host_defined_options,
     v8::Local<v8::Value> resource_name,
-#else
+#elif V8_VERSION_TOTAL >= 603
     v8::Local<v8::ScriptOrModule> referrer,
+#else
+    v8::Local<v8::String> referrer,
 #endif
     v8::Local<v8::String> specifier
     FixedArrayParam

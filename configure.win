@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Temp fixups R-3.6 or CRAN legacy Vista server
-if [ "${R_VERSION:0:1}" = "3" ] || [ "$LOCAL_SOFT" = "d:/Compiler/gcc-4.9.3/local330" ]; then
+# Keeping R-3.6 working on best effort basis...
+if [ "${R_VERSION:0:1}" = "3" ]; then
 cp -f tools/legacy.win src/Makevars.win
 fi
