@@ -94,7 +94,7 @@ elif [ "$IS_MACOS" ]; then
   fi
 elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
   SCRIPTURL="https://github.com/jeroen/build-v8-static/releases/download/10.8.168.25/get-v8-linux.sh"
-  ${R_HOME}/bin/R -s -e 'curl::curl_download("$SCRIPTURL","get-v8-linux.sh")' && . ./get-v8-linux.sh || true
+  ${R_HOME}/bin/R -s -e "curl::curl_download('$SCRIPTURL','get-v8-linux.sh')" && . ./get-v8-linux.sh || true
 fi
 
 # For debugging
