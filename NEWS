@@ -1,6 +1,6 @@
 6.0.0
   - Add support for dynamic ES modules
-  - Update static libv8 to version 10.8 on most platforms
+  - Linux: update static libv8 to version 11.9
 
 5.0.1
   - Remove some test verbosity per CRAN request
