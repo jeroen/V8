@@ -88,8 +88,14 @@ static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Con
 static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> context, v8::Local<v8::String> specifier
                                                         FixedArrayParam, v8::Local<v8::Module> referrer) {
   v8::String::Utf8Value name(context->GetIsolate(), specifier);
-  return read_module(*name, context);
-}
+  try {
+    return read_module(*name, context);
+  }
+  catch(const std::exception& err) {
+    isolate->ThrowException(ToJSString(err.what()));
+  }
+  return v8::Local<v8::Module>();
+};
 
 static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> context, v8::Local<v8::String> specifier) {
   v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
@@ -97,9 +103,6 @@ static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> 
   v8::String::Utf8Value name(context->GetIsolate(), specifier);
   try {
     v8::Local<v8::Module> module = read_module(*name, context);
-    v8::Local<v8::Value> retValue;
-    if (!module->Evaluate(context).ToLocal(&retValue))
-      throw std::runtime_error("Failure loading module");
     resolver->Resolve(context, module->GetModuleNamespace()).FromMaybe(false);
   } catch(const std::exception& err) {
     std::string errmsg(std::string("problem loading module ") + *name + ": " + err.what());
@@ -151,6 +154,9 @@ static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Con
     throw std::runtime_error("Failed to run CompileModule() source.");
   if(!module->InstantiateModule(context, ResolveModuleCallback).FromMaybe(false))
     throw std::runtime_error("Failed to run InstantiateModule().");
+  v8::Local<v8::Value> retValue;
+  if (!module->Evaluate(context).ToLocal(&retValue))
+    throw std::runtime_error("Failure loading module");
   return module;
 }
 
