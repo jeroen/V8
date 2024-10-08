@@ -105,8 +105,7 @@ static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> 
     v8::Local<v8::Module> module = read_module(*name, context);
     resolver->Resolve(context, module->GetModuleNamespace()).FromMaybe(false);
   } catch(const std::exception& err) {
-    std::string errmsg(std::string("problem loading module ") + *name + ": " + err.what());
-    resolver->Reject(context, ToJSString(errmsg.c_str())).FromMaybe(false);
+    resolver->Reject(context, ToJSString(err.what())).FromMaybe(false);
   } catch(...) {
     resolver->Reject(context, ToJSString("Unknown failure loading dynamic module")).FromMaybe(false);
   }
@@ -143,20 +142,35 @@ static v8::ScriptOrigin make_origin(std::string filename){
 #endif
 }
 
+static std::string throw_js_err(v8::Local<v8::Value> Exception, std::string filename){
+  std::string errmsg(std::string("Failed to import ES module '") + filename + "': " + *v8::String::Utf8Value(isolate, Exception));
+  throw std::runtime_error(errmsg);
+}
+
 /* Helper fun that compiles JavaScript source code */
 static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Context> context){
   v8::Local<v8::String> source_text = ToJSString(read_text(filename).c_str());
   if(source_text.IsEmpty())
-    throw std::runtime_error("Failed to load JavaScript source. Check memory/stack limits.");
+    throw std::runtime_error("Failed to read module file (check memory/stack limits.");
+  v8::TryCatch trycatch(isolate);
   v8::ScriptCompiler::Source source(source_text, make_origin(filename));
   v8::Local<v8::Module> module;
-  if (!v8::ScriptCompiler::CompileModule(isolate, &source).ToLocal(&module))
+  if (!v8::ScriptCompiler::CompileModule(isolate, &source).ToLocal(&module)){
+    if(trycatch.HasCaught())
+      throw_js_err(trycatch.Exception(), filename);
     throw std::runtime_error("Failed to run CompileModule() source.");
-  if(!module->InstantiateModule(context, ResolveModuleCallback).FromMaybe(false))
+  }
+  if(!module->InstantiateModule(context, ResolveModuleCallback).FromMaybe(false)){
+    if(trycatch.HasCaught())
+      throw_js_err(trycatch.Exception(), filename);
     throw std::runtime_error("Failed to run InstantiateModule().");
+  }
   v8::Local<v8::Value> retValue;
-  if (!module->Evaluate(context).ToLocal(&retValue))
+  if (!module->Evaluate(context).ToLocal(&retValue)){
+    if(trycatch.HasCaught())
+      throw_js_err(trycatch.Exception(), filename);
     throw std::runtime_error("Failure loading module");
+  }
   return module;
 }
 
