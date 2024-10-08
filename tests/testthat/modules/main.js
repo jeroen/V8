@@ -4,7 +4,7 @@ async function run_test(){
 }
 
 async function test_bad_path(){
-    const {foo, bar} = await import("modules/my-module.mjs");
+    const {foo, bar} = await import("somepackage");
     return foo + bar();
 }
 
