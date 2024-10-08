@@ -55,7 +55,7 @@ static v8::Platform* platformptr = NULL;
 
 static std::string read_text(std::string filename) {
   if(filename.empty() || (filename.at(0) != '.' && filename.at(0) != '/'))
-    throw std::runtime_error("path should begin with . or /");
+    throw std::runtime_error("Invalid module: " + filename + " (paths should begin with . or /)");
   std::ifstream t(filename);
   if(t.fail())
     throw std::runtime_error("Failed to open file: " + filename);
