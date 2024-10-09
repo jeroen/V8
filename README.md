@@ -2,8 +2,8 @@
 
 > Embedded JavaScript and WebAssembly Engine for R
 
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/V8)](http://cran.r-project.org/package=V8)
-[![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/V8)](http://cran.r-project.org/web/packages/V8/index.html)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/V8)](http://cran.r-project.org/package=V8)
+[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/V8)](http://cran.r-project.org/web/packages/V8/index.html)
 
 An R interface to V8: Google's open source JavaScript and WebAssembly 
 engine. This package can be compiled either with V8 version 6 and up or NodeJS
