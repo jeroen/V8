@@ -10,15 +10,15 @@
 #define NODEJS_LTS_API 18
 #elif V8_MAJOR_VERSION == 9
 #define NODEJS_LTS_API 16
-#elif V8_MAJOR_VERSION == 8
+#elif V8_MAJOR_VERSION < 9
 #define NODEJS_LTS_API 14
 #endif
 #endif
 
-#if !defined(ISNODEJS) || NODEJS_LTS_API > 16
-#define FixedArrayParam ,v8::Local<v8::FixedArray> import_arributes
-#else
+#if defined(NODEJS_LTS_API) && NODEJS_LTS_API < 18
 #define FixedArrayParam
+#else
+#define FixedArrayParam ,v8::Local<v8::FixedArray> import_arributes
 #endif
 
 #if V8_VERSION_TOTAL < 803
@@ -129,7 +129,7 @@ static v8::MaybeLocal<v8::Promise> ResolveDynamicModuleCallback(
 }
 
 static v8::ScriptOrigin make_origin(std::string filename){
-#if defined(ISNODEJS) && NODEJS_LTS_API < 18
+#if defined(NODEJS_LTS_API) && NODEJS_LTS_API < 18
   return v8::ScriptOrigin(ToJSString( filename.c_str()), v8::Integer::New(isolate, 0),
                           v8::Integer::New(isolate, 0), v8::False(isolate), v8::Local<v8::Integer>(),
                           v8::Local<v8::Value>(), v8::False(isolate), v8::False(isolate), v8::True(isolate));
