@@ -1,5 +1,5 @@
 6.0.0
-  - Add support for dynamic ES modules
+  - Experimental support for dynamic ES modules
   - Linux: update static libv8 to version 11.9
 
 5.0.1
