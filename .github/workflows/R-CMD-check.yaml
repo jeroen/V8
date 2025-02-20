@@ -30,7 +30,8 @@ jobs:
           - {os: ubuntu-20.04,   r: 'release'}
           - {os: ubuntu-24.04,   r: 'release', disable-static: 'disable-static'}
           - {os: ubuntu-22.04,   r: 'release', disable-static: 'disable-static'}
-          - {os: ubuntu-20.04,   r: 'release', disable-static: 'disable-static'}
+          - {os: ubuntu-24.04-arm,   r: 'release'}
+          - {os: ubuntu-24.04-arm,   r: 'release', disable-static: 'disable-static'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
