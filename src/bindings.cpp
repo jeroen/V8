@@ -1,5 +1,6 @@
 #include <libplatform/libplatform.h>
 #include "V8_types.h"
+#include <fstream>
 
 /* use conditional apis below */
 #define V8_VERSION_TOTAL (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION)
