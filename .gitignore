@@ -12,3 +12,4 @@ src/gcc_version.txt
 windows
 configure.log
 .deps
+autobrew

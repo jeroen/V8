@@ -1,9 +1,9 @@
 CXX_STD = CXX17
-RWINLIB = ../windows/libv8
+RWINLIB = ../.deps/libv8
 
 # old multilib bundles
 ifeq ($(R_COMPILED_BY),gcc 8.3.0)
-RWINLIB = ../windows/libv8$(R_ARCH)
+RWINLIB = ../.deps/libv8$(R_ARCH)
 endif
 
 # Enables pointer compression except for on 32-bit (legacy)
@@ -13,12 +13,13 @@ PKG_LIBS = \
 	-lv8_monolith \
 	-lws2_32 -lwinmm -ldbghelp -lshlwapi -lssp -lz
 
-all: clean winlibs
+all: $(SHLIB) cleanup
 
-clean:
-	rm -f $(SHLIB) $(OBJECTS)
+# Needed for parallel make
+$(OBJECTS): | $(RWINLIB)
 
-winlibs:
-	"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/winlibs.R"
+$(RWINLIB):
+	@"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/winlibs.R"
 
-.PHONY: all winlibs clean
+cleanup: $(SHLIB)
+	@rm -Rf $(RWINLIB)

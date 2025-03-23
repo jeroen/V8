@@ -3,7 +3,7 @@ PKG_CPPFLAGS=@cflags@
 PKG_LIBS=@libs@
 CXX_STD=CXX11
 
-all: clean
+all: $(SHLIB) cleanup
 
-clean:
-	rm -f $(SHLIB) $(OBJECTS)
+cleanup: $(SHLIB)
+	@rm -Rf ../.deps

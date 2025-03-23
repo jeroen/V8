@@ -1,5 +1,5 @@
-if(!file.exists('../windows/libv8/include/v8.h')){
-  unlink("../windows", recursive = TRUE)
+if(!file.exists('bindings.o') && !file.exists('../.deps/libv8/include/v8.h')){
+  unlink("../.deps", recursive = TRUE)
   url <- if(grepl("aarch", R.version$platform)){
     "https://github.com/r-windows/bundles/releases/download/v8-11.9.169.6/v8-11.9.169.6-clang-aarch64.tar.xz"
   } else if(grepl("clang", Sys.getenv('R_COMPILED_BY'))){
@@ -12,9 +12,9 @@ if(!file.exists('../windows/libv8/include/v8.h')){
     "https://github.com/r-windows/bundles/releases/download/v8-11.8.172.13/v8-9.1.269.38-win-msvcrt.tar.xz"
   }
   download.file(url, basename(url), quiet = TRUE)
-  dir.create("../windows", showWarnings = FALSE)
-  untar(basename(url), exdir = "../windows", tar = 'internal')
+  dir.create("../.deps", showWarnings = FALSE)
+  untar(basename(url), exdir = "../.deps", tar = 'internal')
   unlink(basename(url))
-  setwd("../windows")
+  setwd("../.deps")
   file.rename(list.files(), 'libv8')
 }
