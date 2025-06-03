@@ -193,6 +193,11 @@ void start_v8_isolate(void *dll){
   platformptr = v8::platform::CreateDefaultPlatform();
   v8::V8::InitializePlatform(platformptr);
 #endif
+#if V8_VERSION_TOTAL > 805 && V8_VERSION_TOTAL < 909
+  /* Flag introduced: https://github.com/v8/v8/commit/ba688c6ec9c
+   * Flag removed: https://github.com/v8/v8/commit/1771e4aaa */
+  v8::V8::SetFlagsFromString("--experimental-wasm-reftypes");
+#endif
   v8::V8::Initialize();
   v8::Isolate::CreateParams create_params;
   create_params.array_buffer_allocator =
