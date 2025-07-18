@@ -206,10 +206,8 @@ void start_v8_isolate(void *dll){
   if(!isolate)
     throw std::runtime_error("Failed to initiate V8 isolate");
 
-#if V8_VERSION_TOTAL >= 1400
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
-#endif
 
   isolate->AddMessageListener(message_cb);
   isolate->SetFatalErrorHandler(fatal_cb);
