@@ -205,6 +205,10 @@ void start_v8_isolate(void *dll){
   isolate = v8::Isolate::New(create_params);
   if(!isolate)
     throw std::runtime_error("Failed to initiate V8 isolate");
+
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
+
   isolate->AddMessageListener(message_cb);
   isolate->SetFatalErrorHandler(fatal_cb);
 
