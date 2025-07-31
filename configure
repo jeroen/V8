@@ -124,11 +124,10 @@ fi
 
 # Test if we need to enable pointer compression (Usually V8 8.4 and up, except for NodeJS)
 echo "Running feature test for pointer compression..."
-${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} -DV8_ENABLE_CHECKS tools/test.cpp -o pctest1 ${PKG_LIBS} ${LDFLAGS} -ldl -pthread
+${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} tools/test.cpp -o pctest1 ${PKG_LIBS} ${LDFLAGS} -ldl -pthread
 { ./pctest1; } 2>> configure.log
 if [ $? -eq 0 ]; then
   echo "Pointer compression not needed"
-  PKG_CFLAGS="$PKG_CFLAGS -DV8_ENABLE_CHECKS"
 else
   echo "Enabling pointer compression"
   PKG_CFLAGS="$PKG_CFLAGS -DV8_COMPRESS_POINTERS"

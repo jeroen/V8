@@ -1,3 +1,8 @@
+6.0.5
+  - Remove -DV8_ENABLE_CHECKS from standard build flags because it causes
+    problems with node24 on Fedora (#190)
+  - Add scope to start_v8_isolate() for libv8 v14 and up (#189)
+
 6.0.4
   - Enable wasm-reftypes on libv8 v8.5 - v9.9 which was opt-in back then. This
     feature is needed for rust compiled wasm.
