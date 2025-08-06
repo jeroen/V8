@@ -12,9 +12,9 @@ Description: An R interface to V8 <https://v8.dev>: Google's open source JavaScr
 License: MIT + file LICENSE
 URL: https://jeroen.r-universe.dev/V8
 BugReports: https://github.com/jeroen/v8/issues
-SystemRequirements: V8 engine version 6+ is needed for ES6 and WASM support. On
-    Linux you can build against libv8-dev (Debian) or v8-devel (Fedora). We also
-    provide static libv8 binaries for most platforms, see the README for details.
+SystemRequirements: On Linux you can build against libv8-dev (Debian) or v8-devel 
+    (Fedora). We also provide static libv8 binaries for most platforms, see the 
+    README for details.
 NeedsCompilation: yes
 VignetteBuilder: knitr
 Imports:
