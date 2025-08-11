@@ -151,7 +151,7 @@ v8 <- function(global = "global", console = TRUE, ...) {
     validate <- function(src){
       context_validate(join(src), private$context)
     }
-    call <- function(fun, ..., auto_unbox = TRUE, await = FALSE){
+    call <- function(fun, ..., auto_unbox = TRUE, await = FALSE, simplify = TRUE){
       stopifnot(is.character(fun))
       stopifnot(this$validate(c("fun=", fun)));
       jsargs <- list(...);
@@ -170,7 +170,7 @@ v8 <- function(global = "global", console = TRUE, ...) {
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
       src <- paste0("(", fun ,")(", jsargs, ");")
-      get_json_output(evaluate_js(src, serialize = TRUE, await = await))
+      get_json_output(evaluate_js(src, serialize = TRUE, await = await), simplifyVector = simplify)
     }
     source <- function(file){
       if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
