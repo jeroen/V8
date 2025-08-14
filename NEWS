@@ -1,6 +1,7 @@
 6.0.6
   - Update to wasm-feature-detect@1.8.0
   - ctx$call() gains argument simplify which is passed to fromJSON()
+  - ctx$eval('null', TRUE) now returns "null" instead of NULL
 
 6.0.5
   - Remove -DV8_ENABLE_CHECKS from standard build flags because it causes

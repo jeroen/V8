@@ -336,8 +336,10 @@ std::string version(){
 }
 
 static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
-  if(value.IsEmpty() || value->IsNullOrUndefined()){
+  if(value.IsEmpty() || value->IsUndefined()){
     return R_NilValue;
+  } else if(value->IsNull()){
+    return Rcpp::CharacterVector::create(Rcpp::String("null"));
   } else if(value->IsArrayBuffer() || value->IsArrayBufferView()){
     v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
     value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
