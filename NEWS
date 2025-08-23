@@ -1,3 +1,7 @@
+7.0.0
+  - Static library has been updated to libv8 12.4.254.21.
+  - We now support arm64 and amd64 static libs for all platforms.
+
 6.0.6
   - Update to wasm-feature-detect@1.8.0
   - ctx$call() gains argument simplify which is passed to fromJSON()

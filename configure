@@ -20,19 +20,21 @@ UNAME=`uname`
 UARCH=`uname -m`
 
 # Test common production platforms
-if test -f "/etc/redhat-release" && ! grep -Fq Fedora "/etc/redhat-release"; then
-IS_RHEL=1
-fi
-if test -f "/etc/os-release" && grep -Fq Ubuntu "/etc/os-release"; then
-IS_UBUNTU=1
-fi
 if [ "$UNAME" = "Darwin" ]; then
-IS_MACOS=1
+HAVE_STATIC=1
+elif test -f "/etc/redhat-release" && ! grep -Fq Fedora "/etc/redhat-release"; then
+HAVE_STATIC=1
+elif test -f "/etc/os-release" && grep -Fq Ubuntu "/etc/os-release"; then
+HAVE_STATIC=1
+elif test -f "/etc/os-release" && grep -Fq suse "/etc/os-release"; then
+HAVE_STATIC=1
+elif test -f "/etc/os-release" && grep -Fq alpine "/etc/os-release"; then
+HAVE_STATIC=1
 fi
 
 # Default to static V8 on supported production platforms
 if [ -z "$DISABLE_STATIC_LIBV8" ]; then
-if [ "$IS_MACOS" ] || [ "$IS_UBUNTU" ] || [ "$IS_RHEL" ] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ] || [ -f "/usr/include/v8-3.14/v8.h" ]; then
+if [ "$HAVE_STATIC" ] || [ "$CI" ] || [ -f "/usr/lib/libv8.so.3.14.5" ] || [ -f "/usr/include/v8-3.14/v8.h" ]; then
 if [ "$UARCH" = "x86_64" ] || [ "$UARCH" = "arm64" ] || [ "$UARCH" = "aarch64" ] || [ "$UARCH" = "ppc64le" ]; then
 DOWNLOAD_STATIC_LIBV8=1
 fi
@@ -80,7 +82,7 @@ if [ "$INCLUDE_DIR" ] || [ "$LIB_DIR" ]; then
   echo "Found INCLUDE_DIR and/or LIB_DIR!"
   PKG_CFLAGS="-I$INCLUDE_DIR $PKG_CFLAGS"
   PKG_LIBS="-L$LIB_DIR $PKG_LIBS"
-elif [ "$IS_MACOS" ]; then
+elif [ `uname` = "Darwin" ]; then
   if [ `command -v brew` ] && [ -z "$DOWNLOAD_STATIC_LIBV8" ]; then
     BREWDIR=`brew --prefix`
     V8HOME="$BREWDIR/opt/$PKG_BREW_NAME"
@@ -91,7 +93,7 @@ elif [ "$IS_MACOS" ]; then
     . ./autobrew
   fi
 elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
-  SCRIPTURL="https://github.com/jeroen/build-v8-static/releases/download/11.9.169.7/get-v8-linux.sh"
+  SCRIPTURL="https://github.com/jeroen/build-v8-static/releases/download/12.4.254.21/get-v8-linux.sh"
   ${R_HOME}/bin/R -s -e "curl::curl_download('$SCRIPTURL','get-v8-linux.sh')" && . ./get-v8-linux.sh || true
 fi
 
@@ -108,7 +110,6 @@ if [ $? -ne 0 ]; then
   echo " * deb: $PKG_DEB_NAME (Debian / Ubuntu)"
   echo " * rpm: $PKG_RPM_NAME (Fedora, EPEL)"
   echo " * brew: $PKG_BREW_NAME (OSX)"
-  echo " * csw: $PKG_CSW_NAME (Solaris)"
   echo "Alternatively, on Linux (x86_64) or MacOS you can set environment variable:"
   echo "    DOWNLOAD_STATIC_LIBV8=1"
   echo "to automatically download a static version of libv8."
