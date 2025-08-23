@@ -1,8 +1,6 @@
-# Anticonf (tm) script by Jeroen Ooms (2021)
+# Anticonf (tm) script by Jeroen Ooms (2025)
 # Package requires either at least libv8 version 6 or nodejs built as shared library
-# If your libv8 is installed in a custom location you need to set
-# INCLUDE_DIR and LIB_DIR manually via e.g:
-# R CMD INSTALL --configure-vars='INCLUDE_DIR=/.../include LIB_DIR=/.../lib'
+# To use a local custom libv8 set V8_PKG_CFLAGS and V8_PKG_LIBS (see below)
 PKG_DEB_NAME="libv8-dev or libnode-dev"
 PKG_RPM_NAME="v8-devel"
 PKG_CSW_NAME="libv8_dev"
