@@ -35,7 +35,7 @@ On Linux you need a suitable libv8 installation, see below.
 
 ### Linux: Static libv8
 
-On amd64/arm64 Linux/MacOS platforms it is possible (and recommended) to automatically download a suitable static build of libv8 during package installation. This is enabled by default on Ubuntu, RHEL, and MacOS. For other systems you can opt-in by setting an environment variable `DOWNLOAD_STATIC_LIBV8` during installation, for example:
+On amd64/arm64 Linux/MacOS platforms it is possible (and recommended) to automatically download a suitable static build of libv8 during package installation. This is enabled by default on Ubuntu, RHEL, OpenSuse, Alpine, and MacOS. For other systems you can opt-in by setting an environment variable `DOWNLOAD_STATIC_LIBV8` during installation, for example:
 
 ```r
 Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1)
