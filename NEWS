@@ -1,5 +1,6 @@
 7.0.0
-  - Static library has been updated to libv8 12.4.254.21.
+  - Static library for Linux has been updated to libv8 12.4.254.21 (node-22)
+  - Static library for MacOS arm64 updated to libv8 13.6.233.10 (node-24)
   - We now support arm64 and amd64 static libs for all platforms.
 
 6.0.6
