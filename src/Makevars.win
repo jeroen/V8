@@ -1,4 +1,4 @@
-CXX_STD = CXX17
+CXX_STD = CXX20
 RWINLIB = ../.deps/libv8
 
 # old multilib bundles
@@ -7,7 +7,7 @@ RWINLIB = ../.deps/libv8$(R_ARCH)
 endif
 
 # Enables pointer compression except for on 32-bit (legacy)
-PKG_CPPFLAGS = -I$(RWINLIB)/include -DV8_COMPRESS_POINTERS$(subst 64,,$(WIN))
+PKG_CPPFLAGS = -I$(RWINLIB)/include -DV8_ENABLE_SANDBOX -DV8_COMPRESS_POINTERS$(subst 64,,$(WIN))
 PKG_LIBS = \
 	-L$(RWINLIB)/lib \
 	-lv8_monolith \
