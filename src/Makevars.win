@@ -11,7 +11,7 @@ PKG_CPPFLAGS = -I$(RWINLIB)/include -DV8_ENABLE_SANDBOX -DV8_COMPRESS_POINTERS$(
 PKG_LIBS = \
 	-L$(RWINLIB)/lib \
 	-lv8_monolith \
-	-lws2_32 -lwinmm -ldbghelp -lshlwapi -lssp -lz
+	-lws2_32 -lwinmm -ldbghelp -lshlwapi -lssp -lz -lpthread
 
 all: $(SHLIB) cleanup
 
