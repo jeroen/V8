@@ -88,7 +88,11 @@ static v8::Local<v8::Module> read_module(std::string filename, v8::Local<v8::Con
 
 static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> context, v8::Local<v8::String> specifier
                                                         FixedArrayParam, v8::Local<v8::Module> referrer) {
+#if V8_VERSION_TOTAL >= 1402
+  v8::String::Utf8Value name(v8::Isolate::GetCurrent(), specifier);
+#else
   v8::String::Utf8Value name(context->GetIsolate(), specifier);
+#endif
   try {
     return read_module(*name, context);
   }
@@ -101,7 +105,11 @@ static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> c
 static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> context, v8::Local<v8::String> specifier) {
   v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
   v8::MaybeLocal<v8::Promise> promise(resolver->GetPromise());
+#if V8_VERSION_TOTAL >= 1402
+  v8::String::Utf8Value name(v8::Isolate::GetCurrent(), specifier);
+#else
   v8::String::Utf8Value name(context->GetIsolate(), specifier);
+#endif
   try {
     v8::Local<v8::Module> module = read_module(*name, context);
     resolver->Resolve(context, module->GetModuleNamespace()).FromMaybe(false);
