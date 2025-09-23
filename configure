@@ -92,6 +92,10 @@ elif [ `uname` = "Darwin" ]; then
     curl -sfL "https://autobrew.github.io/scripts/$PKG_BREW_NAME" > autobrew
     . ./autobrew
   fi
+elif [ `uname` = "Emscripten" ]; then
+  PKG_CFLAGS=""
+  PKG_LIBS=""
+  PKG_TEST_HEADER="<emscripten.h>"
 elif [ "$DOWNLOAD_STATIC_LIBV8" ]; then
   SCRIPTURL="https://github.com/jeroen/build-v8-static/releases/download/12.4.254.21/get-v8-linux.sh"
   ${R_HOME}/bin/R -s -e "curl::curl_download('$SCRIPTURL','get-v8-linux.sh')" && . ./get-v8-linux.sh || true
@@ -147,6 +151,7 @@ fi
 
 rm -Rf pctest*
 
+if [ `uname` != "Emscripten" ]; then
 # Test the runtime V8 version is nodejs
 ${CXX} ${PKG_CFLAGS} ${CPPFLAGS} ${CXXFLAGS} tools/version.cpp -o v8version ${PKG_LIBS} ${LDFLAGS} -ldl -pthread || true
 V8VERSION=$(./v8version) || true
@@ -155,6 +160,7 @@ case $V8VERSION in
     PKG_CFLAGS="$PKG_CFLAGS -DISNODEJS=$V8VERSION"
 esac
 rm -Rf v8version*
+fi
 
 # Assume a modern V8 API
 sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makevars.in > src/Makevars
