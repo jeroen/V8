@@ -21,8 +21,8 @@ wasm <- function(data){
     stop("Data must be file path or raw vector")
   ctx <- v8()
   ctx$assign('bytes', data)
-  ctx$eval('let module = new WebAssembly.Module(bytes);')
-  ctx$eval('let instance = new WebAssembly.Instance(module);')
+  ctx$eval('var module = new WebAssembly.Module(bytes);')
+  ctx$eval('var instance = new WebAssembly.Instance(module);')
   function_names <- ctx$get('Object.keys(instance.exports)')
   exports <- structure(lapply(function_names, function(f){
     body <- sprintf('call("instance.exports.%s", ...)', f)
