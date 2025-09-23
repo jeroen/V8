@@ -34,10 +34,6 @@ in browsers) can be set with the global argument. A context always have a global
 scope, even when no name is set. When a context is initiated with \code{global = NULL},
 the global environment can be reached by evaluating \code{this} in the global scope,
 for example: \code{ct$eval("Object.keys(this)")}.
-}
-\section{V8 Context Methods}{
-
-\Sexpr[results=rd, stage=build, echo=FALSE]{V8:::generate_rd()}
 
 The \code{ct$eval} method evaluates a string of JavaScript code in the same way
 as \code{eval} in JavaScript. By default \code{eval()} returns a string with
@@ -62,7 +58,6 @@ interactive JavaScript console. Here you can use \code{console.log} to print
 objects, and there is some support for JS tab-completion. This is mostly for
 testing and debugging, it may not work perfectly in every IDE or R-frontend.
 }
-
 \section{Data Interchange}{
 
 JSON is used for data interchange between R and JavaScript. Therefore you can
@@ -70,7 +65,7 @@ JSON is used for data interchange between R and JavaScript. Therefore you can
 One exception is raw vectors which are converted to/from Uint8Array buffers, see
 below. All other arguments and objects are automatically converted according to the mapping
 described in \href{https://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
-by the jsonlite package in \code{\link[jsonlite:fromJSON]{jsonlite::fromJSON()}} and \code{\link[jsonlite:fromJSON]{jsonlite::toJSON()}}.
+by the jsonlite package in \code{\link[=fromJSON]{fromJSON()}} and \code{\link[=toJSON]{toJSON()}}.
 
 As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
 typed arrays, and vice versa. This makes it possible to efficiently copy large chunks

@@ -15,8 +15,9 @@
 #' the global environment can be reached by evaluating `this` in the global scope,
 #' for example: `ct$eval("Object.keys(this)")`.
 #'
-#' @section V8 Context Methods:
-#' \Sexpr[results=rd, stage=build, echo=FALSE]{V8:::generate_rd()}
+# TODO: deal with Sexp in rwasm
+# @section V8 Context Methods:
+# \Sexpr[results=rd, stage=build, echo=FALSE]{V8:::generate_rd()}
 #'
 #' The `ct$eval` method evaluates a string of JavaScript code in the same way
 #' as `eval` in JavaScript. By default `eval()` returns a string with
