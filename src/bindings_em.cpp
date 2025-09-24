@@ -54,7 +54,7 @@ EM_JS(js_result*, em_eval, (int ctx, const char* str, bool serialize, bool await
     HEAPU32.set([buf], ptr / 4 + 1);
   } else {
     const len = new Int32Array([-1]);
-    const buf = stringToNewUTF8(ret.result);
+    const buf = stringToNewUTF8(String(ret.result));
     HEAP32.set(len, ptr / 4);
     HEAPU32.set([buf], ptr / 4 + 1);
   }
@@ -94,11 +94,26 @@ EM_JS(bool, em_validate, (int ctx, const char* str), {
 EM_JS(int, em_make_context, (), {
   if (!globalThis._webr_v8_handles) {
     globalThis._webr_v8_ctx_count = 0;
+    globalThis._webr_v8_gid = 0;
     globalThis._webr_v8_handles = new Map();
   }
   const url = URL.createObjectURL(new Blob([`
     self.console.r = {
-      call: (...args) => console.log(...args),
+      call: (rfn, args = []) => {
+        const id = self._webr_v8_gid++;
+        self.postMessage({ id, cmd: 'rcall', rfn, args });
+        // TODO: Return values requires sync request
+        return null;
+      },
+      get: (name, opts = []) => {
+        // TODO: Return values requires sync request
+        return null;
+      },
+      assign: (name, obj, opts = {}) => {
+        const id = self._webr_v8_gid++;
+        self.postMessage({ id, cmd: 'rassign', name, obj, opts });
+        return null;
+      },
     };
     self.convert = (data, serialize) => {
       if (serialize) {
@@ -146,6 +161,35 @@ EM_JS(int, em_make_context, (), {
     };
   `]));
   const worker = new Worker(url);
+  worker.onmessage = (ev) => {
+    const data = ev.data;
+    if ('cmd' in data) {
+      switch(data.cmd) {
+        case 'rcall': {
+          const { rfn, args } = data;
+          try {
+            self.Module.webr.evalR(`do.call(${rfn}, jsonlite::fromJSON(r"-[${JSON.stringify(args)}]-", simplifyVector = FALSE))`);
+          } catch (e) {
+            console.error("Error in rcall:", e.message);
+          }
+          break;
+        }
+        case 'rassign': {
+          const { name, obj, opts } = data;
+          try {
+            self.Module.webr.evalR(`
+              ${name} <- jsonlite::fromJSON(
+                r"-[${JSON.stringify(obj)}]-",
+                jsonlite::fromJSON(r"-[${JSON.stringify(opts)}]-")
+              )`);
+          } catch (e) {
+            console.error("Error in rassign:", e.message);
+          }
+          break;
+        }
+      }
+    }
+  };
   globalThis._webr_v8_handles.set(++globalThis._webr_v8_ctx_count, worker);
   return globalThis._webr_v8_ctx_count;
 });
