@@ -1,4 +1,3 @@
-#ifndef __EMSCRIPTEN__
 #include <libplatform/libplatform.h>
 #include <v8.h>
 using namespace v8;
@@ -10,4 +9,3 @@ int main(){
 #endif
   V8::Initialize();
 }
-#endif // __EMSCRIPTEN__
