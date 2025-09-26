@@ -1,4 +1,3 @@
-#ifndef __EMSCRIPTEN__
 #include <libplatform/libplatform.h>
 #include "V8_types.h"
 #include <fstream>
@@ -547,4 +546,3 @@ ctxptr make_context(bool set_console){
   ctx_type *ptr = new ctx_type(isolate, context);
   return ctxptr(ptr);
 }
-#endif // __EMSCRIPTEN__

@@ -1,5 +1,3 @@
-#ifdef __EMSCRIPTEN__
-
 #include "V8_types.h"
 #include <fstream>
 #include <emscripten.h>
@@ -264,5 +262,3 @@ ctxptr make_context(bool set_console){
   ctx_type *ptr = new ctx_type(ctx);
   return ctxptr(ptr);
 }
-
-#endif // __EMSCRIPTEN__
