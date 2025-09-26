@@ -1,3 +1,7 @@
+8.0.0
+  - Add shim for emscripten to run JS/WASM in a web worker.
+  - Windows: update libv8 and fix threading bug.
+
 7.0.0
   - Static library for Linux has been updated to libv8 12.4.254.21 (node-22)
   - Static library for MacOS arm64 updated to libv8 13.6.233.10 (node-24)
