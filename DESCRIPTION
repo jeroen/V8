@@ -5,6 +5,7 @@ Version: 7.0.1
 Authors@R: c(
     person("Jeroen", "Ooms", role = c("aut", "cre"), email = "jeroenooms@gmail.com",
       comment = c(ORCID = "0000-0002-4035-0289")),
+    person("George", "Stagg", role = "ctb", comment = c(ORCID = "0009-0006-3173-9846")),
     person("Jan Marvin", "Garbuszus", role = "ctb"))
 Description: An R interface to V8 <https://v8.dev>: Google's open source JavaScript
     and WebAssembly engine. This package can be compiled either with V8 version 6 
