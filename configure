@@ -9,6 +9,12 @@ PKG_TEST_HEADER="<v8.h>"
 PKG_LIBS="-lv8 -lv8_libplatform"
 PKG_CFLAGS="-I/usr/include/v8"
 
+# Special case build for WebR
+if [ `uname` = "Emscripten" ]; then
+cp -f src/Makevars.em src/Makevars
+exit 0
+fi
+
 # Allow users to override PKG_LIBS and PKG_CFLAGS
 if [ "$V8_PKG_LIBS" ]; then
 PKG_LIBS="$V8_PKG_LIBS"

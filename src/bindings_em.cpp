@@ -135,7 +135,7 @@ EM_JS(int, em_make_context, (), {
               });
             } else {
               const tmp = convert(result, data.serialize);
-              self.postMessage({ uuid, result: convert(result, data.serialize) }); 
+              self.postMessage({ uuid, result: convert(result, data.serialize) });
             }
             break;
           }
@@ -198,16 +198,15 @@ void ctx_finalizer(ctx_type* context ){
   delete context;
 }
 
-// [[Rcpp::init]]
 void start_v8_isolate(void *dll){
 }
 
-// [[Rcpp::export]]
+
 std::string version(){
   return "9999";
 }
 
-// [[Rcpp::export]]
+
 Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false, bool await = false){
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -220,7 +219,7 @@ Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false,
   }
 
   // See above, :/
-  js_result* result = res.get(); 
+  js_result* result = res.get();
   if (result->len < 0) {
     Rcpp::String str(result->data, CE_UTF8);
     Rcpp::CharacterVector out(1);
@@ -234,7 +233,7 @@ Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false,
   }
 }
 
-// [[Rcpp::export]]
+
 bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -246,20 +245,20 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
   return true;
 }
 
-// [[Rcpp::export]]
+
 bool context_validate(Rcpp::String src, ctxptr ctx) {
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
   return em_validate(*ctx, src.get_cstring());
 }
 
-// [[Rcpp::export]]
+
 bool context_null(ctxptr ctx) {
   // Test if context still exists
   return(!ctx);
 }
 
-// [[Rcpp::export]]
+
 ctxptr make_context(bool set_console){
   int ctx = em_make_context();
   ctx_type *ptr = new ctx_type(ctx);
