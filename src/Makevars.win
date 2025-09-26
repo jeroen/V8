@@ -15,8 +15,6 @@ PKG_LIBS = \
 
 all: $(SHLIB) cleanup
 
-OBJECTS = bindings.o RcppExports.o
-
 # Needed for parallel make
 $(OBJECTS): | $(RWINLIB)
 

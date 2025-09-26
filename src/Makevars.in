@@ -3,8 +3,6 @@ PKG_CPPFLAGS=@cflags@
 PKG_LIBS=@libs@
 CXX_STD=CXX11
 
-OBJECTS = bindings.o RcppExports.o
-
 all: $(SHLIB) cleanup
 
 cleanup: $(SHLIB)

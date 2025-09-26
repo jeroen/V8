@@ -11,7 +11,7 @@ PKG_CFLAGS="-I/usr/include/v8"
 
 # Special case build for WebR
 if [ `uname` = "Emscripten" ]; then
-cp -f src/Makevars.em src/Makevars
+cp -f src/emscripten/Makevars src/Makevars
 exit 0
 fi
 

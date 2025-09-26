@@ -1,0 +1,2 @@
+PKG_CXXFLAGS=$(CXX_VISIBILITY)
+OBJECTS = emscripten/bindings.o RcppExports.o
