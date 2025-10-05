@@ -201,6 +201,9 @@ void start_v8_isolate(void *dll){
   platformptr = v8::platform::CreateDefaultPlatform();
   v8::V8::InitializePlatform(platformptr);
 #endif
+#if V8_VERSION_TOTAL >= 1401
+  v8::V8::SetFlagsFromString("--harmony-temporal");
+#endif
 #if V8_VERSION_TOTAL > 805 && V8_VERSION_TOTAL < 909
   /* Flag introduced: https://github.com/v8/v8/commit/ba688c6ec9c
    * Flag removed: https://github.com/v8/v8/commit/1771e4aaa */
