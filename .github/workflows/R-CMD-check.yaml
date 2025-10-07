@@ -20,7 +20,6 @@ jobs:
           - {os: macOS-14,   r: 'release'}
           - {os: macOS-latest,   r: 'release', disable-static: 'disable-static'}
           - {os: windows-2025, r: '3.6'}
-          - {os: windows-2025, r: '4.0'}
           - {os: windows-2025, r: '4.1'}
           - {os: windows-2025, r: '4.2'}
           - {os: windows-2025, r: '4.3'}
