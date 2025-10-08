@@ -26,6 +26,7 @@ jobs:
           - {os: windows-2025, r: '4.4'}
           - {os: windows-2025, r: '4.5'}
           - {os: windows-2022,   r: 'devel'}
+          - {os: windows-11-arm, r: 'devel'}
           - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-24.04,   r: 'release', disable-static: 'disable-static'}
           - {os: ubuntu-22.04,   r: 'release', disable-static: 'disable-static'}
