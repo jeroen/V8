@@ -8,8 +8,8 @@ Authors@R: c(
     person("George", "Stagg", role = "ctb", comment = c(ORCID = "0009-0006-3173-9846")),
     person("Jan Marvin", "Garbuszus", role = "ctb"))
 Description: An R interface to V8 <https://v8.dev>: Google's open source JavaScript
-    and WebAssembly engine. This package can be compiled either with V8 version 6 
-    and up or NodeJS when built as a shared library.
+    and WebAssembly engine. This package can be compiled either with V8 or NodeJS 
+    when built as a shared library.
 License: MIT + file LICENSE
 URL: https://jeroen.r-universe.dev/V8
 BugReports: https://github.com/jeroen/v8/issues

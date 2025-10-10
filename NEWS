@@ -1,5 +1,6 @@
 8.0.1
   - Windows: downgrade libv8 to 11.9 for now due to WASM bug in 14.0
+  - Enable experimental temporal api on libv8 > 14.1
 
 8.0.0
   - Add shim for emscripten to run JS/WASM in a web worker.
