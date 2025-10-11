@@ -125,3 +125,4 @@ jscode <- ctx$call("CoffeeScript.compile", "square = (x) -> x * x", list(bare = 
 ctx$eval(jscode)
 ctx$call("square", 9)
 ```
+
