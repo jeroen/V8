@@ -100,7 +100,7 @@ static v8::MaybeLocal<v8::Module> ResolveModuleCallback(v8::Local<v8::Context> c
     isolate->ThrowException(ToJSString(err.what()));
   }
   return v8::Local<v8::Module>();
-};
+}
 
 static v8::MaybeLocal<v8::Promise> dynamic_module_loader(v8::Local<v8::Context> context, v8::Local<v8::String> specifier) {
   v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
@@ -201,7 +201,7 @@ void start_v8_isolate(void *dll){
   platformptr = v8::platform::CreateDefaultPlatform();
   v8::V8::InitializePlatform(platformptr);
 #endif
-#if V8_VERSION_TOTAL >= 1401
+#if V8_VERSION_TOTAL >= 1401 && V8_VERSION_TOTAL < 1404
   v8::V8::SetFlagsFromString("--harmony-temporal");
 #endif
 #if V8_VERSION_TOTAL > 805 && V8_VERSION_TOTAL < 909
