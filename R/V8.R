@@ -136,6 +136,11 @@
 v8 <- function(global = "global", console = TRUE, ...) {
   # Private fields
   private <- environment();
+  args <- list(...)
+  backend <- args$backend
+  # message(backend)
+  if (is.null(list(...)$backend)) private$backend <- "jsonlite"
+  match.arg(arg = private$backend, choices = c("jsonlite", "arrow"))
 
   # Low level evaluate
   evaluate_js <- function(src, serialize = FALSE, await = FALSE){
@@ -164,13 +169,22 @@ v8 <- function(global = "global", console = TRUE, ...) {
         } else if(is.atomic(x) && inherits(x, "JS_EVAL")){
           as.character(x)
         } else {
-          # To box or not. I'm not sure.
-          toJSON(x, auto_unbox = auto_unbox)
+          if (private$backend == "arrow") {
+            tempstr <- basename(tempfile())
+            assign(tempstr, x)
+            tempstr
+          } else {
+            # To box or not. I'm not sure.
+            toJSON(x, auto_unbox = auto_unbox)
+          }
         }
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
       src <- paste0("(", fun ,")(", jsargs, ");")
-      get_json_output(evaluate_js(src, serialize = TRUE, await = await), simplifyVector = simplify)
+      # print(src)
+      value <- evaluate_js(src, serialize = TRUE, await = await)
+      if (private$backend == "arrow") get(value)
+      else get_json_output(value, simplifyVector = simplify)
     }
     source <- function(file){
       if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
@@ -182,7 +196,17 @@ v8 <- function(global = "global", console = TRUE, ...) {
     }
     get <- function(name, ..., await = FALSE){
       stopifnot(is.character(name))
-      get_json_output(evaluate_js(name, serialize = TRUE, await = await), ...)
+      if (private$backend == "jsonlite") {
+        get_json_output(evaluate_js(name, serialize = TRUE, await = await), ...)
+      } else if (private$backend == "arrow") {
+        name <- sprintf("
+          (() => {
+            let tab = Arrow.tableFromJSON(%s);
+            return Arrow.tableToIPC(tab, 'stream');
+          })()
+        ", name)
+        arrow::read_ipc_stream(evaluate_js(name, serialize = TRUE, await = await))
+      }
     }
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
@@ -191,7 +215,13 @@ v8 <- function(global = "global", console = TRUE, ...) {
       } else if(inherits(value, "JS_EVAL")) {
         invisible(evaluate_js(paste("var", name, "=", value)))
       } else {
-        invisible(evaluate_js(paste("var", name, "=", toJSON(value, auto_unbox = auto_unbox, ...))))
+        if (private$backend == "jsonlite") {
+          invisible(evaluate_js(paste("var", name, "=", toJSON(value, auto_unbox = auto_unbox, ...))))
+        } else if (private$backend == "arrow") {
+          value <- arrow::write_to_raw(value, format = "stream")
+          write_array_buffer(name, value, private$context)
+          invisible(evaluate_js(paste("var", name, "=", "Arrow.tableFromIPC(", name, ").toArray();")))
+        }
       }
     }
     reset <- function(){
@@ -252,6 +282,16 @@ v8 <- function(global = "global", console = TRUE, ...) {
 
     #reg.finalizer(environment(), function(e){}, TRUE)
     reset()
+
+    if (backend == "arrow") {
+      if (!requireNamespace("arrow", quietly = TRUE)) {
+        stop("the arrow backend requires the arrow package to be installed")
+      }
+      source(system.file("js/encoding.js", package = "V8"))
+      source(system.file("js/apache_arrow.js", package = "V8"))
+      private$backend <- "arrow"
+    }
+
     lockEnvironment(environment(), TRUE)
     structure(environment(), class=c("V8", "environment"))
   })
