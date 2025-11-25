@@ -346,31 +346,54 @@ std::string version(){
   return v8::V8::GetVersion();
 }
 
-static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
-  if(value.IsEmpty() || value->IsUndefined()){
+static Rcpp::RObject convert_object(v8::Local<v8::Value> value) {
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+  if (value.IsEmpty() || value->IsUndefined()) {
     return R_NilValue;
   }
 
-  if(value->IsNull()){
-    return Rcpp::CharacterVector::create(Rcpp::String("null"));
+  if (value->IsNull()) {
+    return Rcpp::CharacterVector::create("null");
   }
 
-  if(value->IsArrayBuffer() || value->IsArrayBufferView()){
+  if (value->IsArrayBufferView()) {
+    v8::Local<v8::ArrayBufferView> view = value.As<v8::ArrayBufferView>();
 
-    v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
-      value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
+    size_t byte_length = view->ByteLength();
+    size_t byte_offset = view->ByteOffset();
 
+    std::shared_ptr<v8::BackingStore> backing = view->Buffer()->GetBackingStore();
+
+    Rcpp::RawVector data(byte_length);
+
+    uint8_t* ptr = static_cast<uint8_t*>(backing->Data());
+    memcpy(data.begin(), ptr + byte_offset, byte_length);
+
+    return data;
+
+  } else if (value->IsArrayBuffer()) {
+    v8::Local<v8::ArrayBuffer> buffer = value.As<v8::ArrayBuffer>();
     std::shared_ptr<v8::BackingStore> backing = buffer->GetBackingStore();
+
     Rcpp::RawVector data(backing->ByteLength());
-
-    memcpy(data.begin(), backing->Data(), data.size());
-
+    memcpy(data.begin(), backing->Data(), backing->ByteLength());
     return data;
   }
 
-  // (Keep existing logic for non-binary objects)
-  v8::Local<v8::Object> obj1 = value->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-  v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), obj1).ToLocalChecked());
+  // Optimize: JSON Serialization
+  // REMOVED: value->ToObject(...)
+  // Rationale: JSON::Stringify handles primitives directly. Forcing ToObject
+  // creates unnecessary V8 heap wrappers for simple values.
+
+  v8::MaybeLocal<v8::String> json_maybe = v8::JSON::Stringify(context, value);
+
+  if (json_maybe.IsEmpty()) {
+    // Handle cyclic structures or stringify errors gracefully
+    return Rcpp::CharacterVector::create(NA_STRING);
+  }
+
+  v8::String::Utf8Value utf8(isolate, json_maybe.ToLocalChecked());
   return Rcpp::CharacterVector::create(Rcpp::String(*utf8));
 }
 
