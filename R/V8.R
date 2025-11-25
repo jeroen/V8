@@ -199,12 +199,21 @@ v8 <- function(global = "global", console = TRUE, ...) {
       if (private$backend == "jsonlite") {
         get_json_output(evaluate_js(name, serialize = TRUE, await = await), ...)
       } else if (private$backend == "arrow") {
-        name <- sprintf("
-          (() => {
-            let tab = Arrow.tableFromJSON(%s);
+        name <- sprintf(
+          "(() => {
+            const data = %s;
+
+            // Convert JS array of objects to Arrow Table
+            const tab = Arrow.tableFromArrays(
+                Object.keys(data[0]).reduce((acc, key) => {
+                    acc[key] = data.map(row => row[key]);
+                    return acc;
+                }, {})
+            );
+
             return Arrow.tableToIPC(tab, 'stream');
-          })()
-        ", name)
+          })();",
+          name)
         arrow::read_ipc_stream(evaluate_js(name, serialize = TRUE, await = await))
       }
     }
