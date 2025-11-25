@@ -18,7 +18,7 @@ encoding_js <- sprintf("https://unpkg.com/text-encoding@%s/lib/encoding.js", enc
 curl::curl_download(encoding_js, paste0(dir_js_enc, "/encoding.js"))
 
 arrow_js <- sprintf("https://unpkg.com/apache-arrow@%s/Arrow.es2015.min.js", arrow_ver)
-curl::curl_download(arrow_js, paste0(dir_js_arr, "/diff.min.js"))
+curl::curl_download(arrow_js, paste0(dir_js_arr, "/apache_arrow.js"))
 
 lic_js_enc <- sprintf("https://unpkg.com/text-encoding@%s/LICENSE.md", encoding_ver)
 curl::curl_download(lic_js_enc, paste0(dir_js_enc, "/LICENSE.md"))

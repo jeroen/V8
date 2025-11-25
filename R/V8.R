@@ -287,8 +287,8 @@ v8 <- function(global = "global", console = TRUE, ...) {
       if (!requireNamespace("arrow", quietly = TRUE)) {
         stop("the arrow backend requires the arrow package to be installed")
       }
-      source(system.file("js/encoding.js", package = "V8"))
-      source(system.file("js/apache_arrow.js", package = "V8"))
+      source(system.file("js/encoding/encoding.js", package = "V8"))
+      source(system.file("js/apache_arrow/apache_arrow.js", package = "V8"))
       private$backend <- "arrow"
     }
 
