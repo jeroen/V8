@@ -56,6 +56,9 @@ CXX17=`${R_HOME}/bin/R CMD config CXX17` || unset CXX17
 # Otherwise use CXX14 when available, required as of libv8 version 8.7.80
 CXX14=`${R_HOME}/bin/R CMD config CXX14` || unset CXX14
 
+# Very old versions of R+Linux
+CXX11=`${R_HOME}/bin/R CMD config CXX11` || unset CXX11
+
 if [ "$CXX20" ]; then
 echo "Found C++20 compiler: $CXX20"
 CXX_STD=CXX20
@@ -71,8 +74,8 @@ echo "Found C++14 compiler: $CXX14"
 CXX_STD=CXX14
 CXX="$CXX14 `${R_HOME}/bin/R CMD config CXX14STD`"
 CXXFLAGS=`${R_HOME}/bin/R CMD config CXX14FLAGS`
-else
-echo "Using default C++11 compiler"
+elif [ "$CXX11" ]; then
+echo "Found C++11 compiler: $CXX11"
 CXX_STD=CXX11
 CXX=`${R_HOME}/bin/R CMD config CXX`
 CXXFLAGS=`${R_HOME}/bin/R CMD config CXXFLAGS`
@@ -163,5 +166,5 @@ esac
 rm -Rf v8version*
 
 # Assume a modern V8 API
-sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXX_STD}|" src/Makevars.in > src/Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX20|${CXX_STD}|" src/Makevars.in > src/Makevars
 exit 0
