@@ -74,19 +74,6 @@ On __RockyLinux 8 / RHEL 8__, `v8-devel` can be installed from the `nodejs:16-ep
 yum --refresh --enablerepo=epel-testing-modular install @nodejs:16-epel/minimal v8-devel
 ```
 
-### Arch Linux
-
-Arch users are advised to install the [`v8-r`](https://aur.archlinux.org/packages/v8-r/) package, which has been configured to work well with R. Installation can done through your preferred AUR helper such as yay, Trizen, etc. However, since V8 contains a large codebase and (re-)compilation takes a while, users may prefer to build and update it manually. For example,
-
-```sh
-## Arch
-cd /tmp
-yay -G v8-r   
-cd v8-r
-makepkg -si
-```
-
-
 ### Homebrew
 
 On __OS-X__ use [v8](https://github.com/Homebrew/homebrew-core/blob/master/Formula/v8) from Homebrew:
