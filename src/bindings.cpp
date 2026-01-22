@@ -346,31 +346,55 @@ std::string version(){
   return v8::V8::GetVersion();
 }
 
-static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
-  if(value.IsEmpty() || value->IsUndefined()){
+static Rcpp::RObject convert_object(v8::Local<v8::Value> value) {
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+  if (value.IsEmpty() || value->IsUndefined()) {
     return R_NilValue;
-  } else if(value->IsNull()){
-    return Rcpp::CharacterVector::create(Rcpp::String("null"));
-  } else if(value->IsArrayBuffer() || value->IsArrayBufferView()){
-    v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
-    value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
-    Rcpp::RawVector data(buffer->ByteLength());
-#if V8_VERSION_TOTAL >= 1005 || NODEJS_LTS_API == 18
-    memcpy(data.begin(), buffer->Data(), data.size());
-#elif V8_VERSION_TOTAL < 901 || NODEJS_LTS_API == 16
-    memcpy(data.begin(), buffer->GetContents().Data(), data.size());
-#else
-    /* Try to avoid this API: github.com/jeroen/V8/issues/152 */
-    memcpy(data.begin(), buffer->GetBackingStore()->Data(), data.size());
-#endif
-    return data;
-  } else {
-    //convert to string without jsonify
-    //v8::String::Utf8Value utf8(isolate, value);
-    v8::Local<v8::Object> obj1 = value->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-    v8::String::Utf8Value utf8(isolate, v8::JSON::Stringify(isolate->GetCurrentContext(), obj1).ToLocalChecked());
-    return Rcpp::CharacterVector::create(Rcpp::String(*utf8));
   }
+
+  if (value->IsNull()) {
+    return Rcpp::CharacterVector::create("null");
+  }
+
+  if (value->IsArrayBufferView()) {
+    v8::Local<v8::ArrayBufferView> view = value.As<v8::ArrayBufferView>();
+
+    size_t byte_length = view->ByteLength();
+    size_t byte_offset = view->ByteOffset();
+
+    std::shared_ptr<v8::BackingStore> backing = view->Buffer()->GetBackingStore();
+
+    Rcpp::RawVector data(byte_length);
+
+    uint8_t* ptr = static_cast<uint8_t*>(backing->Data());
+    memcpy(data.begin(), ptr + byte_offset, byte_length);
+
+    return data;
+
+  } else if (value->IsArrayBuffer()) {
+    v8::Local<v8::ArrayBuffer> buffer = value.As<v8::ArrayBuffer>();
+    std::shared_ptr<v8::BackingStore> backing = buffer->GetBackingStore();
+
+    Rcpp::RawVector data(backing->ByteLength());
+    memcpy(data.begin(), backing->Data(), backing->ByteLength());
+    return data;
+  }
+
+  // Optimize: JSON Serialization
+  // REMOVED: value->ToObject(...)
+  // Rationale: JSON::Stringify handles primitives directly. Forcing ToObject
+  // creates unnecessary V8 heap wrappers for simple values.
+
+  v8::MaybeLocal<v8::String> json_maybe = v8::JSON::Stringify(context, value);
+
+  if (json_maybe.IsEmpty()) {
+    // Handle cyclic structures or stringify errors gracefully
+    return Rcpp::CharacterVector::create(NA_STRING);
+  }
+
+  v8::String::Utf8Value utf8(isolate, json_maybe.ToLocalChecked());
+  return Rcpp::CharacterVector::create(Rcpp::String(*utf8));
 }
 
 // [[Rcpp::export]]
@@ -456,26 +480,22 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::Context> context = ctx.checked_get()->Get(isolate);
   v8::Context::Scope context_scope(context);
-  v8::TryCatch trycatch(isolate);
 
-  // Initiate ArrayBuffer and ArrayBufferView (uint8 typed array)
-  v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data.size());
-  v8::Local<v8::Uint8Array> typed_array = v8::Uint8Array::New(buffer, 0, data.size());
+  size_t n = data.size();
 
-#if V8_VERSION_TOTAL >= 1005 || NODEJS_LTS_API == 18
-  memcpy(buffer->Data(), data.begin(), data.size());
-#elif V8_VERSION_TOTAL < 901 || NODEJS_LTS_API == 16
-  memcpy(buffer->GetContents().Data(), data.begin(), data.size());
-#else
-  memcpy(buffer->GetBackingStore()->Data(), data.begin(), data.size());
-#endif
+  // Allocate backing store first
+  std::unique_ptr<v8::BackingStore> backing = v8::ArrayBuffer::NewBackingStore(isolate, n);
+
+  memcpy(backing->Data(), data.begin(), n);
+
+  v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, std::move(backing));
+  v8::Local<v8::Uint8Array> arr = v8::Uint8Array::New(buffer, 0, n);
 
   // Assign to object (delete first if exists)
   v8::Local<v8::String> name = ToJSString(key.get_cstring());
   v8::Local<v8::Object> global = context->Global();
-  if(!global->Has(context, name).FromMaybe(true) || !global->Delete(context, name).IsNothing())
-    return !global->Set(context, name, typed_array).IsNothing();
-  return false;
+
+  return global->Set(context, name, arr).FromMaybe(false);
 }
 
 // [[Rcpp::export]]
