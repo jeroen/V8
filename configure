@@ -36,6 +36,8 @@ elif test -f "/etc/os-release" && grep -Fq suse "/etc/os-release"; then
 HAVE_STATIC=1
 elif test -f "/etc/os-release" && grep -Fq alpine "/etc/os-release"; then
 HAVE_STATIC=1
+elif test -f "/etc/os-release" && grep -Fq amzn "/etc/os-release"; then
+HAVE_STATIC=1
 fi
 
 # Default to static V8 on supported production platforms
