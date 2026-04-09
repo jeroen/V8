@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container: [ 'clang16', 'clang18', 'clang20', 'ubuntu-clang' ]
+        container: [ 'clang16', 'clang18', 'clang20', 'clang22', 'ubuntu-clang' ]
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
