@@ -1,4 +1,4 @@
-# Anticonf (tm) script by Jeroen Ooms (2025)
+# Anticonf (tm) script by Jeroen Ooms (2026)
 # Package requires either at least libv8 version 6 or nodejs built as shared library
 # To use a local custom libv8 set V8_PKG_CFLAGS and V8_PKG_LIBS (see below)
 PKG_DEB_NAME="libv8-dev or libnode-dev"
