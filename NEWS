@@ -1,3 +1,6 @@
+8.2.0
+  - Windows: fix threading bug in libv8
+
 8.1.0
   - Windows / MacOS: update to libv8 version 14.6
 
