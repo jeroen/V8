@@ -88,6 +88,25 @@ elif [ `uname` = "Darwin" ]; then
     PKG_CFLAGS="-I${V8HOME}/include -I${V8HOME}/libexec/include"
     PKG_LIBS="-L${V8HOME}/libexec $PKG_LIBS"
   else
+    # Newer V8 bundles require libc++ features that are not available in some
+    # Apple clang + CommandLineTools combinations. Fall back to older bundle.
+    if [ -z "$MACOSX_DEPLOYMENT_TARGET" ]; then
+      cat <<EOF | ${CXX} ${CPPFLAGS} ${CXXFLAGS} -xc++ - -c -o /dev/null >/dev/null 2>configure-cxx20.log
+#include <compare>
+#include <concepts>
+#include <source_location>
+int main() {
+  static_assert(std::three_way_comparable_with<int, int>);
+  auto loc = std::source_location::current();
+  return loc.line();
+}
+EOF
+      if [ $? -ne 0 ]; then
+        export MACOSX_DEPLOYMENT_TARGET=11.0
+        echo "Toolchain misses required C++20 stdlib features, using MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
+      fi
+      rm -f configure-cxx20.log
+    fi
     curl -sfL "https://autobrew.github.io/scripts/$PKG_BREW_NAME" > autobrew
     . ./autobrew
   fi
