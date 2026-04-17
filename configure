@@ -103,7 +103,9 @@ int main() {
 EOF
       if [ $? -ne 0 ]; then
         export MACOSX_DEPLOYMENT_TARGET=11.0
-        echo "Toolchain misses required C++20 stdlib features, using MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
+        echo "Toolchain misses required C++20 stdlib features (<source_location> and/or std::three_way_comparable_with)."
+        cat configure-cxx20.log
+        echo "Using MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
       fi
       rm -f configure-cxx20.log
     fi
