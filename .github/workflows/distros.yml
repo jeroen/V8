@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: ['amazon', 'fedora', 'opensuse', 'rocky-9', 'ubuntu-22.04', 'debian-11', 'debian-12', 'debian-13', 'debian-14' ]
+        distro: ['amazon', 'fedora', 'opensuse', 'rocky-9', 'ubuntu-22.04', 'ubuntu-24.04', 'ubuntu-26.04', 'debian-11', 'debian-12', 'debian-13', 'debian-14' ]
         arch: [ 'amd64', 'arm64' ]
         include:
           - distro: rocky-8
@@ -29,14 +29,19 @@ jobs:
     container:
       image: ghcr.io/r-devel/${{ matrix.distro }}:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
+      - uses: r-lib/actions/setup-r@v2-branch
+        with:
+          install-r: false
+
+      - uses: r-lib/actions/setup-r-dependencies@v2-branch
         with:
           extra-packages: any::rcmdcheck
           needs: check
+          cache: false
 
-      - uses: r-lib/actions/check-r-package@v2
+      - uses: r-lib/actions/check-r-package@v2-branch
         with:
           args: '"--no-manual"'
           error-on: '"error"'
