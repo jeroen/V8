@@ -27,7 +27,8 @@ LinkingTo: Rcpp
 Suggests:
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    arrow
 RoxygenNote: 7.3.1
 Roxygen: list(load = "installed", markdown = TRUE)
 Language: en-US
