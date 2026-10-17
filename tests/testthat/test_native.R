@@ -91,3 +91,15 @@ test_that("ArrayBufferView offset", {
   ctx <- v8()
   expect_identical(ctx$get("new Uint8Array([1, 2, 3, 4, 5]).subarray(1, 3)"), as.raw(2:3))
 })
+
+test_that("special column names", {
+  df <- data.frame(a = c(1.5, NA), b = c("x", "x"))
+  names(df) <- c("__proto__", "it's \"quoted\"\n")
+  ctx <- v8(backend = "native")
+  ctx$assign("df", df)
+  expect_identical(ctx$eval("Object.keys(df[0]).length"), "2")
+  expect_identical(ctx$eval("Object.getPrototypeOf(df[0]) === Object.prototype"), "true")
+  expect_identical(ctx$get("df"), df)
+  ctx$assign("df2", df[1, ])
+  expect_identical(ctx$eval("Object.keys(df2[0]).length"), "2")
+})

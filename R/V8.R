@@ -316,7 +316,13 @@ data_frame_columns <- function(x){
     if(!is.null(dim(col)))
       return(NULL)
     if(inherits(col, c("Date", "POSIXct"))){
-      col <- format(col)
+      lev <- unique(col)
+      lev <- lev[!is.na(lev)]
+      col <- structure(match(unclass(col), unclass(lev)), levels = format(lev), class = "factor")
+    } else if(is.character(col) && !is.object(col)){
+      lev <- unique(col)
+      lev <- lev[!is.na(lev)]
+      col <- structure(match(col, lev), levels = lev, class = "factor")
     } else if(is.object(col) && !is.factor(col)){
       return(NULL)
     } else if(!typeof(col) %in% c("double", "integer", "logical", "character")){

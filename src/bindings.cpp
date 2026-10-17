@@ -402,14 +402,10 @@ static const char* rows_to_columns_js = R"JS(
   }
   const p = keys.length;
   if (p === 0) return null;
-  const kinds = new Int32Array(p);
-  const cols = new Array(p);
-  const masks = new Array(p);
-  for (let j = 0; j < p; j++) {
-    const k = keys[j];
+  const scan = `"use strict";
     let kind = 0;
     for (let i = 0; i < n; i++) {
-      const v = rows[i][k];
+      const v = rows[i][KEY];
       if (v === undefined || v === null) continue;
       let vk;
       switch (typeof v) {
@@ -433,78 +429,90 @@ static const char* rows_to_columns_js = R"JS(
         return null;
       }
     }
-    kinds[j] = kind;
-    masks[j] = null;
-    if (kind === 0) {
-      cols[j] = null;
-    } else if (kind === 4) {
-      const col = new Array(n);
+    if (kind === 0) return [kind, null, null];
+    if (kind === 4) {
+      const codes = new Int32Array(n);
+      const levels = [];
+      const index = new Map();
       for (let i = 0; i < n; i++) {
-        const v = rows[i][k];
-        col[i] = (typeof v === "string") ? v : null;
-      }
-      cols[j] = col;
-    } else {
-      const col = (kind === 2) ? new Float64Array(n) : new Int32Array(n);
-      let mask = null;
-      for (let i = 0; i < n; i++) {
-        const v = rows[i][k];
-        if (v === undefined || v === null) {
-          if (mask === null) mask = new Uint8Array(n);
-          mask[i] = 1;
-        } else {
-          col[i] = v;
+        const v = rows[i][KEY];
+        if (typeof v !== "string") continue;
+        let code = index.get(v);
+        if (code === undefined) {
+          levels.push(v);
+          code = levels.length;
+          index.set(v, code);
         }
+        codes[i] = code;
       }
-      cols[j] = col;
-      masks[j] = mask;
+      return [kind, codes, levels];
     }
+    const col = (kind === 2) ? new Float64Array(n) : new Int32Array(n);
+    let mask = null;
+    for (let i = 0; i < n; i++) {
+      const v = rows[i][KEY];
+      if (v === undefined || v === null) {
+        if (mask === null) mask = new Uint8Array(n);
+        mask[i] = 1;
+      } else {
+        col[i] = v;
+      }
+    }
+    return [kind, col, mask];`;
+  const kinds = new Int32Array(p);
+  const cols = new Array(p);
+  const masks = new Array(p);
+  for (let j = 0; j < p; j++) {
+    const res = (new Function("rows", "n", scan.split("KEY").join(JSON.stringify(keys[j]))))(rows, n);
+    if (res === null) return null;
+    kinds[j] = res[0];
+    cols[j] = res[1];
+    masks[j] = res[2];
   }
   return [keys, kinds, cols, masks];
 })
 )JS";
 
 static const char* columns_to_rows_js = R"JS(
-(function (names, kinds, cols, extra, n) {
+(function (names, kinds, cols, extra, has_na, n) {
   "use strict";
   const p = names.length;
-  const NA = -2147483648;
-  const rows = new Array(n);
-  for (let i = 0; i < n; i++) {
-    const row = {};
-    for (let j = 0; j < p; j++) {
-      const col = cols[j];
-      switch (kinds[j]) {
-        case 1: {
-          const v = col[i];
-          if (v !== NA) row[names[j]] = v;
-          break;
-        }
-        case 2: {
-          const mask = extra[j];
-          if (mask === null || mask[i] === 0) row[names[j]] = col[i];
-          break;
-        }
-        case 3: {
-          const v = col[i];
-          if (v !== NA) row[names[j]] = (v !== 0);
-          break;
-        }
-        case 4: {
-          const v = col[i];
-          if (v !== null) row[names[j]] = v;
-          break;
-        }
-        case 5: {
-          const v = col[i];
-          if (v !== NA) row[names[j]] = extra[j][v - 1];
-          break;
-        }
-      }
+  const values = new Array(p);
+  const checks = new Array(p);
+  let any_na = false;
+  for (let j = 0; j < p; j++) {
+    const c = "c" + j + "[i]";
+    switch (kinds[j]) {
+      case 1: values[j] = c; checks[j] = c + " !== NA"; break;
+      case 2: values[j] = c; checks[j] = "x" + j + "[i] === 0"; break;
+      case 3: values[j] = "(" + c + " !== 0)"; checks[j] = c + " !== NA"; break;
+      case 4: values[j] = c; checks[j] = c + " !== null"; break;
+      case 5: values[j] = "x" + j + "[" + c + " - 1]"; checks[j] = c + " !== NA"; break;
     }
-    rows[i] = row;
+    if (has_na[j]) any_na = true;
   }
-  return rows;
+  let src = "\"use strict\";\nconst NA = -2147483648;\n";
+  for (let j = 0; j < p; j++)
+    src += "const c" + j + " = cols[" + j + "], x" + j + " = extra[" + j + "];\n";
+  src += "const rows = new Array(n);\nfor (let i = 0; i < n; i++) {\n";
+  if (any_na) {
+    src += "const row = {};\n";
+    for (let j = 0; j < p; j++) {
+      const key = JSON.stringify(names[j]);
+      const store = (names[j] === "__proto__") ?
+        "Object.defineProperty(row, " + key + ", {value: " + values[j] + ", enumerable: true, writable: true, configurable: true});" :
+        "row[" + key + "] = " + values[j] + ";";
+      src += has_na[j] ? "if (" + checks[j] + ") " + store + "\n" : store + "\n";
+    }
+    src += "rows[i] = row;\n";
+  } else {
+    const fields = new Array(p);
+    for (let j = 0; j < p; j++)
+      fields[j] = "[" + JSON.stringify(names[j]) + "]: " + values[j];
+    src += "rows[i] = {" + fields.join(", ") + "};\n";
+  }
+  src += "}\nreturn rows;\n";
+  return (new Function("cols", "extra", "n", src))(cols, extra, n);
 })
 )JS";
 
@@ -591,17 +599,18 @@ static Rcpp::RObject rows_to_data_frame(v8::Local<v8::Value> value, v8::Local<v8
       break;
     }
     case COL_STRING: {
-      v8::Local<v8::Array> arr = col.As<v8::Array>();
-      Rcpp::CharacterVector x(nr);
-      for(uint32_t i = 0; i < n; i++){
-        v8::Local<v8::Value> v = safe_to_local(arr->Get(context, i));
-        if(v.IsEmpty() || !v->IsString()){
-          x[i] = NA_STRING;
-        } else {
-          v8::String::Utf8Value str(isolate, v);
-          x[i] = Rf_mkCharCE(*str, CE_UTF8);
-        }
+      v8::Local<v8::Array> levels = colmask.As<v8::Array>();
+      uint32_t nlev = levels->Length();
+      Rcpp::CharacterVector lev(static_cast<R_xlen_t>(nlev));
+      for(uint32_t i = 0; i < nlev; i++){
+        v8::String::Utf8Value str(isolate, safe_to_local(levels->Get(context, i)));
+        lev[i] = Rf_mkCharCE(*str, CE_UTF8);
       }
+      std::vector<int32_t> codes(n);
+      col.As<v8::Int32Array>()->CopyContents(codes.data(), n * sizeof(int32_t));
+      Rcpp::CharacterVector x(nr);
+      for(uint32_t i = 0; i < n; i++)
+        x[i] = (codes[i] == 0) ? NA_STRING : STRING_ELT(lev, codes[i] - 1);
       df[j] = x;
       break;
     }
@@ -670,6 +679,7 @@ bool write_data_frame(Rcpp::String key, Rcpp::List cols, int nrow, ctxptr ctx){
   std::vector<v8::Local<v8::Value>> kinds(p);
   std::vector<v8::Local<v8::Value>> jscols(p);
   std::vector<v8::Local<v8::Value>> extra(p);
+  std::vector<v8::Local<v8::Value>> has_na(p);
 
   for(size_t j = 0; j < p; j++){
     R_xlen_t rj = static_cast<R_xlen_t>(j);
@@ -678,6 +688,7 @@ bool write_data_frame(Rcpp::String key, Rcpp::List cols, int nrow, ctxptr ctx){
       throw std::invalid_argument("all columns must have nrow elements");
     names[j] = ToJSString(Rf_translateCharUTF8(STRING_ELT(colnames, rj)));
     extra[j] = v8::Null(isolate);
+    bool col_na = false;
     int kind;
     switch(TYPEOF(col)){
     case REALSXP: {
@@ -696,41 +707,47 @@ bool write_data_frame(Rcpp::String key, Rcpp::List cols, int nrow, ctxptr ctx){
         for(size_t i = first_na; i < n; i++)
           mask[i] = R_IsNA(x[i]) ? 1 : 0;
         extra[j] = v8::Uint8Array::New(copy_to_array_buffer(mask.data(), n), 0, n);
+        col_na = true;
       }
       break;
     }
     case INTSXP:
-      kind = Rf_isFactor(col) ? COL_FACTOR : COL_INTEGER;
-      jscols[j] = v8::Int32Array::New(copy_to_array_buffer(INTEGER(col), n * sizeof(int)), 0, n);
+    case LGLSXP: {
+      kind = (TYPEOF(col) == LGLSXP) ? COL_LOGICAL : (Rf_isFactor(col) ? COL_FACTOR : COL_INTEGER);
+      const int* x = (TYPEOF(col) == LGLSXP) ? LOGICAL(col) : INTEGER(col);
+      jscols[j] = v8::Int32Array::New(copy_to_array_buffer(x, n * sizeof(int)), 0, n);
+      for(size_t i = 0; i < n && !col_na; i++)
+        col_na = (x[i] == NA_INTEGER);
       if(kind == COL_FACTOR)
         extra[j] = to_js_strings(Rf_getAttrib(col, R_LevelsSymbol));
       break;
-    case LGLSXP:
-      kind = COL_LOGICAL;
-      jscols[j] = v8::Int32Array::New(copy_to_array_buffer(LOGICAL(col), n * sizeof(int)), 0, n);
-      break;
+    }
     case STRSXP:
       kind = COL_STRING;
       jscols[j] = to_js_strings(col);
+      for(R_xlen_t i = 0; i < Rf_xlength(col) && !col_na; i++)
+        col_na = (STRING_ELT(col, i) == NA_STRING);
       break;
     default:
       throw std::invalid_argument("unsupported column type");
     }
     kinds[j] = v8::Integer::New(isolate, kind);
+    has_na[j] = v8::Boolean::New(isolate, col_na);
   }
 
   v8::Local<v8::Function> fn = compile_function(columns_to_rows_js, context);
   if(fn.IsEmpty())
     throw std::runtime_error("Failed to compile data frame converter.");
 
-  v8::Local<v8::Value> argv[5] = {
+  v8::Local<v8::Value> argv[6] = {
     v8::Array::New(isolate, names.data(), p),
     v8::Array::New(isolate, kinds.data(), p),
     v8::Array::New(isolate, jscols.data(), p),
     v8::Array::New(isolate, extra.data(), p),
+    v8::Array::New(isolate, has_na.data(), p),
     v8::Number::New(isolate, static_cast<double>(n))
   };
-  v8::Local<v8::Value> rows = safe_to_local(fn->Call(context, context->Global(), 5, argv));
+  v8::Local<v8::Value> rows = safe_to_local(fn->Call(context, context->Global(), 6, argv));
   if(rows.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
