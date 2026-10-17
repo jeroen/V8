@@ -21,17 +21,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// write_data_frame
-bool write_data_frame(Rcpp::String key, Rcpp::List cols, int nrow, ctxptr ctx);
-RcppExport SEXP _V8_write_data_frame(SEXP keySEXP, SEXP colsSEXP, SEXP nrowSEXP, SEXP ctxSEXP) {
+// write_native
+bool write_native(Rcpp::String key, SEXP value, bool auto_unbox, ctxptr ctx);
+RcppExport SEXP _V8_write_native(SEXP keySEXP, SEXP valueSEXP, SEXP auto_unboxSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type key(keySEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type cols(colsSEXP);
-    Rcpp::traits::input_parameter< int >::type nrow(nrowSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< bool >::type auto_unbox(auto_unboxSEXP);
     Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
-    rcpp_result_gen = Rcpp::wrap(write_data_frame(key, cols, nrow, ctx));
+    rcpp_result_gen = Rcpp::wrap(write_native(key, value, auto_unbox, ctx));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -87,25 +87,26 @@ BEGIN_RCPP
 END_RCPP
 }
 // make_context
-ctxptr make_context(bool set_console);
-RcppExport SEXP _V8_make_context(SEXP set_consoleSEXP) {
+ctxptr make_context(bool set_console, bool native);
+RcppExport SEXP _V8_make_context(SEXP set_consoleSEXP, SEXP nativeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< bool >::type set_console(set_consoleSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_context(set_console));
+    Rcpp::traits::input_parameter< bool >::type native(nativeSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_context(set_console, native));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
-    {"_V8_write_data_frame", (DL_FUNC) &_V8_write_data_frame, 4},
+    {"_V8_write_native", (DL_FUNC) &_V8_write_native, 4},
     {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 5},
     {"_V8_write_array_buffer", (DL_FUNC) &_V8_write_array_buffer, 3},
     {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
     {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},
-    {"_V8_make_context", (DL_FUNC) &_V8_make_context, 1},
+    {"_V8_make_context", (DL_FUNC) &_V8_make_context, 2},
     {NULL, NULL, 0}
 };
 

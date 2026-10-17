@@ -23,3 +23,5 @@ $(RWINLIB):
 
 cleanup: $(SHLIB)
 	@rm -Rf $(RWINLIB)
+
+bindings.o: native_js.h

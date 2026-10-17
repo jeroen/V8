@@ -244,7 +244,7 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
 }
 
 
-bool write_data_frame(Rcpp::String, Rcpp::List, int, ctxptr){
+bool write_native(Rcpp::String, SEXP, bool, ctxptr){
   throw std::runtime_error("The native backend is not supported in emscripten.");
 }
 
@@ -262,7 +262,7 @@ bool context_null(ctxptr ctx) {
 }
 
 
-ctxptr make_context(bool set_console){
+ctxptr make_context(bool set_console, bool = false){
   int ctx = em_make_context();
   ctx_type *ptr = new ctx_type(ctx);
   return ctxptr(ptr);

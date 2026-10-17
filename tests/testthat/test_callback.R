@@ -3,6 +3,7 @@ context("V8 Callback to R")
 ctx <- V8::v8()
 
 test_that("console.r.get", {
+  skip_if_not_installed("jsonlite")
   ctx$eval('//get a data frame
     var iris = console.r.get("iris")
     var iris_col = console.r.get("iris", {dataframe:"col"})
@@ -12,6 +13,7 @@ test_that("console.r.get", {
 })
 
 test_that("console.r.assign", {
+  skip_if_not_installed("jsonlite")
   ctx$eval('//assign to R session
     console.r.assign("iris2", iris)
     console.r.assign("iris3", iris, {simplifyVector:false})

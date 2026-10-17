@@ -42,12 +42,24 @@
 #' testing and debugging, it may not work perfectly in every IDE or R-frontend.
 #'
 #' @section Data Interchange:
-#' JSON is used for data interchange between R and JavaScript. Therefore you can
-#' (and should) only exchange data types that have a sensible JSON representation.
-#' One exception is raw vectors which are converted to/from Uint8Array buffers, see
-#' below. All other arguments and objects are automatically converted according to the mapping
-#' described in [Ooms (2014)](https://arxiv.org/abs/1403.2805), and implemented
-#' by the jsonlite package in [fromJSON()] and [toJSON()].
+#' With the `"jsonlite"` backend, JSON is used for data interchange between R and
+#' JavaScript. Therefore you can (and should) only exchange data types that have a
+#' sensible JSON representation. One exception is raw vectors which are converted
+#' to/from Uint8Array buffers, see below. All other arguments and objects are
+#' automatically converted according to the mapping described in
+#' [Ooms (2014)](https://arxiv.org/abs/1403.2805), and implemented by the jsonlite
+#' package in [jsonlite::fromJSON()] and [jsonlite::toJSON()].
+#'
+#' The `"native"` backend follows the same mapping, but copies values directly
+#' between R and JavaScript without JSON text. Vectors, lists, matrices and data
+#' frames are converted in both directions, data frames column by column. Some
+#' differences to jsonlite: doubles keep full precision instead of being rounded
+#' to 4 digits, `NA` in vectors becomes `null` (jsonlite writes the string `"NA"`
+#' for numbers), `NaN` and `Inf` stay numbers, raw vectors become `Uint8Array`
+#' also inside lists, and whole numbers from JavaScript are returned as integers
+#' whenever they fit. Options for jsonlite (passed via `...` to `get()` and
+#' `assign()`, `simplify = FALSE` in `call()`, or an options object in
+#' `console.r.get()` and `console.r.assign()`) still use jsonlite.
 #'
 #' As for version 3.0 of this R package, Raw vectors are converted to `Uint8Array`
 #' typed arrays, and vice versa. This makes it possible to efficiently copy large chunks
@@ -68,19 +80,14 @@
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose `console` API (`console.log`, `console.warn`, `console.error`).
 #' @param ... ignored parameters for past/future versions.
-#' @param backend how data frames are moved between R and JavaScript. `"jsonlite"`
-#' (default) serializes everything to JSON. `"native"` copies data frames column
-#' by column without JSON: `assign()`, `call()` arguments and `get()` results that
-#' are data frames (or JS arrays of flat objects) take this path, everything else
-#' still uses JSON. Supported columns are numeric, integer, logical, character,
-#' factor, Date and POSIXct. Unlike JSON, doubles keep full precision and `NaN`
-#' and `Inf` survive the round trip; `NA` values are omitted from the row objects
-#' as with jsonlite.
+#' @param backend how values are converted between R and JavaScript, either
+#' `"jsonlite"` or `"native"`, see the data interchange section. Defaults to the
+#' `V8.backend` option, otherwise `"jsonlite"` when the jsonlite package is
+#' installed and `"native"` when it is not.
 #' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
 #' @import Rcpp
-#' @importFrom jsonlite fromJSON toJSON
 #' @importFrom curl curl
 #' @importFrom utils head loadhistory savehistory tail
 #' @useDynLib V8, .registration = TRUE
@@ -141,14 +148,21 @@
 #' # exit
 #' }
 #'
-v8 <- function(global = "global", console = TRUE, ..., backend = c("jsonlite", "native")) {
+v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.backend")) {
   # Private fields
   private <- environment();
-  native <- match.arg(backend) == "native"
+  if(is.null(backend))
+    backend <- if(requireNamespace("jsonlite", quietly = TRUE)) "jsonlite" else "native"
+  backend <- match.arg(backend, c("jsonlite", "native"))
+  if(backend == "jsonlite" && !requireNamespace("jsonlite", quietly = TRUE))
+    stop("The jsonlite backend requires the jsonlite package.")
+  native <- backend == "native"
+  if(native && identical(R.version$os, "emscripten"))
+    stop("The native backend is not available in WebAssembly.")
 
   # Low level evaluate
-  evaluate_js <- function(src, serialize = FALSE, await = FALSE, native = FALSE){
-    get_str_output(context_eval(join(src), private$context, serialize, await, native))
+  evaluate_js <- function(src, serialize = FALSE, await = FALSE){
+    get_str_output(context_eval(join(src), private$context, serialize, await))
   }
 
   # Public methods
@@ -170,25 +184,27 @@ v8 <- function(global = "global", console = TRUE, ..., backend = c("jsonlite", "
       tmpkeys <- character()
       on.exit(if(length(tmpkeys)) evaluate_js(sprintf("delete this['%s'];", tmpkeys)))
       jsargs <- vapply(jsargs, function(x){
-        cols <- if(private$native) data_frame_columns(x)
-        if(!is.null(cols)){
-          key <- basename(tempfile("V8_arg_"))
-          write_data_frame(key, cols, nrow(x), private$context)
-          tmpkeys <<- c(tmpkeys, key)
-          key
-        } else if(is.raw(x)){
+        if(is.raw(x)){
           raw_to_js(x)
         } else if(is.atomic(x) && inherits(x, "JS_EVAL")){
           as.character(x)
+        } else if(private$native){
+          key <- basename(tempfile("V8_arg_"))
+          write_native(key, native_encode(x), auto_unbox, private$context)
+          tmpkeys <<- c(tmpkeys, key)
+          key
         } else {
           # To box or not. I'm not sure.
-          toJSON(x, auto_unbox = auto_unbox)
+          jsonlite::toJSON(x, auto_unbox = auto_unbox)
         }
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
       src <- paste0("(", fun ,")(", jsargs, ");")
-      native <- private$native && isTRUE(simplify)
-      get_json_output(evaluate_js(src, serialize = TRUE, await = await, native = native), simplifyVector = simplify)
+      if(private$native && isTRUE(simplify)){
+        out <- context_eval(join(src), private$context, TRUE, await, TRUE)
+        return(if(is.null(out)) invisible() else out)
+      }
+      get_json_output(evaluate_js(src, serialize = TRUE, await = await), simplifyVector = simplify)
     }
     source <- function(file){
       if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
@@ -200,24 +216,28 @@ v8 <- function(global = "global", console = TRUE, ..., backend = c("jsonlite", "
     }
     get <- function(name, ..., await = FALSE){
       stopifnot(is.character(name))
-      native <- private$native && length(list(...)) == 0
-      get_json_output(evaluate_js(name, serialize = TRUE, await = await, native = native), ...)
+      if(private$native && length(list(...)) == 0){
+        out <- context_eval(join(name), private$context, TRUE, await, TRUE)
+        return(if(is.null(out)) invisible() else out)
+      }
+      get_json_output(evaluate_js(name, serialize = TRUE, await = await), ...)
     }
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
-      cols <- if(private$native && length(list(...)) == 0) data_frame_columns(value)
-      obj <- if(!is.null(cols)) {
-        invisible(write_data_frame(name, cols, nrow(value), private$context))
-      } else if(is.raw(value)) {
+      obj <- if(is.raw(value)) {
         write_array_buffer(name, value, private$context)
       } else if(inherits(value, "JS_EVAL")) {
         invisible(evaluate_js(paste("var", name, "=", value)))
+      } else if(private$native && length(list(...)) == 0) {
+        invisible(write_native(name, native_encode(value), auto_unbox, private$context))
       } else {
-        invisible(evaluate_js(paste("var", name, "=", toJSON(value, auto_unbox = auto_unbox, ...))))
+        if(!requireNamespace("jsonlite", quietly = TRUE))
+          stop("Passing options to toJSON() requires the jsonlite package.")
+        invisible(evaluate_js(paste("var", name, "=", jsonlite::toJSON(value, auto_unbox = auto_unbox, ...))))
       }
     }
     reset <- function(){
-      private$context <- make_context(private$console);
+      private$context <- make_context(private$console, private$native);
       private$created <- Sys.time();
       if(length(global)){
         context_eval(paste("var", global, "= this;", collapse = "\n"), private$context)
@@ -293,49 +313,45 @@ undefined_to_null <- function(str){
 get_json_output <- function(json, ...){
   if(is.raw(json)){
     return(json)
-  } else if(is.data.frame(json)){
-    rn <- json[["_row"]]
-    if(is.character(rn) && !anyNA(rn) && !anyDuplicated(rn)){
-      json[["_row"]] <- NULL
-      row.names(json) <- rn
-    }
-    json
   } else if(!length(json) || identical(json,"undefined")){
     invisible()
   } else {
-    fromJSON(json, ...)
+    if(!requireNamespace("jsonlite", quietly = TRUE))
+      stop("Passing options to fromJSON() requires the jsonlite package.")
+    jsonlite::fromJSON(json, ...)
   }
 }
 
-data_frame_columns <- function(x){
-  if(!is.data.frame(x))
-    return(NULL)
-  cols <- vector("list", length(x))
-  for(i in seq_along(x)){
-    col <- x[[i]]
-    if(!is.null(dim(col)))
-      return(NULL)
-    if(inherits(col, c("Date", "POSIXct"))){
-      lev <- unique(col)
-      lev <- lev[!is.na(lev)]
-      col <- structure(match(unclass(col), unclass(lev)), levels = format(lev), class = "factor")
-    } else if(is.character(col) && !is.object(col)){
-      lev <- unique(col)
-      lev <- lev[!is.na(lev)]
-      col <- structure(match(col, lev), levels = lev, class = "factor")
-    } else if(is.object(col) && !is.factor(col)){
-      return(NULL)
-    } else if(!typeof(col) %in% c("double", "integer", "logical", "character")){
-      return(NULL)
-    }
-    cols[[i]] <- col
+native_encode <- function(x){
+  if(is.null(x) || (is.atomic(x) && !is.object(x) && !is.complex(x)))
+    return(x)
+  if(is.data.frame(x)){
+    out <- lapply(unclass(x), native_encode)
+    rn <- attr(x, "row.names")
+    if(is.character(rn))
+      out[["_row"]] <- rn
+    return(structure(out, row.names = .set_row_names(nrow(x)), class = "data.frame"))
   }
-  names(cols) <- names(x)
-  rn <- attr(x, "row.names")
-  if(is.character(rn)){
-    cols[["_row"]] <- rn
+  if(inherits(x, "POSIXlt"))
+    x <- as.POSIXct(x)
+  if(inherits(x, c("Date", "POSIXct"))){
+    u <- unique(x)
+    out <- format(u)[match(unclass(x), unclass(u))]
+    return(if(inherits(x, "AsIs")) I(out) else out)
   }
-  cols
+  if(is.factor(x))
+    return(x)
+  if(is.complex(x)){
+    out <- as.character(x)
+    dim(out) <- dim(x)
+    return(if(inherits(x, "AsIs")) I(out) else out)
+  }
+  other <- setdiff(oldClass(x), c("AsIs", "json", "JS_EVAL"))
+  if(length(other))
+    stop("No native conversion for class: ", paste(other, collapse = ", "))
+  if(is.list(x))
+    x[] <- lapply(x, native_encode)
+  x
 }
 
 get_str_output <- function(str){
@@ -428,7 +444,7 @@ v8_version_numeric <- function(){
 
 raw_to_js <- function(x){
   stopifnot(is.raw(x))
-  paste0('new Uint8Array(', jsonlite::toJSON(as.integer(x)), ')')
+  paste0('new Uint8Array([', paste(as.integer(x), collapse = ','), '])')
 }
 
 generate_rd <- function(){

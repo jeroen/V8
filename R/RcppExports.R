@@ -5,8 +5,8 @@ version <- function() {
     .Call(`_V8_version`)
 }
 
-write_data_frame <- function(key, cols, nrow, ctx) {
-    .Call(`_V8_write_data_frame`, key, cols, nrow, ctx)
+write_native <- function(key, value, auto_unbox, ctx) {
+    .Call(`_V8_write_native`, key, value, auto_unbox, ctx)
 }
 
 context_eval <- function(src, ctx, serialize = FALSE, await = FALSE, native = FALSE) {
@@ -25,7 +25,7 @@ context_null <- function(ctx) {
     .Call(`_V8_context_null`, ctx)
 }
 
-make_context <- function(set_console) {
-    .Call(`_V8_make_context`, set_console)
+make_context <- function(set_console, native = FALSE) {
+    .Call(`_V8_make_context`, set_console, native)
 }
 

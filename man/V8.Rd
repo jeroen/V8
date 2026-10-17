@@ -7,7 +7,7 @@
 \alias{engine_info}
 \title{Run JavaScript in a V8 context}
 \usage{
-v8(global = "global", console = TRUE, ..., backend = c("jsonlite", "native"))
+v8(global = "global", console = TRUE, ..., backend = getOption("V8.backend"))
 
 engine_info()
 }
@@ -18,14 +18,10 @@ engine_info()
 
 \item{...}{ignored parameters for past/future versions.}
 
-\item{backend}{how data frames are moved between R and JavaScript. \code{"jsonlite"}
-(default) serializes everything to JSON. \code{"native"} copies data frames column
-by column without JSON: \code{assign()}, \code{call()} arguments and \code{get()} results that
-are data frames (or JS arrays of flat objects) take this path, everything else
-still uses JSON. Supported columns are numeric, integer, logical, character,
-factor, Date and POSIXct. Unlike JSON, doubles keep full precision and \code{NaN}
-and \code{Inf} survive the round trip; \code{NA} values are omitted from the row objects
-as with jsonlite.}
+\item{backend}{how values are converted between R and JavaScript, either
+\code{"jsonlite"} or \code{"native"}, see the data interchange section. Defaults to the
+\code{V8.backend} option, otherwise \code{"jsonlite"} when the jsonlite package is
+installed and \code{"native"} when it is not.}
 }
 \description{
 The \code{\link[=v8]{v8()}} function (formerly called \code{new_context}) creates a
@@ -74,12 +70,24 @@ testing and debugging, it may not work perfectly in every IDE or R-frontend.
 
 \section{Data Interchange}{
 
-JSON is used for data interchange between R and JavaScript. Therefore you can
-(and should) only exchange data types that have a sensible JSON representation.
-One exception is raw vectors which are converted to/from Uint8Array buffers, see
-below. All other arguments and objects are automatically converted according to the mapping
-described in \href{https://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented
-by the jsonlite package in \code{\link[jsonlite:fromJSON]{jsonlite::fromJSON()}} and \code{\link[jsonlite:fromJSON]{jsonlite::toJSON()}}.
+With the \code{"jsonlite"} backend, JSON is used for data interchange between R and
+JavaScript. Therefore you can (and should) only exchange data types that have a
+sensible JSON representation. One exception is raw vectors which are converted
+to/from Uint8Array buffers, see below. All other arguments and objects are
+automatically converted according to the mapping described in
+\href{https://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented by the jsonlite
+package in \code{\link[jsonlite:fromJSON]{jsonlite::fromJSON()}} and \code{\link[jsonlite:fromJSON]{jsonlite::toJSON()}}.
+
+The \code{"native"} backend follows the same mapping, but copies values directly
+between R and JavaScript without JSON text. Vectors, lists, matrices and data
+frames are converted in both directions, data frames column by column. Some
+differences to jsonlite: doubles keep full precision instead of being rounded
+to 4 digits, \code{NA} in vectors becomes \code{null} (jsonlite writes the string \code{"NA"}
+for numbers), \code{NaN} and \code{Inf} stay numbers, raw vectors become \code{Uint8Array}
+also inside lists, and whole numbers from JavaScript are returned as integers
+whenever they fit. Options for jsonlite (passed via \code{...} to \code{get()} and
+\code{assign()}, \code{simplify = FALSE} in \code{call()}, or an options object in
+\code{console.r.get()} and \code{console.r.assign()}) still use jsonlite.
 
 As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
 typed arrays, and vice versa. This makes it possible to efficiently copy large chunks

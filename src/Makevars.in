@@ -7,3 +7,5 @@ all: $(SHLIB) cleanup
 
 cleanup: $(SHLIB)
 	@rm -Rf ../.deps
+
+bindings.o: native_js.h

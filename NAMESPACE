@@ -16,8 +16,6 @@ if (getRversion() >= "4.3.0" && !is.null(asNamespace("utils")$.AtNames)) S3metho
 if (getRversion() >= "4.3.0") S3method(base::`@`, V8)
 import(Rcpp)
 importFrom(curl,curl)
-importFrom(jsonlite,fromJSON)
-importFrom(jsonlite,toJSON)
 importFrom(utils,head)
 importFrom(utils,loadhistory)
 importFrom(utils,rc.options)

@@ -20,11 +20,11 @@ NeedsCompilation: yes
 VignetteBuilder: knitr
 Imports:
     Rcpp (>= 0.12.12),
-    jsonlite (>= 1.0),
     curl (>= 1.0),
     utils
 LinkingTo: Rcpp
 Suggests:
+    jsonlite (>= 1.0),
     testthat,
     knitr,
     rmarkdown

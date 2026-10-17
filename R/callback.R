@@ -43,6 +43,39 @@ r_assign <- function(name, value, args = '{}'){
   })
 }
 
+r_call_native <- function(strfun, args = NULL, unused = NULL){
+  no_jumps({
+    FUN <- eval(parse(text = strfun))
+    if(!is.function(FUN))
+      stop("Argument is not a valid function")
+    native_encode(do.call(FUN, as.list(args)))
+  })
+}
+
+r_get_native <- function(str, unused1 = NULL, unused2 = NULL){
+  no_jumps({
+    native_encode(eval(parse(text = str)))
+  })
+}
+
+r_eval_native <- function(str, args = NULL, unused = NULL){
+  no_jumps({
+    con <- textConnection(str)
+    if(is.null(args))
+      args <- list(print.eval = TRUE)
+    do.call(source, c(list(file = con), as.list(args)))
+    NULL
+  })
+}
+
+r_assign_native <- function(name, value = NULL, unused = NULL){
+  no_jumps({
+    asgn <- get("assign", "package:base")
+    asgn(name, value, globalenv())
+    NULL
+  })
+}
+
 no_jumps <- function(...){
   tryCatch(..., error = function(e){
     structure(e$message, class = 'cb_error')

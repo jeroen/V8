@@ -2,6 +2,8 @@
 #include "V8_types.h"
 #include <fstream>
 #include <vector>
+#include <unordered_map>
+#include "native_js.h"
 
 /* use conditional apis below */
 #define V8_VERSION_TOTAL (V8_MAJOR_VERSION * 100 + V8_MINOR_VERSION)
@@ -75,6 +77,9 @@ static v8::Local<v8::String> ToJSString(const char * str){
   v8::MaybeLocal<v8::String> out = v8::String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal);
   return safe_to_local(out);
 }
+
+static v8::Local<v8::Value> r_to_js(SEXP x, bool auto_unbox, v8::Local<v8::Context> context);
+static Rcpp::RObject js_to_r(v8::Local<v8::Value> value, v8::Local<v8::Context> context);
 
 static void message_cb(v8::Local<v8::Message> message, v8::Local<v8::Value> data){
   v8::String::Utf8Value str(isolate, message->Get());
@@ -289,7 +294,37 @@ static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
   //args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
 }
 
+static void r_callback_native(std::string cb, const v8::FunctionCallbackInfo<v8::Value>& args, v8::Local<v8::Context> context) {
+  try {
+    Rcpp::Environment ns = Rcpp::Environment::namespace_env("V8");
+    Rcpp::Function r_fun(ns.get(cb + "_native"));
+    v8::String::Utf8Value arg0(args.GetIsolate(), args[0]);
+    Rcpp::String fun(ToCString(arg0), CE_UTF8);
+    Rcpp::RObject arg1 = (args.Length() > 1) ? js_to_r(args[1], context) : Rcpp::RObject(R_NilValue);
+    Rcpp::RObject arg2 = (args.Length() > 2) ? js_to_r(args[2], context) : Rcpp::RObject(R_NilValue);
+    Rcpp::RObject out = r_fun(fun, arg1, arg2);
+    if(out.inherits("cb_error")){
+      Rcpp::CharacterVector msg(out);
+      args.GetIsolate()->ThrowException(ToJSString(std::string(msg.at(0)).c_str()));
+    } else if(cb == "r_eval" || cb == "r_assign"){
+      args.GetReturnValue().SetNull();
+    } else {
+      args.GetReturnValue().Set(r_to_js(out, false, context));
+    }
+  } catch( const std::exception& e ) {
+    args.GetIsolate()->ThrowException(ToJSString(e.what()));
+  }
+}
+
 void r_callback(std::string cb, const v8::FunctionCallbackInfo<v8::Value>& args) {
+  v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
+  v8::Local<v8::Value> native;
+  bool has_options = (cb == "r_get" && args.Length() > 1 && !args[1]->IsUndefined()) ||
+    (cb == "r_assign" && args.Length() > 2 && !args[2]->IsUndefined());
+  if(!has_options && context->Global()->GetPrivate(context, v8::Private::ForApi(isolate, ToJSString("V8::native"))).ToLocal(&native) && native->IsTrue()){
+    r_callback_native(cb, args, context);
+    return;
+  }
   try {
     Rcpp::Function r_call = Rcpp::Environment::namespace_env("V8")[cb];
     v8::String::Utf8Value arg0(args.GetIsolate(), args[0]);
@@ -378,144 +413,6 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
   }
 }
 
-enum column_kind { COL_MISSING = 0, COL_INTEGER = 1, COL_DOUBLE = 2, COL_LOGICAL = 3, COL_STRING = 4, COL_FACTOR = 5 };
-
-static const char* rows_to_columns_js = R"JS(
-(function (rows) {
-  "use strict";
-  const n = rows.length;
-  if (n === 0) return null;
-  const keys = [];
-  const seen = new Map();
-  for (let i = 0; i < n; i++) {
-    const row = rows[i];
-    if (row === null || typeof row !== "object") return null;
-    const proto = Object.getPrototypeOf(row);
-    if (proto !== Object.prototype && proto !== null) return null;
-    const rk = Object.keys(row);
-    for (let j = 0; j < rk.length; j++) {
-      if (!seen.has(rk[j])) {
-        seen.set(rk[j], true);
-        keys.push(rk[j]);
-      }
-    }
-  }
-  const p = keys.length;
-  if (p === 0) return null;
-  const scan = `"use strict";
-    let kind = 0;
-    for (let i = 0; i < n; i++) {
-      const v = rows[i][KEY];
-      if (v === undefined || v === null) continue;
-      let vk;
-      switch (typeof v) {
-        case "number":
-          vk = (Number.isInteger(v) && v > -2147483648 && v <= 2147483647) ? 1 : 2;
-          break;
-        case "boolean":
-          vk = 3;
-          break;
-        case "string":
-          vk = 4;
-          break;
-        default:
-          return null;
-      }
-      if (kind === 0 || kind === vk) {
-        kind = vk;
-      } else if (kind <= 2 && vk <= 2) {
-        kind = 2;
-      } else {
-        return null;
-      }
-    }
-    if (kind === 0) return [kind, null, null];
-    if (kind === 4) {
-      const codes = new Int32Array(n);
-      const levels = [];
-      const index = new Map();
-      for (let i = 0; i < n; i++) {
-        const v = rows[i][KEY];
-        if (typeof v !== "string") continue;
-        let code = index.get(v);
-        if (code === undefined) {
-          levels.push(v);
-          code = levels.length;
-          index.set(v, code);
-        }
-        codes[i] = code;
-      }
-      return [kind, codes, levels];
-    }
-    const col = (kind === 2) ? new Float64Array(n) : new Int32Array(n);
-    let mask = null;
-    for (let i = 0; i < n; i++) {
-      const v = rows[i][KEY];
-      if (v === undefined || v === null) {
-        if (mask === null) mask = new Uint8Array(n);
-        mask[i] = 1;
-      } else {
-        col[i] = v;
-      }
-    }
-    return [kind, col, mask];`;
-  const kinds = new Int32Array(p);
-  const cols = new Array(p);
-  const masks = new Array(p);
-  for (let j = 0; j < p; j++) {
-    const res = (new Function("rows", "n", scan.split("KEY").join(JSON.stringify(keys[j]))))(rows, n);
-    if (res === null) return null;
-    kinds[j] = res[0];
-    cols[j] = res[1];
-    masks[j] = res[2];
-  }
-  return [keys, kinds, cols, masks];
-})
-)JS";
-
-static const char* columns_to_rows_js = R"JS(
-(function (names, kinds, cols, extra, has_na, n) {
-  "use strict";
-  const p = names.length;
-  const values = new Array(p);
-  const checks = new Array(p);
-  let any_na = false;
-  for (let j = 0; j < p; j++) {
-    const c = "c" + j + "[i]";
-    switch (kinds[j]) {
-      case 1: values[j] = c; checks[j] = c + " !== NA"; break;
-      case 2: values[j] = c; checks[j] = "x" + j + "[i] === 0"; break;
-      case 3: values[j] = "(" + c + " !== 0)"; checks[j] = c + " !== NA"; break;
-      case 4: values[j] = c; checks[j] = c + " !== null"; break;
-      case 5: values[j] = "x" + j + "[" + c + " - 1]"; checks[j] = c + " !== NA"; break;
-    }
-    if (has_na[j]) any_na = true;
-  }
-  let src = "\"use strict\";\nconst NA = -2147483648;\n";
-  for (let j = 0; j < p; j++)
-    src += "const c" + j + " = cols[" + j + "], x" + j + " = extra[" + j + "];\n";
-  src += "const rows = new Array(n);\nfor (let i = 0; i < n; i++) {\n";
-  if (any_na) {
-    src += "const row = {};\n";
-    for (let j = 0; j < p; j++) {
-      const key = JSON.stringify(names[j]);
-      const store = (names[j] === "__proto__") ?
-        "Object.defineProperty(row, " + key + ", {value: " + values[j] + ", enumerable: true, writable: true, configurable: true});" :
-        "row[" + key + "] = " + values[j] + ";";
-      src += has_na[j] ? "if (" + checks[j] + ") " + store + "\n" : store + "\n";
-    }
-    src += "rows[i] = row;\n";
-  } else {
-    const fields = new Array(p);
-    for (let j = 0; j < p; j++)
-      fields[j] = "[" + JSON.stringify(names[j]) + "]: " + values[j];
-    src += "rows[i] = {" + fields.join(", ") + "};\n";
-  }
-  src += "}\nreturn rows;\n";
-  return (new Function("cols", "extra", "n", src))(cols, extra, n);
-})
-)JS";
-
 static v8::Local<v8::Function> compile_function(const char* code, v8::Local<v8::Context> context){
   v8::Local<v8::Script> script = compile_source(code, context);
   if(script.IsEmpty())
@@ -524,108 +421,6 @@ static v8::Local<v8::Function> compile_function(const char* code, v8::Local<v8::
   if(fn.IsEmpty() || !fn->IsFunction())
     return v8::Local<v8::Function>();
   return fn.As<v8::Function>();
-}
-
-static Rcpp::RObject rows_to_data_frame(v8::Local<v8::Value> value, v8::Local<v8::Context> context){
-  if(value.IsEmpty() || !value->IsArray())
-    return R_NilValue;
-
-  v8::TryCatch trycatch(isolate);
-  v8::Local<v8::Function> fn = compile_function(rows_to_columns_js, context);
-  if(fn.IsEmpty())
-    return R_NilValue;
-  v8::Local<v8::Value> argv[1] = {value};
-  v8::Local<v8::Value> out = safe_to_local(fn->Call(context, context->Global(), 1, argv));
-  if(out.IsEmpty() || !out->IsArray())
-    return R_NilValue;
-
-  v8::Local<v8::Array> parts = out.As<v8::Array>();
-  v8::Local<v8::Array> keys = safe_to_local(parts->Get(context, 0)).As<v8::Array>();
-  v8::Local<v8::Int32Array> kinds = safe_to_local(parts->Get(context, 1)).As<v8::Int32Array>();
-  v8::Local<v8::Array> cols = safe_to_local(parts->Get(context, 2)).As<v8::Array>();
-  v8::Local<v8::Array> masks = safe_to_local(parts->Get(context, 3)).As<v8::Array>();
-
-  uint32_t n = value.As<v8::Array>()->Length();
-  uint32_t p = keys->Length();
-  R_xlen_t nr = static_cast<R_xlen_t>(n);
-
-  std::vector<int32_t> kind(p);
-  kinds->CopyContents(kind.data(), p * sizeof(int32_t));
-
-  Rcpp::List df(static_cast<R_xlen_t>(p));
-  Rcpp::CharacterVector names(static_cast<R_xlen_t>(p));
-  std::vector<uint8_t> mask(n);
-
-  for(uint32_t j = 0; j < p; j++){
-    v8::HandleScope column_scope(isolate);
-    v8::String::Utf8Value key(isolate, safe_to_local(keys->Get(context, j)));
-    names[j] = Rcpp::String(*key, CE_UTF8);
-
-    v8::Local<v8::Value> col = safe_to_local(cols->Get(context, j));
-    v8::Local<v8::Value> colmask = safe_to_local(masks->Get(context, j));
-    bool has_mask = !colmask.IsEmpty() && colmask->IsUint8Array();
-    if(has_mask)
-      colmask.As<v8::Uint8Array>()->CopyContents(mask.data(), n);
-
-    switch(kind[j]){
-    case COL_INTEGER: {
-      Rcpp::IntegerVector x(nr);
-      col.As<v8::Int32Array>()->CopyContents(x.begin(), n * sizeof(int32_t));
-      if(has_mask){
-        for(uint32_t i = 0; i < n; i++)
-          if(mask[i]) x[i] = NA_INTEGER;
-      }
-      df[j] = x;
-      break;
-    }
-    case COL_DOUBLE: {
-      Rcpp::NumericVector x(nr);
-      col.As<v8::Float64Array>()->CopyContents(x.begin(), n * sizeof(double));
-      if(has_mask){
-        for(uint32_t i = 0; i < n; i++)
-          if(mask[i]) x[i] = NA_REAL;
-      }
-      df[j] = x;
-      break;
-    }
-    case COL_LOGICAL: {
-      Rcpp::LogicalVector x(nr);
-      col.As<v8::Int32Array>()->CopyContents(x.begin(), n * sizeof(int32_t));
-      if(has_mask){
-        for(uint32_t i = 0; i < n; i++)
-          if(mask[i]) x[i] = NA_LOGICAL;
-      }
-      df[j] = x;
-      break;
-    }
-    case COL_STRING: {
-      v8::Local<v8::Array> levels = colmask.As<v8::Array>();
-      uint32_t nlev = levels->Length();
-      Rcpp::CharacterVector lev(static_cast<R_xlen_t>(nlev));
-      for(uint32_t i = 0; i < nlev; i++){
-        v8::String::Utf8Value str(isolate, safe_to_local(levels->Get(context, i)));
-        lev[i] = Rf_mkCharCE(*str, CE_UTF8);
-      }
-      std::vector<int32_t> codes(n);
-      col.As<v8::Int32Array>()->CopyContents(codes.data(), n * sizeof(int32_t));
-      Rcpp::CharacterVector x(nr);
-      for(uint32_t i = 0; i < n; i++)
-        x[i] = (codes[i] == 0) ? NA_STRING : STRING_ELT(lev, codes[i] - 1);
-      df[j] = x;
-      break;
-    }
-    default:
-      df[j] = Rcpp::LogicalVector(nr, NA_LOGICAL);
-    }
-  }
-
-  if(trycatch.HasCaught())
-    return R_NilValue;
-
-  df.attr("names") = names;
-  df.attr("row.names") = Rcpp::IntegerVector::create(NA_INTEGER, -static_cast<int>(n));
-  df.attr("class") = "data.frame";
-  return df;
 }
 
 static v8::Local<v8::ArrayBuffer> copy_to_array_buffer(const void* data, size_t bytes){
@@ -642,22 +437,295 @@ static v8::Local<v8::ArrayBuffer> copy_to_array_buffer(const void* data, size_t 
   return buffer;
 }
 
-static v8::Local<v8::Array> to_js_strings(SEXP x){
-  R_xlen_t len = Rf_xlength(x);
-  std::vector<v8::Local<v8::Value>> out(static_cast<size_t>(len));
-  for(R_xlen_t i = 0; i < len; i++){
-    SEXP el = STRING_ELT(x, i);
-    if(el == NA_STRING){
-      out[static_cast<size_t>(i)] = v8::Null(isolate);
-    } else {
-      out[static_cast<size_t>(i)] = ToJSString(Rf_translateCharUTF8(el));
-    }
+static v8::Local<v8::String> to_js_name(SEXP el){
+  return ToJSString(el == NA_STRING ? "NA" : Rf_translateCharUTF8(el));
+}
+
+static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
+  v8::EscapableHandleScope scope(isolate);
+  size_t n = static_cast<size_t>(Rf_xlength(x));
+  switch(TYPEOF(x)){
+  case NILSXP: {
+    v8::Local<v8::Value> node[1] = {v8::Integer::New(isolate, 0)};
+    return scope.Escape(v8::Array::New(isolate, node, 1));
   }
-  return v8::Array::New(isolate, out.data(), out.size());
+  case LGLSXP:
+  case INTSXP:
+  case REALSXP:
+  case STRSXP: {
+    SEXP dims = Rf_getAttrib(x, R_DimSymbol);
+    bool has_dims = !Rf_isNull(dims) && Rf_xlength(dims) >= 2;
+    bool scalar = auto_unbox && !has_dims && n == 1 && !Rf_inherits(x, "AsIs");
+    v8::Local<v8::Value> node[4];
+    node[3] = v8::Boolean::New(isolate, scalar);
+    if(TYPEOF(x) == REALSXP){
+      node[0] = v8::Integer::New(isolate, 3);
+      node[1] = v8::Float64Array::New(copy_to_array_buffer(REAL(x), n * sizeof(double)), 0, n);
+      node[2] = v8::Null(isolate);
+      const double* v = REAL(x);
+      for(size_t i = 0; i < n; i++){
+        if(R_IsNA(v[i])){
+          std::vector<uint8_t> mask(n, 0);
+          for(size_t k = i; k < n; k++)
+            mask[k] = R_IsNA(v[k]) ? 1 : 0;
+          node[2] = v8::Uint8Array::New(copy_to_array_buffer(mask.data(), n), 0, n);
+          break;
+        }
+      }
+    } else if(TYPEOF(x) == STRSXP){
+      std::unordered_map<SEXP, int32_t> index;
+      std::vector<int32_t> codes(n);
+      std::vector<v8::Local<v8::Value>> levels;
+      for(size_t i = 0; i < n; i++){
+        SEXP el = STRING_ELT(x, static_cast<R_xlen_t>(i));
+        if(el == NA_STRING){
+          codes[i] = NA_INTEGER;
+          continue;
+        }
+        std::unordered_map<SEXP, int32_t>::iterator it = index.find(el);
+        if(it == index.end()){
+          levels.push_back(ToJSString(Rf_translateCharUTF8(el)));
+          int32_t code = static_cast<int32_t>(levels.size());
+          index[el] = code;
+          codes[i] = code;
+        } else {
+          codes[i] = it->second;
+        }
+      }
+      node[0] = v8::Integer::New(isolate, 4);
+      node[1] = v8::Int32Array::New(copy_to_array_buffer(codes.data(), n * sizeof(int32_t)), 0, n);
+      node[2] = v8::Array::New(isolate, levels.data(), levels.size());
+    } else if(Rf_isFactor(x)){
+      SEXP lev = Rf_getAttrib(x, R_LevelsSymbol);
+      size_t nlev = static_cast<size_t>(Rf_xlength(lev));
+      std::vector<v8::Local<v8::Value>> levels(nlev);
+      for(size_t i = 0; i < nlev; i++)
+        levels[i] = to_js_name(STRING_ELT(lev, static_cast<R_xlen_t>(i)));
+      node[0] = v8::Integer::New(isolate, 4);
+      node[1] = v8::Int32Array::New(copy_to_array_buffer(INTEGER(x), n * sizeof(int32_t)), 0, n);
+      node[2] = v8::Array::New(isolate, levels.data(), nlev);
+    } else {
+      const int* v = (TYPEOF(x) == LGLSXP) ? LOGICAL(x) : INTEGER(x);
+      node[0] = v8::Integer::New(isolate, TYPEOF(x) == LGLSXP ? 1 : 2);
+      node[1] = v8::Int32Array::New(copy_to_array_buffer(v, n * sizeof(int32_t)), 0, n);
+      node[2] = v8::Null(isolate);
+    }
+    v8::Local<v8::Array> vec = v8::Array::New(isolate, node, 4);
+    if(!has_dims)
+      return scope.Escape(vec);
+    size_t ndims = static_cast<size_t>(Rf_xlength(dims));
+    std::vector<v8::Local<v8::Value>> dimvals(ndims);
+    for(size_t i = 0; i < ndims; i++)
+      dimvals[i] = v8::Integer::New(isolate, INTEGER(dims)[i]);
+    v8::Local<v8::Value> arr[3] = {
+      v8::Integer::New(isolate, 8),
+      vec,
+      v8::Array::New(isolate, dimvals.data(), ndims)
+    };
+    return scope.Escape(v8::Array::New(isolate, arr, 3));
+  }
+  case RAWSXP: {
+    v8::Local<v8::Value> node[2] = {
+      v8::Integer::New(isolate, 5),
+      v8::Uint8Array::New(copy_to_array_buffer(RAW(x), n), 0, n)
+    };
+    return scope.Escape(v8::Array::New(isolate, node, 2));
+  }
+  case VECSXP: {
+    std::vector<v8::Local<v8::Value>> children(n);
+    for(size_t i = 0; i < n; i++)
+      children[i] = r_to_node(VECTOR_ELT(x, static_cast<R_xlen_t>(i)), auto_unbox);
+    SEXP names = Rf_getAttrib(x, R_NamesSymbol);
+    v8::Local<v8::Value> jsnames = v8::Null(isolate);
+    if(!Rf_isNull(names)){
+      std::vector<v8::Local<v8::Value>> nm(n);
+      for(size_t i = 0; i < n; i++)
+        nm[i] = to_js_name(STRING_ELT(names, static_cast<R_xlen_t>(i)));
+      jsnames = v8::Array::New(isolate, nm.data(), n);
+    }
+    if(Rf_inherits(x, "data.frame")){
+      R_xlen_t nrow = (n > 0) ? Rf_xlength(VECTOR_ELT(x, 0)) : Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
+      if(Rf_isNull(names))
+        throw std::invalid_argument("data frame columns must be named");
+      v8::Local<v8::Value> node[4] = {
+        v8::Integer::New(isolate, 7),
+        v8::Array::New(isolate, children.data(), n),
+        jsnames,
+        v8::Number::New(isolate, static_cast<double>(nrow))
+      };
+      return scope.Escape(v8::Array::New(isolate, node, 4));
+    }
+    v8::Local<v8::Value> node[3] = {
+      v8::Integer::New(isolate, 6),
+      v8::Array::New(isolate, children.data(), n),
+      jsnames
+    };
+    return scope.Escape(v8::Array::New(isolate, node, 3));
+  }
+  default:
+    throw std::invalid_argument(std::string("No native conversion for R type: ") + Rf_type2char(static_cast<SEXPTYPE>(TYPEOF(x))));
+  }
+}
+
+static v8::Local<v8::Value> r_to_js(SEXP x, bool auto_unbox, v8::Local<v8::Context> context){
+  v8::EscapableHandleScope scope(isolate);
+  v8::TryCatch trycatch(isolate);
+  v8::Local<v8::Value> node = r_to_node(x, auto_unbox);
+  v8::Local<v8::Function> fn = compile_function(native_decode_js, context);
+  if(fn.IsEmpty())
+    throw std::runtime_error("Failed to compile native decoder.");
+  v8::Local<v8::Value> argv[1] = {node};
+  v8::Local<v8::Value> out = safe_to_local(fn->Call(context, context->Global(), 1, argv));
+  if(out.IsEmpty()){
+    v8::String::Utf8Value exception(isolate, trycatch.Exception());
+    throw std::runtime_error(ToCString(exception));
+  }
+  return scope.Escape(out);
+}
+
+static Rcpp::RObject node_to_r(v8::Local<v8::Value> value, v8::Local<v8::Context> context){
+  v8::HandleScope scope(isolate);
+  if(value.IsEmpty() || !value->IsArray())
+    throw std::runtime_error("Invalid node in native conversion.");
+  v8::Local<v8::Array> node = value.As<v8::Array>();
+  int tag = safe_to_local(node->Get(context, 0))->Int32Value(context).FromMaybe(-1);
+  switch(tag){
+  case 0:
+    return R_NilValue;
+  case 1:
+  case 2:
+  case 3: {
+    v8::Local<v8::ArrayBufferView> data = safe_to_local(node->Get(context, 1)).As<v8::ArrayBufferView>();
+    v8::Local<v8::Value> maskval = safe_to_local(node->Get(context, 2));
+    size_t n = data->ByteLength() / (tag == 3 ? sizeof(double) : sizeof(int32_t));
+    R_xlen_t nr = static_cast<R_xlen_t>(n);
+    std::vector<uint8_t> mask;
+    if(maskval->IsUint8Array()){
+      mask.resize(n);
+      maskval.As<v8::Uint8Array>()->CopyContents(mask.data(), n);
+    }
+    if(tag == 3){
+      Rcpp::NumericVector x(nr);
+      data->CopyContents(x.begin(), n * sizeof(double));
+      for(size_t i = 0; i < mask.size(); i++)
+        if(mask[i]) x[static_cast<R_xlen_t>(i)] = NA_REAL;
+      return x;
+    }
+    if(tag == 2){
+      Rcpp::IntegerVector x(nr);
+      data->CopyContents(x.begin(), n * sizeof(int32_t));
+      for(size_t i = 0; i < mask.size(); i++)
+        if(mask[i]) x[static_cast<R_xlen_t>(i)] = NA_INTEGER;
+      return x;
+    }
+    Rcpp::LogicalVector x(nr);
+    data->CopyContents(x.begin(), n * sizeof(int32_t));
+    for(size_t i = 0; i < mask.size(); i++)
+      if(mask[i]) x[static_cast<R_xlen_t>(i)] = NA_LOGICAL;
+    return x;
+  }
+  case 4: {
+    v8::Local<v8::Int32Array> codes = safe_to_local(node->Get(context, 1)).As<v8::Int32Array>();
+    v8::Local<v8::Array> levels = safe_to_local(node->Get(context, 2)).As<v8::Array>();
+    uint32_t nlev = levels->Length();
+    Rcpp::CharacterVector lev(static_cast<R_xlen_t>(nlev));
+    for(uint32_t i = 0; i < nlev; i++){
+      v8::String::Utf8Value str(isolate, safe_to_local(levels->Get(context, i)));
+      lev[i] = Rf_mkCharCE(*str, CE_UTF8);
+    }
+    size_t n = codes->Length();
+    std::vector<int32_t> code(n);
+    codes->CopyContents(code.data(), n * sizeof(int32_t));
+    Rcpp::CharacterVector x(static_cast<R_xlen_t>(n));
+    for(size_t i = 0; i < n; i++)
+      x[static_cast<R_xlen_t>(i)] = (code[i] == 0) ? NA_STRING : STRING_ELT(lev, code[i] - 1);
+    return x;
+  }
+  case 5: {
+    v8::Local<v8::ArrayBufferView> view = safe_to_local(node->Get(context, 1)).As<v8::ArrayBufferView>();
+    Rcpp::RawVector x(static_cast<R_xlen_t>(view->ByteLength()));
+    view->CopyContents(x.begin(), view->ByteLength());
+    return x;
+  }
+  case 6:
+  case 7: {
+    v8::Local<v8::Array> children = safe_to_local(node->Get(context, 1)).As<v8::Array>();
+    v8::Local<v8::Value> names = safe_to_local(node->Get(context, 2));
+    uint32_t n = children->Length();
+    Rcpp::List x(static_cast<R_xlen_t>(n));
+    for(uint32_t i = 0; i < n; i++)
+      x[i] = node_to_r(safe_to_local(children->Get(context, i)), context);
+    Rcpp::CharacterVector nm(static_cast<R_xlen_t>(names->IsArray() ? n : 0));
+    if(names->IsArray()){
+      v8::Local<v8::Array> namearr = names.As<v8::Array>();
+      for(uint32_t i = 0; i < n; i++){
+        v8::String::Utf8Value str(isolate, safe_to_local(namearr->Get(context, i)));
+        nm[i] = Rf_mkCharCE(*str, CE_UTF8);
+      }
+      x.attr("names") = nm;
+    }
+    if(tag == 6)
+      return x;
+    int nrow = static_cast<int>(safe_to_local(node->Get(context, 3))->NumberValue(context).FromMaybe(0));
+    Rcpp::RObject rownames = Rcpp::IntegerVector::create(NA_INTEGER, -nrow);
+    for(uint32_t i = 0; i < n; i++){
+      if(std::string(nm[i]) != "_row")
+        continue;
+      SEXP rn = x[i];
+      bool valid = TYPEOF(rn) == STRSXP && !Rf_any_duplicated(rn, FALSE);
+      for(R_xlen_t k = 0; valid && k < Rf_xlength(rn); k++)
+        valid = STRING_ELT(rn, k) != NA_STRING;
+      if(valid){
+        rownames = rn;
+        Rcpp::List keep(static_cast<R_xlen_t>(n - 1));
+        Rcpp::CharacterVector keepnames(static_cast<R_xlen_t>(n - 1));
+        for(uint32_t k = 0, m = 0; k < n; k++){
+          if(k == i)
+            continue;
+          keep[m] = x[k];
+          keepnames[m] = nm[k];
+          m++;
+        }
+        keep.attr("names") = keepnames;
+        x = keep;
+      }
+      break;
+    }
+    x.attr("row.names") = rownames;
+    x.attr("class") = "data.frame";
+    return x;
+  }
+  case 8: {
+    Rcpp::RObject x = node_to_r(safe_to_local(node->Get(context, 1)), context);
+    v8::Local<v8::Array> dims = safe_to_local(node->Get(context, 2)).As<v8::Array>();
+    uint32_t nd = dims->Length();
+    Rcpp::IntegerVector dim(static_cast<R_xlen_t>(nd));
+    for(uint32_t i = 0; i < nd; i++)
+      dim[i] = safe_to_local(dims->Get(context, i))->Int32Value(context).FromMaybe(0);
+    x.attr("dim") = dim;
+    return x;
+  }
+  }
+  throw std::runtime_error("Invalid node in native conversion.");
+}
+
+static Rcpp::RObject js_to_r(v8::Local<v8::Value> value, v8::Local<v8::Context> context){
+  v8::HandleScope scope(isolate);
+  v8::TryCatch trycatch(isolate);
+  v8::Local<v8::Function> fn = compile_function(native_encode_js, context);
+  if(fn.IsEmpty())
+    throw std::runtime_error("Failed to compile native encoder.");
+  v8::Local<v8::Value> argv[1] = {value.IsEmpty() ? v8::Undefined(isolate).As<v8::Value>() : value};
+  v8::Local<v8::Value> node = safe_to_local(fn->Call(context, context->Global(), 1, argv));
+  if(node.IsEmpty()){
+    v8::String::Utf8Value exception(isolate, trycatch.Exception());
+    throw std::runtime_error(ToCString(exception));
+  }
+  return node_to_r(node, context);
 }
 
 // [[Rcpp::export]]
-bool write_data_frame(Rcpp::String key, Rcpp::List cols, int nrow, ctxptr ctx){
+bool write_native(Rcpp::String key, SEXP value, bool auto_unbox, ctxptr ctx){
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
 
@@ -665,98 +733,12 @@ bool write_data_frame(Rcpp::String key, Rcpp::List cols, int nrow, ctxptr ctx){
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::Context> context = ctx.checked_get()->Get(isolate);
   v8::Context::Scope context_scope(context);
-  v8::TryCatch trycatch(isolate);
 
-  if(nrow < 0)
-    throw std::invalid_argument("nrow must be non-negative");
-  size_t n = static_cast<size_t>(nrow);
-  size_t p = static_cast<size_t>(cols.size());
-  SEXP colnames = Rf_getAttrib(cols, R_NamesSymbol);
-  if(Rf_xlength(colnames) != cols.size())
-    throw std::invalid_argument("all columns must be named");
-
-  std::vector<v8::Local<v8::Value>> names(p);
-  std::vector<v8::Local<v8::Value>> kinds(p);
-  std::vector<v8::Local<v8::Value>> jscols(p);
-  std::vector<v8::Local<v8::Value>> extra(p);
-  std::vector<v8::Local<v8::Value>> has_na(p);
-
-  for(size_t j = 0; j < p; j++){
-    R_xlen_t rj = static_cast<R_xlen_t>(j);
-    SEXP col = VECTOR_ELT(cols, rj);
-    if(static_cast<size_t>(Rf_xlength(col)) != n)
-      throw std::invalid_argument("all columns must have nrow elements");
-    names[j] = ToJSString(Rf_translateCharUTF8(STRING_ELT(colnames, rj)));
-    extra[j] = v8::Null(isolate);
-    bool col_na = false;
-    int kind;
-    switch(TYPEOF(col)){
-    case REALSXP: {
-      kind = COL_DOUBLE;
-      jscols[j] = v8::Float64Array::New(copy_to_array_buffer(REAL(col), n * sizeof(double)), 0, n);
-      const double* x = REAL(col);
-      size_t first_na = n;
-      for(size_t i = 0; i < n; i++){
-        if(R_IsNA(x[i])){
-          first_na = i;
-          break;
-        }
-      }
-      if(first_na < n){
-        std::vector<uint8_t> mask(n, 0);
-        for(size_t i = first_na; i < n; i++)
-          mask[i] = R_IsNA(x[i]) ? 1 : 0;
-        extra[j] = v8::Uint8Array::New(copy_to_array_buffer(mask.data(), n), 0, n);
-        col_na = true;
-      }
-      break;
-    }
-    case INTSXP:
-    case LGLSXP: {
-      kind = (TYPEOF(col) == LGLSXP) ? COL_LOGICAL : (Rf_isFactor(col) ? COL_FACTOR : COL_INTEGER);
-      const int* x = (TYPEOF(col) == LGLSXP) ? LOGICAL(col) : INTEGER(col);
-      jscols[j] = v8::Int32Array::New(copy_to_array_buffer(x, n * sizeof(int)), 0, n);
-      for(size_t i = 0; i < n && !col_na; i++)
-        col_na = (x[i] == NA_INTEGER);
-      if(kind == COL_FACTOR)
-        extra[j] = to_js_strings(Rf_getAttrib(col, R_LevelsSymbol));
-      break;
-    }
-    case STRSXP:
-      kind = COL_STRING;
-      jscols[j] = to_js_strings(col);
-      for(R_xlen_t i = 0; i < Rf_xlength(col) && !col_na; i++)
-        col_na = (STRING_ELT(col, i) == NA_STRING);
-      break;
-    default:
-      throw std::invalid_argument("unsupported column type");
-    }
-    kinds[j] = v8::Integer::New(isolate, kind);
-    has_na[j] = v8::Boolean::New(isolate, col_na);
-  }
-
-  v8::Local<v8::Function> fn = compile_function(columns_to_rows_js, context);
-  if(fn.IsEmpty())
-    throw std::runtime_error("Failed to compile data frame converter.");
-
-  v8::Local<v8::Value> argv[6] = {
-    v8::Array::New(isolate, names.data(), p),
-    v8::Array::New(isolate, kinds.data(), p),
-    v8::Array::New(isolate, jscols.data(), p),
-    v8::Array::New(isolate, extra.data(), p),
-    v8::Array::New(isolate, has_na.data(), p),
-    v8::Number::New(isolate, static_cast<double>(n))
-  };
-  v8::Local<v8::Value> rows = safe_to_local(fn->Call(context, context->Global(), 6, argv));
-  if(rows.IsEmpty()){
-    v8::String::Utf8Value exception(isolate, trycatch.Exception());
-    throw std::runtime_error(ToCString(exception));
-  }
-
+  v8::Local<v8::Value> out = r_to_js(value, auto_unbox, context);
   v8::Local<v8::String> name = ToJSString(key.get_cstring());
   v8::Local<v8::Object> global = context->Global();
   if(!global->Has(context, name).FromMaybe(true) || !global->Delete(context, name).IsNothing())
-    return !global->Set(context, name, rows).IsNothing();
+    return !global->Set(context, name, out).IsNothing();
   return false;
 }
 
@@ -821,11 +803,8 @@ Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false,
 
   // Serialize to JSON or Raw
   if(serialize == true){
-    if(native){
-      Rcpp::RObject df = rows_to_data_frame(result, context);
-      if(!df.isNULL())
-        return df;
-    }
+    if(native)
+      return js_to_r(result, context);
     return convert_object(result);
   }
 
@@ -916,7 +895,7 @@ v8::Local<v8::Object> console_template(){
 }
 
 // [[Rcpp::export]]
-ctxptr make_context(bool set_console){
+ctxptr make_context(bool set_console, bool native = false){
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
@@ -939,6 +918,8 @@ ctxptr make_context(bool set_console){
     if(context->Global()->Set(context, console, console_template()).IsNothing())
       Rcpp::warning("Could not set console.");
   }
+  if(context->Global()->SetPrivate(context, v8::Private::ForApi(isolate, ToJSString("V8::native")), v8::Boolean::New(isolate, native)).IsNothing())
+    Rcpp::warning("Could not set backend.");
   ctx_type *ptr = new ctx_type(isolate, context);
   return ctxptr(ptr);
 }
