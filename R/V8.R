@@ -68,6 +68,14 @@
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose `console` API (`console.log`, `console.warn`, `console.error`).
 #' @param ... ignored parameters for past/future versions.
+#' @param backend how data frames are moved between R and JavaScript. `"jsonlite"`
+#' (default) serializes everything to JSON. `"native"` copies data frames column
+#' by column without JSON: `assign()`, `call()` arguments and `get()` results that
+#' are data frames (or JS arrays of flat objects) take this path, everything else
+#' still uses JSON. Supported columns are numeric, integer, logical, character,
+#' factor, Date and POSIXct. Unlike JSON, doubles keep full precision and `NaN`
+#' and `Inf` survive the round trip; `NA` values are omitted from the row objects
+#' as with jsonlite.
 #' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
@@ -133,13 +141,14 @@
 #' # exit
 #' }
 #'
-v8 <- function(global = "global", console = TRUE, ...) {
+v8 <- function(global = "global", console = TRUE, ..., backend = c("jsonlite", "native")) {
   # Private fields
   private <- environment();
+  native <- match.arg(backend) == "native"
 
   # Low level evaluate
-  evaluate_js <- function(src, serialize = FALSE, await = FALSE){
-    get_str_output(context_eval(join(src), private$context, serialize, await))
+  evaluate_js <- function(src, serialize = FALSE, await = FALSE, native = FALSE){
+    get_str_output(context_eval(join(src), private$context, serialize, await, native))
   }
 
   # Public methods
@@ -158,8 +167,16 @@ v8 <- function(global = "global", console = TRUE, ...) {
       if(!is.null(names(jsargs))){
         stop("Named arguments are not supported in JavaScript.")
       }
+      tmpkeys <- character()
+      on.exit(if(length(tmpkeys)) evaluate_js(sprintf("delete this['%s'];", tmpkeys)))
       jsargs <- vapply(jsargs, function(x){
-        if(is.raw(x)){
+        cols <- if(private$native) data_frame_columns(x)
+        if(!is.null(cols)){
+          key <- basename(tempfile("V8_arg_"))
+          write_data_frame(key, cols, nrow(x), private$context)
+          tmpkeys <<- c(tmpkeys, key)
+          key
+        } else if(is.raw(x)){
           raw_to_js(x)
         } else if(is.atomic(x) && inherits(x, "JS_EVAL")){
           as.character(x)
@@ -170,7 +187,8 @@ v8 <- function(global = "global", console = TRUE, ...) {
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
       src <- paste0("(", fun ,")(", jsargs, ");")
-      get_json_output(evaluate_js(src, serialize = TRUE, await = await), simplifyVector = simplify)
+      native <- private$native && isTRUE(simplify)
+      get_json_output(evaluate_js(src, serialize = TRUE, await = await, native = native), simplifyVector = simplify)
     }
     source <- function(file){
       if(is.character(file) && length(file) == 1 && grepl("^https?://", file)){
@@ -182,11 +200,15 @@ v8 <- function(global = "global", console = TRUE, ...) {
     }
     get <- function(name, ..., await = FALSE){
       stopifnot(is.character(name))
-      get_json_output(evaluate_js(name, serialize = TRUE, await = await), ...)
+      native <- private$native && length(list(...)) == 0
+      get_json_output(evaluate_js(name, serialize = TRUE, await = await, native = native), ...)
     }
     assign <- function(name, value, auto_unbox = TRUE, ...){
       stopifnot(is.character(name))
-      obj <- if(is.raw(value)) {
+      cols <- if(private$native && length(list(...)) == 0) data_frame_columns(value)
+      obj <- if(!is.null(cols)) {
+        invisible(write_data_frame(name, cols, nrow(value), private$context))
+      } else if(is.raw(value)) {
         write_array_buffer(name, value, private$context)
       } else if(inherits(value, "JS_EVAL")) {
         invisible(evaluate_js(paste("var", name, "=", value)))
@@ -271,11 +293,43 @@ undefined_to_null <- function(str){
 get_json_output <- function(json, ...){
   if(is.raw(json)){
     return(json)
+  } else if(is.data.frame(json)){
+    rn <- json[["_row"]]
+    if(is.character(rn) && !anyNA(rn) && !anyDuplicated(rn)){
+      json[["_row"]] <- NULL
+      row.names(json) <- rn
+    }
+    json
   } else if(!length(json) || identical(json,"undefined")){
     invisible()
   } else {
     fromJSON(json, ...)
   }
+}
+
+data_frame_columns <- function(x){
+  if(!is.data.frame(x))
+    return(NULL)
+  cols <- vector("list", length(x))
+  for(i in seq_along(x)){
+    col <- x[[i]]
+    if(!is.null(dim(col)))
+      return(NULL)
+    if(inherits(col, c("Date", "POSIXct"))){
+      col <- format(col)
+    } else if(is.object(col) && !is.factor(col)){
+      return(NULL)
+    } else if(!typeof(col) %in% c("double", "integer", "logical", "character")){
+      return(NULL)
+    }
+    cols[[i]] <- col
+  }
+  names(cols) <- names(x)
+  rn <- attr(x, "row.names")
+  if(is.character(rn)){
+    cols[["_row"]] <- rn
+  }
+  cols
 }
 
 get_str_output <- function(str){

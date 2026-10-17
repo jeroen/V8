@@ -5,8 +5,12 @@ version <- function() {
     .Call(`_V8_version`)
 }
 
-context_eval <- function(src, ctx, serialize = FALSE, await = FALSE) {
-    .Call(`_V8_context_eval`, src, ctx, serialize, await)
+write_data_frame <- function(key, cols, nrow, ctx) {
+    .Call(`_V8_write_data_frame`, key, cols, nrow, ctx)
+}
+
+context_eval <- function(src, ctx, serialize = FALSE, await = FALSE, native = FALSE) {
+    .Call(`_V8_context_eval`, src, ctx, serialize, await, native)
 }
 
 write_array_buffer <- function(key, data, ctx) {

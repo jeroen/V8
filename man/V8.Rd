@@ -7,7 +7,7 @@
 \alias{engine_info}
 \title{Run JavaScript in a V8 context}
 \usage{
-v8(global = "global", console = TRUE, ...)
+v8(global = "global", console = TRUE, ..., backend = c("jsonlite", "native"))
 
 engine_info()
 }
@@ -17,6 +17,15 @@ engine_info()
 \item{console}{expose \code{console} API (\code{console.log}, \code{console.warn}, \code{console.error}).}
 
 \item{...}{ignored parameters for past/future versions.}
+
+\item{backend}{how data frames are moved between R and JavaScript. \code{"jsonlite"}
+(default) serializes everything to JSON. \code{"native"} copies data frames column
+by column without JSON: \code{assign()}, \code{call()} arguments and \code{get()} results that
+are data frames (or JS arrays of flat objects) take this path, everything else
+still uses JSON. Supported columns are numeric, integer, logical, character,
+factor, Date and POSIXct. Unlike JSON, doubles keep full precision and \code{NaN}
+and \code{Inf} survive the round trip; \code{NA} values are omitted from the row objects
+as with jsonlite.}
 }
 \description{
 The \code{\link[=v8]{v8()}} function (formerly called \code{new_context}) creates a

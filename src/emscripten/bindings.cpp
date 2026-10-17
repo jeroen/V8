@@ -205,7 +205,7 @@ std::string version(){
 }
 
 
-Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false, bool await = false){
+Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false, bool await = false, bool = false){
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
 
@@ -241,6 +241,11 @@ bool write_array_buffer(Rcpp::String key, Rcpp::RawVector data, ctxptr ctx){
     Rcpp::stop(err.get());
   }
   return true;
+}
+
+
+bool write_data_frame(Rcpp::String, Rcpp::List, int, ctxptr){
+  throw std::runtime_error("The native backend is not supported in emscripten.");
 }
 
 
