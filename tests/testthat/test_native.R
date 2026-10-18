@@ -16,7 +16,7 @@ test_that("R to JS matches jsonlite", {
     I(1), factor("a"), factor(c("a", NA)), as.Date("2020-01-01"), 1 + 2i,
     list(a = list(b = list(c = 1))), c(a = 1, b = 2), matrix(c("a", "b"), 1), array(1:8, c(2, 2, 2)),
     mtcars, iris, data.frame(a = 1:2, b = I(list(1:2, "x"))), list(df = data.frame(x = 1:2), v = I("a")),
-    as.POSIXct("2020-01-01 10:00:00", tz = "UTC"), "é", list(x = NA),
+    as.POSIXct("2020-01-01 10:00:00", tz = "UTC"), "\u00e9", list(x = NA),
     data.frame(
       a = c(1, NA, 2.5),
       b = c(1L, NA, 3L),
@@ -24,7 +24,8 @@ test_that("R to JS matches jsonlite", {
       s = c("x", NA, "y"),
       f = factor(c("u", NA, "v")),
       d = as.Date("2020-01-01") + 0:2,
-      t = as.POSIXct("2020-01-01 10:00:00", tz = "UTC") + 0:2
+      t = as.POSIXct("2020-01-01 10:00:00", tz = "UTC") + 0:2,
+      stringsAsFactors = FALSE
     )
   )
   ctx_json <- v8(backend = "jsonlite")
@@ -76,7 +77,8 @@ test_that("native get", {
     a = c(1, 2.5, NA),
     b = c("x", NA, NA),
     c = c(TRUE, NA, NA),
-    d = c(NA, NA, NA)
+    d = c(NA, NA, NA),
+    stringsAsFactors = FALSE
   ))
   expect_identical(ctx$get('[{"a": 1}, {"a": 2}]')$a, 1:2)
   expect_identical(ctx$get('[{"a": 2147483648}]')$a, 2147483648)
@@ -128,7 +130,7 @@ test_that("native errors", {
 test_that("toJSON options match jsonlite", {
   skip_if_not_installed("jsonlite")
   t <- as.POSIXct("2020-01-01 10:00:00", tz = "Europe/Berlin")
-  df <- data.frame(a = c(1.5, NA), b = c("x", NA))
+  df <- data.frame(a = c(1.5, NA), b = c("x", NA), stringsAsFactors = FALSE)
   cases <- list(
     list(df, list(na = "null")),
     list(df, list(na = "string")),
@@ -208,7 +210,7 @@ test_that("native callbacks", {
   expect_identical(ctx$get("console.r.get('head(mtcars, 2)')"), ctx$get("m"))
   expect_identical(ctx$eval("JSON.stringify(console.r.get('list(a = 1:3, b = \"x\")'))"), '{"a":[1,2,3],"b":["x"]}')
   ctx$eval("console.r.assign('native_cb_test', [{a: 1, b: 'x'}, {a: 2}])")
-  expect_identical(get("native_cb_test", envir = globalenv()), data.frame(a = 1:2, b = c("x", NA)))
+  expect_identical(get("native_cb_test", envir = globalenv()), data.frame(a = 1:2, b = c("x", NA), stringsAsFactors = FALSE))
   rm("native_cb_test", envir = globalenv())
   expect_null(ctx$get("console.r.eval('invisible(1)')"))
   expect_error(ctx$get("console.r.call('stop', ['boom'])"), "boom")
@@ -225,8 +227,8 @@ test_that("list columns", {
 
 test_that("utf8 strings", {
   ctx <- v8(backend = "native")
-  latin <- iconv("café", "UTF-8", "latin1")
-  df <- data.frame(s = c("été", latin, NA, "\U0001F600"))
+  latin <- iconv("caf\u00e9", "UTF-8", "latin1")
+  df <- data.frame(s = c("\u00e9t\u00e9", latin, NA, "\U0001F600"), stringsAsFactors = FALSE)
   df$f <- factor(df$s)
   ctx$assign("df", df)
   out <- ctx$get("df")
@@ -235,7 +237,7 @@ test_that("utf8 strings", {
 })
 
 test_that("special column names", {
-  df <- data.frame(a = c(1.5, NA), b = c("x", "x"))
+  df <- data.frame(a = c(1.5, NA), b = c("x", "x"), stringsAsFactors = FALSE)
   names(df) <- c("__proto__", "it's \"quoted\"\n")
   ctx <- v8(backend = "native")
   ctx$assign("df", df)
