@@ -250,3 +250,16 @@ test_that("ArrayBufferView offset", {
   ctx <- v8()
   expect_identical(ctx$get("new Uint8Array([1, 2, 3, 4, 5]).subarray(1, 3)"), as.raw(2:3))
 })
+
+test_that("na option does not bind to name", {
+  df <- data.frame(a = c(1.5, NA))
+  ctx <- v8()
+  ctx$assign("x", df, na = "null")
+  expect_identical(ctx$eval("JSON.stringify(x)"), '[{"a":1.5},{"a":null}]')
+  ctx$assign("y", df, FALSE, na = "string")
+  expect_identical(ctx$eval("JSON.stringify(y)"), '[{"a":1.5},{"a":"NA"}]')
+  skip_if_not_installed("jsonlite")
+  ctx_json <- v8(backend = "jsonlite")
+  ctx_json$assign("x", df, na = "null")
+  expect_identical(ctx_json$eval("JSON.stringify(x)"), '[{"a":1.5},{"a":null}]')
+})

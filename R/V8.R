@@ -232,6 +232,21 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
       get_json_output(evaluate_js(name, serialize = TRUE, await = await), ...)
     }
     assign <- function(name, value, auto_unbox = TRUE, ...){
+      # jsonlite's 'na' option partially matches 'name', so bind arguments again exactly
+      call_names <- names(sys.call())
+      if("na" %in% call_names && !("name" %in% call_names)){
+        args <- lapply(as.list(sys.call())[-1], base::eval, envir = parent.frame())
+        tags <- names(args)
+        positional <- args[tags == ""]
+        named <- args[tags != ""]
+        for(arg in c("name", "value", "auto_unbox")){
+          if(is.null(named[[arg]]) && length(positional)){
+            named[[arg]] <- positional[[1]]
+            positional <- positional[-1]
+          }
+        }
+        return(do.call(this$assign, c(named, positional)))
+      }
       stopifnot(is.character(name))
       obj <- if(is.raw(value)) {
         write_array_buffer(name, value, private$context)
