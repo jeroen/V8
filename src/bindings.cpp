@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cstdint>
+#include <cmath>
 #include "native_js.h"
 
 /* use conditional apis below */
@@ -416,12 +417,18 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
   }
 }
 
-static v8::Local<v8::Function> compile_function(const char* code, v8::Local<v8::Context> context){
+static v8::Local<v8::Function> cached_function(const char* key, const char* code, v8::Local<v8::Context> context){
+  v8::Local<v8::Private> name = v8::Private::ForApi(isolate, ToJSString(key));
+  v8::Local<v8::Value> cached;
+  if(context->Global()->GetPrivate(context, name).ToLocal(&cached) && cached->IsFunction())
+    return cached.As<v8::Function>();
   v8::Local<v8::Script> script = compile_source(code, context);
   if(script.IsEmpty())
     return v8::Local<v8::Function>();
   v8::Local<v8::Value> fn = safe_to_local(script->Run(context));
   if(fn.IsEmpty() || !fn->IsFunction())
+    return v8::Local<v8::Function>();
+  if(context->Global()->SetPrivate(context, name, fn).IsNothing())
     return v8::Local<v8::Function>();
   return fn.As<v8::Function>();
 }
@@ -496,6 +503,41 @@ static v8::Local<v8::Object> options_to_js(SEXP options){
   return scope.Escape(out);
 }
 
+static bool plain_value(SEXP x){
+  switch(TYPEOF(x)){
+  case NILSXP:
+    return true;
+  case LGLSXP:
+  case INTSXP:
+  case REALSXP:
+  case STRSXP:
+  case RAWSXP:
+  case VECSXP: {
+    SEXP cls = Rf_getAttrib(x, R_ClassSymbol);
+    for(R_xlen_t i = 0; i < Rf_xlength(cls); i++){
+      std::string name(CHAR(STRING_ELT(cls, i)));
+      bool factor = TYPEOF(x) == INTSXP && (name == "factor" || name == "ordered");
+      if(name != "AsIs" && !factor)
+        return false;
+    }
+    if(TYPEOF(x) == VECSXP){
+      for(R_xlen_t i = 0; i < Rf_xlength(x); i++){
+        if(!plain_value(VECTOR_ELT(x, i)))
+          return false;
+      }
+    }
+    return true;
+  }
+  default:
+    return false;
+  }
+}
+
+// [[Rcpp::export]]
+bool native_plain(SEXP x){
+  return plain_value(x);
+}
+
 static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
   v8::EscapableHandleScope scope(isolate);
   size_t n = static_cast<size_t>(Rf_xlength(x));
@@ -522,9 +564,21 @@ static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
     node[3] = v8::Boolean::New(isolate, scalar);
     if(TYPEOF(x) == REALSXP){
       node[0] = v8::Integer::New(isolate, 3);
-      node[1] = v8::Float64Array::New(copy_to_array_buffer(REAL(x), n * sizeof(double)), 0, n);
       node[2] = v8::Null(isolate);
       const double* v = REAL(x);
+      bool whole = true;
+      for(size_t i = 0; i < n && whole; i++){
+        double d = v[i];
+        whole = ISNAN(d) ? R_IsNA(d) : (d >= -2147483647.0 && d <= 2147483647.0 && d == std::floor(d) && !(d == 0 && std::signbit(d)));
+      }
+      if(whole){
+        std::vector<int32_t> ints(n);
+        for(size_t i = 0; i < n; i++)
+          ints[i] = R_IsNA(v[i]) ? 0 : static_cast<int32_t>(v[i]);
+        node[1] = v8::Int32Array::New(copy_to_array_buffer(ints.data(), n * sizeof(int32_t)), 0, n);
+      } else {
+        node[1] = v8::Float64Array::New(copy_to_array_buffer(v, n * sizeof(double)), 0, n);
+      }
       for(size_t i = 0; i < n; i++){
         if(R_IsNA(v[i])){
           std::vector<uint8_t> mask(n, 0);
@@ -642,7 +696,7 @@ static v8::Local<v8::Value> r_to_js(SEXP x, SEXP options, v8::Local<v8::Context>
     }
   }
   v8::Local<v8::Value> node = r_to_node(x, auto_unbox);
-  v8::Local<v8::Function> fn = compile_function(native_decode_js, context);
+  v8::Local<v8::Function> fn = cached_function("V8::decode", native_decode_js, context);
   if(fn.IsEmpty())
     throw std::runtime_error("Failed to compile native decoder.");
   v8::Local<v8::Value> argv[2] = {node, options_to_js(options)};
@@ -783,7 +837,7 @@ static Rcpp::RObject node_to_r(v8::Local<v8::Value> value, v8::Local<v8::Context
 static Rcpp::RObject js_to_r(v8::Local<v8::Value> value, v8::Local<v8::Value> options, v8::Local<v8::Context> context){
   v8::HandleScope scope(isolate);
   v8::TryCatch trycatch(isolate);
-  v8::Local<v8::Function> fn = compile_function(native_encode_js, context);
+  v8::Local<v8::Function> fn = cached_function("V8::encode", native_encode_js, context);
   if(fn.IsEmpty())
     throw std::runtime_error("Failed to compile native encoder.");
   v8::Local<v8::Value> undefined = v8::Undefined(isolate);

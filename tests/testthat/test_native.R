@@ -115,7 +115,7 @@ test_that("native call", {
   expect_identical(ctx$call("function(x, y){return x.length + y.length}", iris, mtcars), 182L)
   expect_identical(ctx$call("function(x){return x.a + x.b}", list(a = 1, b = 2)), 3L)
   expect_identical(ctx$call("function(x){return x}", I(1)), 1L)
-  expect_identical(ctx$eval("Object.keys(this).filter(k => k.startsWith('V8_arg_')).length"), "0")
+  expect_identical(ctx$eval("Object.keys(this).filter(k => k.startsWith('__V8_call_args__')).length"), "0")
 })
 
 test_that("native errors", {
@@ -262,4 +262,11 @@ test_that("na option does not bind to name", {
   ctx_json <- v8(backend = "jsonlite")
   ctx_json$assign("x", df, na = "null")
   expect_identical(ctx_json$eval("JSON.stringify(x)"), '[{"a":1.5},{"a":null}]')
+})
+
+test_that("whole doubles keep their value in JS", {
+  ctx <- v8()
+  ctx$assign("x", data.frame(a = c(1, 2, NA), b = c(-0, 0.5, 2^31)))
+  expect_identical(ctx$eval("JSON.stringify(x)"), '[{"a":1,"b":0},{"a":2,"b":0.5},{"b":2147483648}]')
+  expect_identical(ctx$eval("Object.is(x[0].b, -0)"), "true")
 })

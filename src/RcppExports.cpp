@@ -21,6 +21,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// native_plain
+bool native_plain(SEXP x);
+RcppExport SEXP _V8_native_plain(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(native_plain(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // write_native
 bool write_native(Rcpp::String key, SEXP value, SEXP options, ctxptr ctx);
 RcppExport SEXP _V8_write_native(SEXP keySEXP, SEXP valueSEXP, SEXP optionsSEXP, SEXP ctxSEXP) {
@@ -102,6 +113,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
+    {"_V8_native_plain", (DL_FUNC) &_V8_native_plain, 1},
     {"_V8_write_native", (DL_FUNC) &_V8_write_native, 4},
     {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 6},
     {"_V8_write_array_buffer", (DL_FUNC) &_V8_write_array_buffer, 3},

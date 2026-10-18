@@ -5,6 +5,10 @@ version <- function() {
     .Call(`_V8_version`)
 }
 
+native_plain <- function(x) {
+    .Call(`_V8_native_plain`, x)
+}
+
 write_native <- function(key, value, options, ctx) {
     .Call(`_V8_write_native`, key, value, options, ctx)
 }

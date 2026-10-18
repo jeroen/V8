@@ -6,7 +6,8 @@
  *   [0]                              NULL
  *   [1, Int32Array, null, scalar]    logical
  *   [2, Int32Array, null, scalar]    integer
- *   [3, Float64Array, mask, scalar]  double, mask is a Uint8Array marking NA or null
+ *   [3, Float64Array, mask, scalar]  double, mask is a Uint8Array marking NA or null;
+ *                                    whole numbers may come as Int32Array instead
  *   [4, Int32Array, levels, scalar]  character or factor, 1-based codes into levels
  *   [5, Uint8Array]                  raw
  *   [6, children, names]             list, names is null for unnamed lists
@@ -167,11 +168,19 @@ static const char* native_decode_js = R"JS(
       }
       if (has_na[j]) any_na = true;
     }
+    const fields = new Array(p);
+    const na_checks = [];
+    for (let j = 0; j < p; j++) {
+      const key = JSON.stringify(names[j]);
+      fields[j] = (names[j] === "__proto__" ? "[" + key + "]" : key) + ": " + expr[j];
+      if (has_na[j]) na_checks.push(checks[j]);
+    }
     let src = "\"use strict\";\nconst NA = -2147483648;\n";
     for (let j = 0; j < p; j++)
       src += "const c" + j + " = data[" + j + "], x" + j + " = extra[" + j + "];\n";
     src += "const rows = new Array(n);\nfor (let i = 0; i < n; i++) {\n";
     if (any_na) {
+      src += "if (" + na_checks.join(" && ") + ") {\nrows[i] = {" + fields.join(", ") + "};\ncontinue;\n}\n";
       src += "const row = {};\n";
       for (let j = 0; j < p; j++) {
         const key = JSON.stringify(names[j]);
@@ -182,9 +191,6 @@ static const char* native_decode_js = R"JS(
       }
       src += "rows[i] = row;\n";
     } else {
-      const fields = new Array(p);
-      for (let j = 0; j < p; j++)
-        fields[j] = "[" + JSON.stringify(names[j]) + "]: " + expr[j];
       src += "rows[i] = {" + fields.join(", ") + "};\n";
     }
     src += "}\nreturn rows;\n";
@@ -283,6 +289,9 @@ static const char* native_encode_js = R"JS(
           has_str = true;
           if (only_special && !special_number(v)) only_special = false;
           if (only_na && v !== "NA") only_na = false;
+          break;
+        case "object":
+          if (v !== null) return null;
           break;
       }
     }
@@ -395,8 +404,8 @@ static const char* native_encode_js = R"JS(
   function frame(vals) {
     const n = vals.length;
     const rows = new Array(n);
-    const keys = [];
-    const seen = new Set();
+    let keys = null;
+    let seen = null;
     for (let i = 0; i < n; i++) {
       const r = vals[i];
       if (missing(r)) {
@@ -404,19 +413,40 @@ static const char* native_encode_js = R"JS(
         continue;
       }
       rows[i] = r;
+      if (keys === null) {
+        keys = Object.keys(r);
+        seen = new Set(keys);
+        continue;
+      }
+      let j = 0;
+      let same = true;
+      for (const k in r) {
+        if (j >= keys.length || keys[j] !== k) {
+          same = false;
+          break;
+        }
+        j++;
+      }
+      if (same && j === keys.length) continue;
       const rk = Object.keys(r);
-      for (let j = 0; j < rk.length; j++) {
-        if (!seen.has(rk[j])) {
-          seen.add(rk[j]);
-          keys.push(rk[j]);
+      for (let k = 0; k < rk.length; k++) {
+        if (!seen.has(rk[k])) {
+          seen.add(rk[k]);
+          keys.push(rk[k]);
         }
       }
     }
+    if (keys === null) keys = [];
     const p = keys.length;
     const columns = new Array(p);
     enter();
     for (let j = 0; j < p; j++) {
       const col = column(rows, keys[j]);
+      const vec = vector(col);
+      if (vec !== null) {
+        columns[j] = vec;
+        continue;
+      }
       const c = classify(col);
       if (c.objects + c.arrays + c.others === 0) {
         columns[j] = vector(col);
@@ -475,6 +505,10 @@ static const char* native_encode_js = R"JS(
   function encode_array(arr) {
     const n = arr.length;
     if (n === 0) return [6, [], null];
+    if (simplify_vector) {
+      const vec = vector(arr);
+      if (vec !== null) return vec;
+    }
     enter();
     const vals = arr.slice();
     const c = classify(vals);

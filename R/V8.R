@@ -185,19 +185,34 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
       if(!is.null(names(jsargs))){
         stop("Named arguments are not supported in JavaScript.")
       }
-      tmpkeys <- character()
-      on.exit(if(length(tmpkeys)) evaluate_js(sprintf("delete this['%s'];", tmpkeys)))
+      if(private$native){
+        key <- "__V8_call_args__"
+        options <- list(auto_unbox = auto_unbox)
+        values <- list()
+        exprs <- character(length(jsargs))
+        for(i in seq_along(jsargs)){
+          x <- jsargs[[i]]
+          if(is.atomic(x) && inherits(x, "JS_EVAL")){
+            exprs[i] <- as.character(x)
+          } else {
+            values[length(values) + 1] <- list(native_encode(x, options))
+            exprs[i] <- sprintf("V8_args[%d]", length(values) - 1)
+          }
+        }
+        src <- paste0("(", fun, ")(", paste(exprs, collapse = ","), ");")
+        if(length(values)){
+          write_native(key, values, options, private$context)
+          src <- sprintf("(function(V8_args){delete this['%s']; return (%s)(%s);})(this['%s']);",
+                         key, fun, paste(exprs, collapse = ","), key)
+        }
+        out <- context_eval(join(src), private$context, TRUE, await, TRUE, list(simplifyVector = simplify))
+        return(if(is.null(out)) invisible() else out)
+      }
       jsargs <- vapply(jsargs, function(x){
         if(is.raw(x)){
           raw_to_js(x)
         } else if(is.atomic(x) && inherits(x, "JS_EVAL")){
           as.character(x)
-        } else if(private$native){
-          key <- basename(tempfile("V8_arg_"))
-          options <- list(auto_unbox = auto_unbox)
-          write_native(key, native_encode(x, options), options, private$context)
-          tmpkeys <<- c(tmpkeys, key)
-          key
         } else {
           # To box or not. I'm not sure.
           jsonlite::toJSON(x, auto_unbox = auto_unbox)
@@ -205,11 +220,6 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
       src <- paste0("(", fun ,")(", jsargs, ");")
-      if(private$native){
-        options <- from_json_options(list(simplifyVector = simplify))
-        out <- context_eval(join(src), private$context, TRUE, await, TRUE, options)
-        return(if(is.null(out)) invisible() else out)
-      }
       get_json_output(evaluate_js(src, serialize = TRUE, await = await), simplifyVector = simplify)
     }
     source <- function(file){
@@ -223,7 +233,7 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
     get <- function(name, ..., await = FALSE){
       stopifnot(is.character(name))
       if(private$native){
-        options <- from_json_options(list(...))
+        options <- if(missing(...)) list() else from_json_options(list(...))
         out <- context_eval(join(name), private$context, TRUE, await, TRUE, options)
         if(isTRUE(options$flatten))
           out <- flatten_frames(out)
@@ -253,7 +263,7 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
       } else if(inherits(value, "JS_EVAL")) {
         invisible(evaluate_js(paste("var", name, "=", value)))
       } else if(private$native) {
-        options <- to_json_options(c(list(auto_unbox = auto_unbox), list(...)))
+        options <- if(missing(...)) list(auto_unbox = auto_unbox) else to_json_options(c(list(auto_unbox = auto_unbox), list(...)))
         invisible(write_native(name, native_encode(value, options), options, private$context))
       } else {
         invisible(evaluate_js(paste("var", name, "=", jsonlite::toJSON(value, auto_unbox = auto_unbox, ...))))
@@ -389,7 +399,8 @@ base64_encode <- function(x){
 }
 
 native_encode <- function(x, options = list()){
-  if(is.null(x))
+  if(is.null(options$digits) && is.null(options$raw) && !isTRUE(options$keep_vec_names) &&
+     !identical(options$factor, "integer") && native_plain(x))
     return(x)
   if(is.data.frame(x)){
     out <- lapply(unclass(x), native_encode, options = options)
@@ -578,7 +589,7 @@ v8_version_numeric <- function(){
 
 raw_to_js <- function(x){
   stopifnot(is.raw(x))
-  paste0('new Uint8Array([', paste(as.integer(x), collapse = ','), '])')
+  paste0('new Uint8Array(', jsonlite::toJSON(as.integer(x)), ')')
 }
 
 generate_rd <- function(){
