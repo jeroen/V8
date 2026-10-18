@@ -7,7 +7,12 @@
 \alias{engine_info}
 \title{Run JavaScript in a V8 context}
 \usage{
-v8(global = "global", console = TRUE, ..., backend = getOption("V8.backend"))
+v8(
+  global = "global",
+  console = TRUE,
+  ...,
+  backend = getOption("V8.backend", "native")
+)
 
 engine_info()
 }
@@ -18,10 +23,9 @@ engine_info()
 
 \item{...}{ignored parameters for past/future versions.}
 
-\item{backend}{how values are converted between R and JavaScript, either
-\code{"jsonlite"} or \code{"native"}, see the data interchange section. Defaults to the
-\code{V8.backend} option, otherwise \code{"jsonlite"} when the jsonlite package is
-installed and \code{"native"} when it is not.}
+\item{backend}{how values are converted between R and JavaScript: \code{"native"}
+(default) or \code{"jsonlite"}, see the data interchange section. The default can be
+changed with the \code{V8.backend} option.}
 }
 \description{
 The \code{\link[=v8]{v8()}} function (formerly called \code{new_context}) creates a
@@ -50,8 +54,8 @@ console output; but when the \code{serialize} parameter is set to \code{TRUE} it
 serializes the JavaScript return object to a JSON string or a raw buffer.
 
 The \code{ct$get}, \code{ct$assign} and \code{ct$call} functions automatically
-convert arguments and return value between R and JavaScript (using JSON). To pass
-literal JavaScript arguments that should not be converted to JSON, wrap them in
+convert arguments and return value between R and JavaScript. To pass
+literal JavaScript arguments that should not be converted, wrap them in
 \code{JS()}, see examples.
 
 If a call to \code{ct$eval()},\code{ct$get()}, or \code{ct$call()} returns a JavaScript promise,
@@ -70,24 +74,31 @@ testing and debugging, it may not work perfectly in every IDE or R-frontend.
 
 \section{Data Interchange}{
 
-With the \code{"jsonlite"} backend, JSON is used for data interchange between R and
-JavaScript. Therefore you can (and should) only exchange data types that have a
-sensible JSON representation. One exception is raw vectors which are converted
-to/from Uint8Array buffers, see below. All other arguments and objects are
-automatically converted according to the mapping described in
-\href{https://arxiv.org/abs/1403.2805}{Ooms (2014)}, and implemented by the jsonlite
-package in \code{\link[jsonlite:fromJSON]{jsonlite::fromJSON()}} and \code{\link[jsonlite:fromJSON]{jsonlite::toJSON()}}.
+Arguments and return values are converted between R and JavaScript according
+to the mapping described in \href{https://arxiv.org/abs/1403.2805}{Ooms (2014)}, the
+same mapping that the jsonlite package implements. Values are copied directly
+between R and JavaScript, without going through JSON text. Vectors, lists,
+matrices and data frames are converted in both directions, data frames column
+by column.
 
-The \code{"native"} backend follows the same mapping, but copies values directly
-between R and JavaScript without JSON text. Vectors, lists, matrices and data
-frames are converted in both directions, data frames column by column. Some
-differences to jsonlite: doubles keep full precision instead of being rounded
-to 4 digits, \code{NA} in vectors becomes \code{null} (jsonlite writes the string \code{"NA"}
-for numbers), \code{NaN} and \code{Inf} stay numbers, raw vectors become \code{Uint8Array}
-also inside lists, and whole numbers from JavaScript are returned as integers
-whenever they fit. Options for jsonlite (passed via \code{...} to \code{get()} and
-\code{assign()}, \code{simplify = FALSE} in \code{call()}, or an options object in
-\code{console.r.get()} and \code{console.r.assign()}) still use jsonlite.
+The options of \code{toJSON()} from jsonlite can be passed to \code{ct$assign()} and
+as an options object to \code{console.r.get()}: \code{dataframe}, \code{matrix}, \code{Date},
+\code{POSIXt}, \code{factor}, \code{complex}, \code{raw}, \code{null}, \code{na}, \code{auto_unbox}, \code{digits},
+\code{UTC}, \code{rownames}, \code{keep_vec_names}, \code{json_verbatim} and \code{time_format}.
+The options of \code{fromJSON()} can be passed to \code{ct$get()} and as an options
+object to \code{console.r.assign()}: \code{simplifyVector}, \code{simplifyDataFrame},
+\code{simplifyMatrix} and \code{flatten}. \code{ct$call()} passes \code{simplify} on as
+\code{simplifyVector}.
+
+Some defaults differ from jsonlite: doubles keep full precision (jsonlite
+rounds to 4 decimal digits unless \code{digits} is set), \code{NA} in vectors becomes
+\code{null} (jsonlite writes the string \code{"NA"} for numbers), \code{NaN} and \code{Inf} stay
+numbers, raw vectors become \code{Uint8Array} also inside lists, and whole numbers
+from JavaScript are returned as integers whenever they fit.
+
+With \code{backend = "jsonlite"} (always the case in WebAssembly/webR), values are
+converted to and from JSON text with the jsonlite package instead, as in
+earlier versions of V8.
 
 As for version 3.0 of this R package, Raw vectors are converted to \code{Uint8Array}
 typed arrays, and vice versa. This makes it possible to efficiently copy large chunks

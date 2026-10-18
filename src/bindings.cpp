@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <unordered_map>
+#include <cstdint>
 #include "native_js.h"
 
 /* use conditional apis below */
@@ -78,8 +79,8 @@ static v8::Local<v8::String> ToJSString(const char * str){
   return safe_to_local(out);
 }
 
-static v8::Local<v8::Value> r_to_js(SEXP x, bool auto_unbox, v8::Local<v8::Context> context);
-static Rcpp::RObject js_to_r(v8::Local<v8::Value> value, v8::Local<v8::Context> context);
+static v8::Local<v8::Value> r_to_js(SEXP x, SEXP options, v8::Local<v8::Context> context);
+static Rcpp::RObject js_to_r(v8::Local<v8::Value> value, v8::Local<v8::Value> options, v8::Local<v8::Context> context);
 
 static void message_cb(v8::Local<v8::Message> message, v8::Local<v8::Value> data){
   v8::String::Utf8Value str(isolate, message->Get());
@@ -300,16 +301,20 @@ static void r_callback_native(std::string cb, const v8::FunctionCallbackInfo<v8:
     Rcpp::Function r_fun(ns.get(cb + "_native"));
     v8::String::Utf8Value arg0(args.GetIsolate(), args[0]);
     Rcpp::String fun(ToCString(arg0), CE_UTF8);
-    Rcpp::RObject arg1 = (args.Length() > 1) ? js_to_r(args[1], context) : Rcpp::RObject(R_NilValue);
-    Rcpp::RObject arg2 = (args.Length() > 2) ? js_to_r(args[2], context) : Rcpp::RObject(R_NilValue);
+    v8::Local<v8::Value> undefined = v8::Undefined(isolate);
+    v8::Local<v8::Value> value = (args.Length() > 1) ? args[1] : undefined;
+    v8::Local<v8::Value> options = (args.Length() > 2) ? args[2] : undefined;
+    Rcpp::RObject arg2 = js_to_r(options, undefined, context);
+    Rcpp::RObject arg1 = js_to_r(value, (cb == "r_assign") ? options : undefined, context);
     Rcpp::RObject out = r_fun(fun, arg1, arg2);
     if(out.inherits("cb_error")){
       Rcpp::CharacterVector msg(out);
       args.GetIsolate()->ThrowException(ToJSString(std::string(msg.at(0)).c_str()));
-    } else if(cb == "r_eval" || cb == "r_assign"){
-      args.GetReturnValue().SetNull();
+    } else if(out.inherits("V8_callback_value")){
+      Rcpp::List res(out);
+      args.GetReturnValue().Set(r_to_js(res[0], res[1], context));
     } else {
-      args.GetReturnValue().Set(r_to_js(out, false, context));
+      args.GetReturnValue().SetNull();
     }
   } catch( const std::exception& e ) {
     args.GetIsolate()->ThrowException(ToJSString(e.what()));
@@ -319,9 +324,7 @@ static void r_callback_native(std::string cb, const v8::FunctionCallbackInfo<v8:
 void r_callback(std::string cb, const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::Local<v8::Context> context = args.GetIsolate()->GetCurrentContext();
   v8::Local<v8::Value> native;
-  bool has_options = (cb == "r_get" && args.Length() > 1 && !args[1]->IsUndefined()) ||
-    (cb == "r_assign" && args.Length() > 2 && !args[2]->IsUndefined());
-  if(!has_options && context->Global()->GetPrivate(context, v8::Private::ForApi(isolate, ToJSString("V8::native"))).ToLocal(&native) && native->IsTrue()){
+  if(context->Global()->GetPrivate(context, v8::Private::ForApi(isolate, ToJSString("V8::native"))).ToLocal(&native) && native->IsTrue()){
     r_callback_native(cb, args, context);
     return;
   }
@@ -437,8 +440,60 @@ static v8::Local<v8::ArrayBuffer> copy_to_array_buffer(const void* data, size_t 
   return buffer;
 }
 
+static v8::Local<v8::Array> make_array(v8::Local<v8::Value>* values, size_t n){
+#if V8_VERSION_TOTAL >= 700
+  return v8::Array::New(isolate, values, n);
+#else
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Array> out = v8::Array::New(isolate, static_cast<int>(n));
+  for(size_t i = 0; i < n; i++){
+    if(out->Set(context, static_cast<uint32_t>(i), values[i]).IsNothing())
+      throw std::runtime_error("Failed to create array.");
+  }
+  return out;
+#endif
+}
+
 static v8::Local<v8::String> to_js_name(SEXP el){
   return ToJSString(el == NA_STRING ? "NA" : Rf_translateCharUTF8(el));
+}
+
+static v8::Local<v8::Object> options_to_js(SEXP options){
+  v8::EscapableHandleScope scope(isolate);
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Object> out = v8::Object::New(isolate);
+  if(TYPEOF(options) != VECSXP)
+    return scope.Escape(out);
+  SEXP names = Rf_getAttrib(options, R_NamesSymbol);
+  if(Rf_isNull(names))
+    return scope.Escape(out);
+  for(R_xlen_t i = 0; i < Rf_xlength(options); i++){
+    SEXP val = VECTOR_ELT(options, i);
+    if(Rf_xlength(val) < 1)
+      continue;
+    v8::Local<v8::Value> jsval;
+    switch(TYPEOF(val)){
+    case STRSXP:
+      jsval = to_js_name(STRING_ELT(val, 0));
+      break;
+    case LGLSXP:
+      if(LOGICAL(val)[0] == NA_LOGICAL)
+        continue;
+      jsval = v8::Boolean::New(isolate, LOGICAL(val)[0] != 0);
+      break;
+    case INTSXP:
+      jsval = v8::Number::New(isolate, static_cast<double>(INTEGER(val)[0]));
+      break;
+    case REALSXP:
+      jsval = v8::Number::New(isolate, REAL(val)[0]);
+      break;
+    default:
+      continue;
+    }
+    if(out->Set(context, to_js_name(STRING_ELT(names, i)), jsval).IsNothing())
+      throw std::runtime_error("Failed to set option.");
+  }
+  return scope.Escape(out);
 }
 
 static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
@@ -447,12 +502,19 @@ static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
   switch(TYPEOF(x)){
   case NILSXP: {
     v8::Local<v8::Value> node[1] = {v8::Integer::New(isolate, 0)};
-    return scope.Escape(v8::Array::New(isolate, node, 1));
+    return scope.Escape(make_array(node, 1));
   }
   case LGLSXP:
   case INTSXP:
   case REALSXP:
   case STRSXP: {
+    if(TYPEOF(x) == STRSXP && n == 1 && Rf_inherits(x, "json")){
+      v8::Local<v8::Value> node[2] = {
+        v8::Integer::New(isolate, 9),
+        ToJSString(Rf_translateCharUTF8(STRING_ELT(x, 0)))
+      };
+      return scope.Escape(make_array(node, 2));
+    }
     SEXP dims = Rf_getAttrib(x, R_DimSymbol);
     bool has_dims = !Rf_isNull(dims) && Rf_xlength(dims) >= 2;
     bool scalar = auto_unbox && !has_dims && n == 1 && !Rf_inherits(x, "AsIs");
@@ -494,7 +556,7 @@ static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
       }
       node[0] = v8::Integer::New(isolate, 4);
       node[1] = v8::Int32Array::New(copy_to_array_buffer(codes.data(), n * sizeof(int32_t)), 0, n);
-      node[2] = v8::Array::New(isolate, levels.data(), levels.size());
+      node[2] = make_array(levels.data(), levels.size());
     } else if(Rf_isFactor(x)){
       SEXP lev = Rf_getAttrib(x, R_LevelsSymbol);
       size_t nlev = static_cast<size_t>(Rf_xlength(lev));
@@ -503,14 +565,14 @@ static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
         levels[i] = to_js_name(STRING_ELT(lev, static_cast<R_xlen_t>(i)));
       node[0] = v8::Integer::New(isolate, 4);
       node[1] = v8::Int32Array::New(copy_to_array_buffer(INTEGER(x), n * sizeof(int32_t)), 0, n);
-      node[2] = v8::Array::New(isolate, levels.data(), nlev);
+      node[2] = make_array(levels.data(), nlev);
     } else {
       const int* v = (TYPEOF(x) == LGLSXP) ? LOGICAL(x) : INTEGER(x);
       node[0] = v8::Integer::New(isolate, TYPEOF(x) == LGLSXP ? 1 : 2);
       node[1] = v8::Int32Array::New(copy_to_array_buffer(v, n * sizeof(int32_t)), 0, n);
       node[2] = v8::Null(isolate);
     }
-    v8::Local<v8::Array> vec = v8::Array::New(isolate, node, 4);
+    v8::Local<v8::Array> vec = make_array(node, 4);
     if(!has_dims)
       return scope.Escape(vec);
     size_t ndims = static_cast<size_t>(Rf_xlength(dims));
@@ -520,16 +582,16 @@ static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
     v8::Local<v8::Value> arr[3] = {
       v8::Integer::New(isolate, 8),
       vec,
-      v8::Array::New(isolate, dimvals.data(), ndims)
+      make_array(dimvals.data(), ndims)
     };
-    return scope.Escape(v8::Array::New(isolate, arr, 3));
+    return scope.Escape(make_array(arr, 3));
   }
   case RAWSXP: {
     v8::Local<v8::Value> node[2] = {
       v8::Integer::New(isolate, 5),
       v8::Uint8Array::New(copy_to_array_buffer(RAW(x), n), 0, n)
     };
-    return scope.Escape(v8::Array::New(isolate, node, 2));
+    return scope.Escape(make_array(node, 2));
   }
   case VECSXP: {
     std::vector<v8::Local<v8::Value>> children(n);
@@ -541,7 +603,7 @@ static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
       std::vector<v8::Local<v8::Value>> nm(n);
       for(size_t i = 0; i < n; i++)
         nm[i] = to_js_name(STRING_ELT(names, static_cast<R_xlen_t>(i)));
-      jsnames = v8::Array::New(isolate, nm.data(), n);
+      jsnames = make_array(nm.data(), n);
     }
     if(Rf_inherits(x, "data.frame")){
       R_xlen_t nrow = (n > 0) ? Rf_xlength(VECTOR_ELT(x, 0)) : Rf_xlength(Rf_getAttrib(x, R_RowNamesSymbol));
@@ -549,33 +611,42 @@ static v8::Local<v8::Value> r_to_node(SEXP x, bool auto_unbox){
         throw std::invalid_argument("data frame columns must be named");
       v8::Local<v8::Value> node[4] = {
         v8::Integer::New(isolate, 7),
-        v8::Array::New(isolate, children.data(), n),
+        make_array(children.data(), n),
         jsnames,
         v8::Number::New(isolate, static_cast<double>(nrow))
       };
-      return scope.Escape(v8::Array::New(isolate, node, 4));
+      return scope.Escape(make_array(node, 4));
     }
     v8::Local<v8::Value> node[3] = {
       v8::Integer::New(isolate, 6),
-      v8::Array::New(isolate, children.data(), n),
+      make_array(children.data(), n),
       jsnames
     };
-    return scope.Escape(v8::Array::New(isolate, node, 3));
+    return scope.Escape(make_array(node, 3));
   }
   default:
     throw std::invalid_argument(std::string("No native conversion for R type: ") + Rf_type2char(static_cast<SEXPTYPE>(TYPEOF(x))));
   }
 }
 
-static v8::Local<v8::Value> r_to_js(SEXP x, bool auto_unbox, v8::Local<v8::Context> context){
+static v8::Local<v8::Value> r_to_js(SEXP x, SEXP options, v8::Local<v8::Context> context){
   v8::EscapableHandleScope scope(isolate);
   v8::TryCatch trycatch(isolate);
+  bool auto_unbox = true;
+  if(TYPEOF(options) == VECSXP){
+    SEXP names = Rf_getAttrib(options, R_NamesSymbol);
+    for(R_xlen_t i = 0; !Rf_isNull(names) && i < Rf_xlength(options); i++){
+      SEXP val = VECTOR_ELT(options, i);
+      if(std::string(CHAR(STRING_ELT(names, i))) == "auto_unbox" && TYPEOF(val) == LGLSXP && Rf_xlength(val) == 1)
+        auto_unbox = LOGICAL(val)[0] == 1;
+    }
+  }
   v8::Local<v8::Value> node = r_to_node(x, auto_unbox);
   v8::Local<v8::Function> fn = compile_function(native_decode_js, context);
   if(fn.IsEmpty())
     throw std::runtime_error("Failed to compile native decoder.");
-  v8::Local<v8::Value> argv[1] = {node};
-  v8::Local<v8::Value> out = safe_to_local(fn->Call(context, context->Global(), 1, argv));
+  v8::Local<v8::Value> argv[2] = {node, options_to_js(options)};
+  v8::Local<v8::Value> out = safe_to_local(fn->Call(context, context->Global(), 2, argv));
   if(out.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
@@ -709,14 +780,18 @@ static Rcpp::RObject node_to_r(v8::Local<v8::Value> value, v8::Local<v8::Context
   throw std::runtime_error("Invalid node in native conversion.");
 }
 
-static Rcpp::RObject js_to_r(v8::Local<v8::Value> value, v8::Local<v8::Context> context){
+static Rcpp::RObject js_to_r(v8::Local<v8::Value> value, v8::Local<v8::Value> options, v8::Local<v8::Context> context){
   v8::HandleScope scope(isolate);
   v8::TryCatch trycatch(isolate);
   v8::Local<v8::Function> fn = compile_function(native_encode_js, context);
   if(fn.IsEmpty())
     throw std::runtime_error("Failed to compile native encoder.");
-  v8::Local<v8::Value> argv[1] = {value.IsEmpty() ? v8::Undefined(isolate).As<v8::Value>() : value};
-  v8::Local<v8::Value> node = safe_to_local(fn->Call(context, context->Global(), 1, argv));
+  v8::Local<v8::Value> undefined = v8::Undefined(isolate);
+  v8::Local<v8::Value> argv[2] = {
+    value.IsEmpty() ? undefined : value,
+    options.IsEmpty() ? undefined : options
+  };
+  v8::Local<v8::Value> node = safe_to_local(fn->Call(context, context->Global(), 2, argv));
   if(node.IsEmpty()){
     v8::String::Utf8Value exception(isolate, trycatch.Exception());
     throw std::runtime_error(ToCString(exception));
@@ -725,7 +800,7 @@ static Rcpp::RObject js_to_r(v8::Local<v8::Value> value, v8::Local<v8::Context> 
 }
 
 // [[Rcpp::export]]
-bool write_native(Rcpp::String key, SEXP value, bool auto_unbox, ctxptr ctx){
+bool write_native(Rcpp::String key, SEXP value, SEXP options, ctxptr ctx){
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
 
@@ -734,7 +809,7 @@ bool write_native(Rcpp::String key, SEXP value, bool auto_unbox, ctxptr ctx){
   v8::Local<v8::Context> context = ctx.checked_get()->Get(isolate);
   v8::Context::Scope context_scope(context);
 
-  v8::Local<v8::Value> out = r_to_js(value, auto_unbox, context);
+  v8::Local<v8::Value> out = r_to_js(value, options, context);
   v8::Local<v8::String> name = ToJSString(key.get_cstring());
   v8::Local<v8::Object> global = context->Global();
   if(!global->Has(context, name).FromMaybe(true) || !global->Delete(context, name).IsNothing())
@@ -743,7 +818,7 @@ bool write_native(Rcpp::String key, SEXP value, bool auto_unbox, ctxptr ctx){
 }
 
 // [[Rcpp::export]]
-Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false, bool await = false, bool native = false){
+Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false, bool await = false, bool native = false, SEXP options = R_NilValue){
   // Test if context still exists
   if(!ctx)
     throw std::runtime_error("v8::Context has been disposed.");
@@ -804,7 +879,7 @@ Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize = false,
   // Serialize to JSON or Raw
   if(serialize == true){
     if(native)
-      return js_to_r(result, context);
+      return js_to_r(result, options_to_js(options), context);
     return convert_object(result);
   }
 
@@ -895,7 +970,7 @@ v8::Local<v8::Object> console_template(){
 }
 
 // [[Rcpp::export]]
-ctxptr make_context(bool set_console, bool native = false){
+ctxptr make_context(bool set_console, bool native = true){
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);

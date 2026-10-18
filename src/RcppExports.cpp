@@ -22,22 +22,22 @@ BEGIN_RCPP
 END_RCPP
 }
 // write_native
-bool write_native(Rcpp::String key, SEXP value, bool auto_unbox, ctxptr ctx);
-RcppExport SEXP _V8_write_native(SEXP keySEXP, SEXP valueSEXP, SEXP auto_unboxSEXP, SEXP ctxSEXP) {
+bool write_native(Rcpp::String key, SEXP value, SEXP options, ctxptr ctx);
+RcppExport SEXP _V8_write_native(SEXP keySEXP, SEXP valueSEXP, SEXP optionsSEXP, SEXP ctxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type key(keySEXP);
     Rcpp::traits::input_parameter< SEXP >::type value(valueSEXP);
-    Rcpp::traits::input_parameter< bool >::type auto_unbox(auto_unboxSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type options(optionsSEXP);
     Rcpp::traits::input_parameter< ctxptr >::type ctx(ctxSEXP);
-    rcpp_result_gen = Rcpp::wrap(write_native(key, value, auto_unbox, ctx));
+    rcpp_result_gen = Rcpp::wrap(write_native(key, value, options, ctx));
     return rcpp_result_gen;
 END_RCPP
 }
 // context_eval
-Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize, bool await, bool native);
-RcppExport SEXP _V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP, SEXP serializeSEXP, SEXP awaitSEXP, SEXP nativeSEXP) {
+Rcpp::RObject context_eval(Rcpp::String src, ctxptr ctx, bool serialize, bool await, bool native, SEXP options);
+RcppExport SEXP _V8_context_eval(SEXP srcSEXP, SEXP ctxSEXP, SEXP serializeSEXP, SEXP awaitSEXP, SEXP nativeSEXP, SEXP optionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -46,7 +46,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type serialize(serializeSEXP);
     Rcpp::traits::input_parameter< bool >::type await(awaitSEXP);
     Rcpp::traits::input_parameter< bool >::type native(nativeSEXP);
-    rcpp_result_gen = Rcpp::wrap(context_eval(src, ctx, serialize, await, native));
+    Rcpp::traits::input_parameter< SEXP >::type options(optionsSEXP);
+    rcpp_result_gen = Rcpp::wrap(context_eval(src, ctx, serialize, await, native, options));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -102,7 +103,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_V8_version", (DL_FUNC) &_V8_version, 0},
     {"_V8_write_native", (DL_FUNC) &_V8_write_native, 4},
-    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 5},
+    {"_V8_context_eval", (DL_FUNC) &_V8_context_eval, 6},
     {"_V8_write_array_buffer", (DL_FUNC) &_V8_write_array_buffer, 3},
     {"_V8_context_validate", (DL_FUNC) &_V8_context_validate, 2},
     {"_V8_context_null", (DL_FUNC) &_V8_context_null, 1},

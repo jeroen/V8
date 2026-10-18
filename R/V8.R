@@ -24,8 +24,8 @@
 #' serializes the JavaScript return object to a JSON string or a raw buffer.
 #'
 #' The `ct$get`, `ct$assign` and `ct$call` functions automatically
-#' convert arguments and return value between R and JavaScript (using JSON). To pass
-#' literal JavaScript arguments that should not be converted to JSON, wrap them in
+#' convert arguments and return value between R and JavaScript. To pass
+#' literal JavaScript arguments that should not be converted, wrap them in
 #' `JS()`, see examples.
 #'
 #' If a call to `ct$eval()`,`ct$get()`, or `ct$call()` returns a JavaScript promise,
@@ -42,24 +42,31 @@
 #' testing and debugging, it may not work perfectly in every IDE or R-frontend.
 #'
 #' @section Data Interchange:
-#' With the `"jsonlite"` backend, JSON is used for data interchange between R and
-#' JavaScript. Therefore you can (and should) only exchange data types that have a
-#' sensible JSON representation. One exception is raw vectors which are converted
-#' to/from Uint8Array buffers, see below. All other arguments and objects are
-#' automatically converted according to the mapping described in
-#' [Ooms (2014)](https://arxiv.org/abs/1403.2805), and implemented by the jsonlite
-#' package in [jsonlite::fromJSON()] and [jsonlite::toJSON()].
+#' Arguments and return values are converted between R and JavaScript according
+#' to the mapping described in [Ooms (2014)](https://arxiv.org/abs/1403.2805), the
+#' same mapping that the jsonlite package implements. Values are copied directly
+#' between R and JavaScript, without going through JSON text. Vectors, lists,
+#' matrices and data frames are converted in both directions, data frames column
+#' by column.
 #'
-#' The `"native"` backend follows the same mapping, but copies values directly
-#' between R and JavaScript without JSON text. Vectors, lists, matrices and data
-#' frames are converted in both directions, data frames column by column. Some
-#' differences to jsonlite: doubles keep full precision instead of being rounded
-#' to 4 digits, `NA` in vectors becomes `null` (jsonlite writes the string `"NA"`
-#' for numbers), `NaN` and `Inf` stay numbers, raw vectors become `Uint8Array`
-#' also inside lists, and whole numbers from JavaScript are returned as integers
-#' whenever they fit. Options for jsonlite (passed via `...` to `get()` and
-#' `assign()`, `simplify = FALSE` in `call()`, or an options object in
-#' `console.r.get()` and `console.r.assign()`) still use jsonlite.
+#' The options of `toJSON()` from jsonlite can be passed to `ct$assign()` and
+#' as an options object to `console.r.get()`: `dataframe`, `matrix`, `Date`,
+#' `POSIXt`, `factor`, `complex`, `raw`, `null`, `na`, `auto_unbox`, `digits`,
+#' `UTC`, `rownames`, `keep_vec_names`, `json_verbatim` and `time_format`.
+#' The options of `fromJSON()` can be passed to `ct$get()` and as an options
+#' object to `console.r.assign()`: `simplifyVector`, `simplifyDataFrame`,
+#' `simplifyMatrix` and `flatten`. `ct$call()` passes `simplify` on as
+#' `simplifyVector`.
+#'
+#' Some defaults differ from jsonlite: doubles keep full precision (jsonlite
+#' rounds to 4 decimal digits unless `digits` is set), `NA` in vectors becomes
+#' `null` (jsonlite writes the string `"NA"` for numbers), `NaN` and `Inf` stay
+#' numbers, raw vectors become `Uint8Array` also inside lists, and whole numbers
+#' from JavaScript are returned as integers whenever they fit.
+#'
+#' With `backend = "jsonlite"` (always the case in WebAssembly/webR), values are
+#' converted to and from JSON text with the jsonlite package instead, as in
+#' earlier versions of V8.
 #'
 #' As for version 3.0 of this R package, Raw vectors are converted to `Uint8Array`
 #' typed arrays, and vice versa. This makes it possible to efficiently copy large chunks
@@ -80,10 +87,9 @@
 #' @param global character vector indicating name(s) of the global environment. Use NULL for no name.
 #' @param console expose `console` API (`console.log`, `console.warn`, `console.error`).
 #' @param ... ignored parameters for past/future versions.
-#' @param backend how values are converted between R and JavaScript, either
-#' `"jsonlite"` or `"native"`, see the data interchange section. Defaults to the
-#' `V8.backend` option, otherwise `"jsonlite"` when the jsonlite package is
-#' installed and `"native"` when it is not.
+#' @param backend how values are converted between R and JavaScript: `"native"`
+#' (default) or `"jsonlite"`, see the data interchange section. The default can be
+#' changed with the `V8.backend` option.
 #' @aliases V8 v8 new_context
 #' @rdname V8
 #' @name V8
@@ -148,17 +154,15 @@
 #' # exit
 #' }
 #'
-v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.backend")) {
+v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.backend", "native")) {
   # Private fields
   private <- environment();
-  if(is.null(backend))
-    backend <- if(requireNamespace("jsonlite", quietly = TRUE)) "jsonlite" else "native"
-  backend <- match.arg(backend, c("jsonlite", "native"))
+  backend <- match.arg(backend, c("native", "jsonlite"))
+  if(identical(R.version$os, "emscripten"))
+    backend <- "jsonlite"
   if(backend == "jsonlite" && !requireNamespace("jsonlite", quietly = TRUE))
     stop("The jsonlite backend requires the jsonlite package.")
   native <- backend == "native"
-  if(native && identical(R.version$os, "emscripten"))
-    stop("The native backend is not available in WebAssembly.")
 
   # Low level evaluate
   evaluate_js <- function(src, serialize = FALSE, await = FALSE){
@@ -190,7 +194,8 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
           as.character(x)
         } else if(private$native){
           key <- basename(tempfile("V8_arg_"))
-          write_native(key, native_encode(x), auto_unbox, private$context)
+          options <- list(auto_unbox = auto_unbox)
+          write_native(key, native_encode(x, options), options, private$context)
           tmpkeys <<- c(tmpkeys, key)
           key
         } else {
@@ -200,8 +205,9 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
       }, character(1));
       jsargs <- paste(jsargs, collapse=",")
       src <- paste0("(", fun ,")(", jsargs, ");")
-      if(private$native && isTRUE(simplify)){
-        out <- context_eval(join(src), private$context, TRUE, await, TRUE)
+      if(private$native){
+        options <- from_json_options(list(simplifyVector = simplify))
+        out <- context_eval(join(src), private$context, TRUE, await, TRUE, options)
         return(if(is.null(out)) invisible() else out)
       }
       get_json_output(evaluate_js(src, serialize = TRUE, await = await), simplifyVector = simplify)
@@ -216,8 +222,11 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
     }
     get <- function(name, ..., await = FALSE){
       stopifnot(is.character(name))
-      if(private$native && length(list(...)) == 0){
-        out <- context_eval(join(name), private$context, TRUE, await, TRUE)
+      if(private$native){
+        options <- from_json_options(list(...))
+        out <- context_eval(join(name), private$context, TRUE, await, TRUE, options)
+        if(isTRUE(options$flatten))
+          out <- flatten_frames(out)
         return(if(is.null(out)) invisible() else out)
       }
       get_json_output(evaluate_js(name, serialize = TRUE, await = await), ...)
@@ -228,11 +237,10 @@ v8 <- function(global = "global", console = TRUE, ..., backend = getOption("V8.b
         write_array_buffer(name, value, private$context)
       } else if(inherits(value, "JS_EVAL")) {
         invisible(evaluate_js(paste("var", name, "=", value)))
-      } else if(private$native && length(list(...)) == 0) {
-        invisible(write_native(name, native_encode(value), auto_unbox, private$context))
+      } else if(private$native) {
+        options <- to_json_options(c(list(auto_unbox = auto_unbox), list(...)))
+        invisible(write_native(name, native_encode(value, options), options, private$context))
       } else {
-        if(!requireNamespace("jsonlite", quietly = TRUE))
-          stop("Passing options to toJSON() requires the jsonlite package.")
         invisible(evaluate_js(paste("var", name, "=", jsonlite::toJSON(value, auto_unbox = auto_unbox, ...))))
       }
     }
@@ -316,41 +324,152 @@ get_json_output <- function(json, ...){
   } else if(!length(json) || identical(json,"undefined")){
     invisible()
   } else {
-    if(!requireNamespace("jsonlite", quietly = TRUE))
-      stop("Passing options to fromJSON() requires the jsonlite package.")
     jsonlite::fromJSON(json, ...)
   }
 }
 
-native_encode <- function(x){
-  if(is.null(x) || (is.atomic(x) && !is.object(x) && !is.complex(x)))
+to_json_options <- function(options){
+  allowed <- c("dataframe", "matrix", "Date", "POSIXt", "factor", "complex", "raw", "null", "na",
+               "auto_unbox", "digits", "pretty", "force", "UTC", "rownames", "keep_vec_names",
+               "json_verbatim", "always_decimal", "time_format")
+  if(length(options) && (is.null(names(options)) || any(names(options) == "")))
+    stop("Options must be named.")
+  unknown <- setdiff(names(options), allowed)
+  if(length(unknown))
+    stop("Unsupported option: ", paste(unknown, collapse = ", "))
+  options$dataframe <- match.arg(options$dataframe, c("rows", "columns", "values"))
+  options$matrix <- match.arg(options$matrix, c("rowmajor", "columnmajor"))
+  options$Date <- match.arg(options$Date, c("ISO8601", "epoch"))
+  options$POSIXt <- match.arg(options$POSIXt, c("string", "ISO8601", "epoch", "mongo"))
+  options$factor <- match.arg(options$factor, c("string", "integer"))
+  options$complex <- match.arg(options$complex, c("string", "list"))
+  options$null <- match.arg(options$null, c("list", "null"))
+  if(!is.null(options$raw))
+    options$raw <- match.arg(options$raw, c("base64", "hex", "mongo", "int", "js"))
+  if(!is.null(options$na))
+    options$na <- match.arg(options$na, c("null", "string"))
+  options
+}
+
+from_json_options <- function(options){
+  allowed <- c("simplifyVector", "simplifyDataFrame", "simplifyMatrix", "flatten", "bigint_as_char")
+  if(length(options) && (is.null(names(options)) || any(names(options) == "")))
+    stop("Options must be named.")
+  unknown <- setdiff(names(options), allowed)
+  if(length(unknown))
+    stop("Unsupported option: ", paste(unknown, collapse = ", "))
+  options
+}
+
+base64_encode <- function(x){
+  chars <- c(LETTERS, letters, 0:9, "+", "/")
+  pad <- (3 - length(x) %% 3) %% 3
+  m <- matrix(c(as.integer(x), integer(pad)), nrow = 3)
+  v <- m[1, ] * 65536L + m[2, ] * 256L + m[3, ]
+  idx <- rbind(v %/% 262144L, (v %/% 4096L) %% 64L, (v %/% 64L) %% 64L, v %% 64L)
+  out <- chars[as.vector(idx) + 1L]
+  if(pad > 0)
+    out[seq(length(out) - pad + 1, length(out))] <- "="
+  paste(out, collapse = "")
+}
+
+native_encode <- function(x, options = list()){
+  if(is.null(x))
     return(x)
   if(is.data.frame(x)){
-    out <- lapply(unclass(x), native_encode)
+    out <- lapply(unclass(x), native_encode, options = options)
     rn <- attr(x, "row.names")
-    if(is.character(rn))
+    if(isTRUE(options$rownames)){
+      out[["_row"]] <- if(is.character(rn)) rn else seq_len(nrow(x))
+    } else if(!isFALSE(options$rownames) && is.character(rn)){
       out[["_row"]] <- rn
+    }
     return(structure(out, row.names = .set_row_names(nrow(x)), class = "data.frame"))
   }
   if(inherits(x, "POSIXlt"))
     x <- as.POSIXct(x)
-  if(inherits(x, c("Date", "POSIXct"))){
+  if(inherits(x, "POSIXct")){
+    posixt <- if(is.null(options$POSIXt)) "string" else options$POSIXt
+    if(posixt == "epoch" || posixt == "mongo"){
+      ms <- floor(as.numeric(x) * 1000)
+      if(posixt == "epoch")
+        return(ms)
+      return(structure(list(`$date` = ms), row.names = .set_row_names(length(ms)), class = "data.frame"))
+    }
+    format <- options$time_format
+    if(is.null(format)){
+      format <- if(posixt == "string") "" else if(isTRUE(options$UTC)) "%Y-%m-%dT%H:%M:%SZ" else "%Y-%m-%dT%H:%M:%S"
+    }
+    u <- unique(x)
+    text <- if(isTRUE(options$UTC)) format(u, format = format, tz = "UTC") else format(u, format = format)
+    out <- text[match(unclass(x), unclass(u))]
+    return(if(inherits(x, "AsIs")) I(out) else out)
+  }
+  if(inherits(x, "Date")){
+    if(identical(options$Date, "epoch"))
+      return(as.numeric(x))
     u <- unique(x)
     out <- format(u)[match(unclass(x), unclass(u))]
     return(if(inherits(x, "AsIs")) I(out) else out)
   }
   if(is.factor(x))
+    return(if(identical(options$factor, "integer")) as.integer(x) else x)
+  if(inherits(x, "json"))
+    return(if(isTRUE(options$json_verbatim)) x else as.character(x))
+  other <- setdiff(oldClass(x), c("AsIs", "JS_EVAL"))
+  if(length(other))
+    stop("No native conversion for class: ", paste(other, collapse = ", "))
+  if(is.list(x)){
+    x[] <- lapply(x, native_encode, options = options)
     return(x)
+  }
   if(is.complex(x)){
+    if(identical(options$complex, "list"))
+      return(list(real = Re(x), imaginary = Im(x)))
     out <- as.character(x)
     dim(out) <- dim(x)
     return(if(inherits(x, "AsIs")) I(out) else out)
   }
-  other <- setdiff(oldClass(x), c("AsIs", "json", "JS_EVAL"))
-  if(length(other))
-    stop("No native conversion for class: ", paste(other, collapse = ", "))
+  if(is.raw(x) && !is.null(options$raw) && options$raw != "js"){
+    return(switch(options$raw,
+      int = as.integer(x),
+      hex = as.character(as.hexmode(as.integer(x))),
+      base64 = base64_encode(x),
+      mongo = list(`$binary` = base64_encode(x), `$type` = "5")
+    ))
+  }
+  if(is.double(x) && length(options$digits) == 1 && !is.na(options$digits)){
+    if(inherits(options$digits, "AsIs")){
+      x[] <- signif(x, options$digits)
+    } else {
+      rounded <- round(x, options$digits)
+      small <- !is.na(x) & rounded == 0 & x != 0
+      rounded[small] <- signif(x[small], options$digits)
+      x[] <- rounded
+    }
+  }
+  if(isTRUE(options$keep_vec_names) && !is.null(names(x)) && is.null(dim(x)))
+    return(native_encode(as.list(x), options))
+  x
+}
+
+flatten_frames <- function(x){
+  if(is.data.frame(x)){
+    out <- list()
+    for(i in seq_along(x)){
+      col <- flatten_frames(x[[i]])
+      if(is.data.frame(col)){
+        cols <- unclass(col)
+        names(cols) <- paste(names(x)[i], names(col), sep = ".")
+        out <- c(out, cols)
+      } else {
+        out[[names(x)[i]]] <- col
+      }
+    }
+    return(structure(out, row.names = .set_row_names(nrow(x)), class = "data.frame"))
+  }
   if(is.list(x))
-    x[] <- lapply(x, native_encode)
+    x[] <- lapply(x, flatten_frames)
   x
 }
 

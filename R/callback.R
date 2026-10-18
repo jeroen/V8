@@ -48,13 +48,17 @@ r_call_native <- function(strfun, args = NULL, unused = NULL){
     FUN <- eval(parse(text = strfun))
     if(!is.function(FUN))
       stop("Argument is not a valid function")
-    native_encode(do.call(FUN, as.list(args)))
+    out <- do.call(FUN, as.list(args))
+    options <- list(auto_unbox = FALSE)
+    structure(list(native_encode(out, options), options), class = "V8_callback_value")
   })
 }
 
-r_get_native <- function(str, unused1 = NULL, unused2 = NULL){
+r_get_native <- function(str, args = NULL, unused = NULL){
   no_jumps({
-    native_encode(eval(parse(text = str)))
+    x <- eval(parse(text = str))
+    options <- to_json_options(utils::modifyList(list(auto_unbox = FALSE), as.list(args)))
+    structure(list(native_encode(x, options), options), class = "V8_callback_value")
   })
 }
 
@@ -68,8 +72,11 @@ r_eval_native <- function(str, args = NULL, unused = NULL){
   })
 }
 
-r_assign_native <- function(name, value = NULL, unused = NULL){
+r_assign_native <- function(name, value = NULL, args = NULL){
   no_jumps({
+    options <- from_json_options(as.list(args))
+    if(isTRUE(options$flatten))
+      value <- flatten_frames(value)
     asgn <- get("assign", "package:base")
     asgn(name, value, globalenv())
     NULL

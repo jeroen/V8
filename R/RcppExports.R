@@ -5,12 +5,12 @@ version <- function() {
     .Call(`_V8_version`)
 }
 
-write_native <- function(key, value, auto_unbox, ctx) {
-    .Call(`_V8_write_native`, key, value, auto_unbox, ctx)
+write_native <- function(key, value, options, ctx) {
+    .Call(`_V8_write_native`, key, value, options, ctx)
 }
 
-context_eval <- function(src, ctx, serialize = FALSE, await = FALSE, native = FALSE) {
-    .Call(`_V8_context_eval`, src, ctx, serialize, await, native)
+context_eval <- function(src, ctx, serialize = FALSE, await = FALSE, native = FALSE, options = NULL) {
+    .Call(`_V8_context_eval`, src, ctx, serialize, await, native, options)
 }
 
 write_array_buffer <- function(key, data, ctx) {
@@ -25,7 +25,7 @@ context_null <- function(ctx) {
     .Call(`_V8_context_null`, ctx)
 }
 
-make_context <- function(set_console, native = FALSE) {
+make_context <- function(set_console, native = TRUE) {
     .Call(`_V8_make_context`, set_console, native)
 }
 

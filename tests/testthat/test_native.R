@@ -1,5 +1,8 @@
 test_that("backend argument", {
   expect_silent(v8(backend = "native"))
+  ctx <- v8()
+  ctx$assign("x", pi)
+  expect_identical(ctx$get("x"), pi)
   expect_error(v8(backend = "arrow"), "should be one of")
   skip_if_not_installed("jsonlite")
   expect_silent(v8(backend = "jsonlite"))
@@ -122,13 +125,78 @@ test_that("native errors", {
   expect_error(ctx$get("(function(){ const a = {}; a.a = a; return a; })()"), "circular")
 })
 
-test_that("native jsonlite options", {
+test_that("toJSON options match jsonlite", {
   skip_if_not_installed("jsonlite")
-  ctx <- v8(backend = "native")
-  ctx$assign("x", pi, digits = 2)
-  expect_identical(ctx$eval("JSON.stringify(x)"), "3.14")
-  expect_identical(ctx$get("[1, 2]", simplifyVector = FALSE), list(1L, 2L))
-  expect_identical(ctx$call("function(){return [1, 2]}", simplify = FALSE), list(1L, 2L))
+  t <- as.POSIXct("2020-01-01 10:00:00", tz = "Europe/Berlin")
+  df <- data.frame(a = c(1.5, NA), b = c("x", NA))
+  cases <- list(
+    list(df, list(na = "null")),
+    list(df, list(na = "string")),
+    list(c(1, NA, NaN, Inf), list(na = "null")),
+    list(c(1, NA, NaN, Inf), list(na = "string")),
+    list(c(TRUE, NA), list(na = "string")),
+    list(factor(c("a", NA)), list(na = "string")),
+    list(df, list(dataframe = "columns", na = "null")),
+    list(df, list(dataframe = "values", na = "null")),
+    list(mtcars[1:2, 1:2], list(dataframe = "columns")),
+    list(mtcars[1:2, 1:2], list(dataframe = "values")),
+    list(mtcars[1:2, 1:2], list(rownames = FALSE)),
+    list(data.frame(a = 1:2), list(rownames = TRUE)),
+    list(matrix(1:6, 2), list(matrix = "columnmajor")),
+    list(array(1:8, c(2, 2, 2)), list(matrix = "columnmajor")),
+    list(list(a = NULL), list(null = "null")),
+    list(factor(c("a", "b")), list(factor = "integer")),
+    list(as.Date("2020-01-02"), list(Date = "epoch")),
+    list(data.frame(d = as.Date("2020-01-01")), list(Date = "epoch")),
+    list(t, list(POSIXt = "ISO8601")),
+    list(t, list(POSIXt = "ISO8601", UTC = TRUE)),
+    list(t, list(POSIXt = "epoch")),
+    list(t, list(POSIXt = "mongo")),
+    list(t, list(UTC = TRUE)),
+    list(t, list(time_format = "%H:%M")),
+    list(as.raw(c(1, 2, 3, 255)), list(raw = "hex")),
+    list(as.raw(1:3), list(raw = "int")),
+    list(as.raw(1:5), list(raw = "base64")),
+    list(list(r = as.raw(1:4)), list(raw = "mongo")),
+    list(c(1 + 2i, 3 - 1i), list(complex = "list")),
+    list(pi, list(digits = 2)),
+    list(c(123.456, 0.001234), list(digits = I(2))),
+    list(c(pi, 1e-10, 2.5), list(digits = 4)),
+    list(list(x = structure("[1,2]", class = "json")), list(json_verbatim = TRUE)),
+    list(list(a = 1:2, b = "x"), list(auto_unbox = FALSE))
+  )
+  ctx_json <- v8(backend = "jsonlite")
+  ctx_native <- v8(backend = "native")
+  for (cs in cases) {
+    do.call(ctx_json$assign, c(list(name = "x", value = cs[[1]]), cs[[2]]))
+    do.call(ctx_native$assign, c(list(name = "x", value = cs[[1]]), cs[[2]]))
+    expect_identical(ctx_native$eval("JSON.stringify(x)"), ctx_json$eval("JSON.stringify(x)"),
+                     label = deparse(cs[[2]]))
+  }
+  expect_error(ctx_native$assign("x", 1, foo = TRUE), "Unsupported option")
+})
+
+test_that("fromJSON options match jsonlite", {
+  skip_if_not_installed("jsonlite")
+  cases <- list(
+    list("[1,2]", list(simplifyVector = FALSE)),
+    list("[{a:1},{a:2}]", list(simplifyVector = FALSE)),
+    list("[{a:1},{a:2}]", list(simplifyDataFrame = FALSE)),
+    list("[[1,2],[3,4]]", list(simplifyMatrix = FALSE)),
+    list("[{a:{b:1,c:2}},{a:{b:3,c:4}}]", list(flatten = TRUE)),
+    list("({x: [{a:{b:1}}]})", list(flatten = TRUE)),
+    list("({a:[1,2], b:{c:null}})", list(simplifyVector = FALSE)),
+    list("[null, 1]", list(simplifyVector = FALSE)),
+    list("[[{a:1}]]", list(simplifyDataFrame = FALSE))
+  )
+  ctx_json <- v8(backend = "jsonlite")
+  ctx_native <- v8(backend = "native")
+  for (cs in cases) {
+    expect_identical(do.call(ctx_native$get, c(list(cs[[1]]), cs[[2]])),
+                     do.call(ctx_json$get, c(list(cs[[1]]), cs[[2]])), label = cs[[1]])
+  }
+  expect_identical(ctx_native$call("function(){return [1, 2]}", simplify = FALSE), list(1L, 2L))
+  expect_error(ctx_native$get("1", foo = TRUE), "Unsupported option")
 })
 
 test_that("native callbacks", {

@@ -12,20 +12,44 @@
  *   [6, children, names]             list, names is null for unnamed lists
  *   [7, columns, names, nrow]        data frame
  *   [8, vector, dims]                matrix or array
- * NA is -2147483648 in integer, logical and code vectors. */
+ *   [9, string]                      JSON text inserted as is
+ * NA is -2147483648 in integer, logical and code vectors.
+ * Options follow jsonlite::toJSON(): dataframe, matrix, na, null. */
 static const char* native_decode_js = R"JS(
-(function (root) {
+(function (root, options) {
   "use strict";
   const NA = -2147483648;
+  const opts = options || {};
+  const na = opts.na;
+  const dataframe = opts.dataframe || "rows";
+  const colmajor = opts.matrix === "columnmajor";
+  const null_value = opts.null === "null";
+
+  function missing(text) {
+    return na === "string" ? text : null;
+  }
 
   function element(node, i) {
     switch (node[0]) {
-      case 1: { const v = node[1][i]; return v === NA ? null : v !== 0; }
-      case 2: { const v = node[1][i]; return v === NA ? null : v; }
-      case 3: { const m = node[2]; return (m !== null && m[i] === 1) ? null : node[1][i]; }
-      case 4: { const v = node[1][i]; return v === NA ? null : node[2][v - 1]; }
+      case 1: { const v = node[1][i]; return v === NA ? missing("NA") : v !== 0; }
+      case 2: { const v = node[1][i]; return v === NA ? missing("NA") : v; }
+      case 3: {
+        const m = node[2];
+        if (m !== null && m[i] === 1) return missing("NA");
+        const v = node[1][i];
+        if (na !== undefined && !isFinite(v)) return missing(v !== v ? "NaN" : (v > 0 ? "Inf" : "-Inf"));
+        return v;
+      }
+      case 4: { const v = node[1][i]; return v === NA ? missing("NA") : node[2][v - 1]; }
     }
     return null;
+  }
+
+  function vector(node) {
+    const n = node[1].length;
+    const out = new Array(n);
+    for (let i = 0; i < n; i++) out[i] = element(node, i);
+    return out;
   }
 
   function define(obj, key, value) {
@@ -37,24 +61,81 @@ static const char* native_decode_js = R"JS(
   }
 
   function array(node, dims) {
-    function build(level, base, mult) {
-      if (level === dims.length) return element(node, base);
-      const d = dims[level];
-      const out = new Array(d);
-      for (let i = 0; i < d; i++) out[i] = build(level + 1, base + i * mult, mult * d);
+    const k = dims.length;
+    const strides = new Array(k);
+    let stride = 1;
+    for (let d = 0; d < k; d++) {
+      strides[d] = stride;
+      stride *= dims[d];
+    }
+    function build(level, base) {
+      if (level === k) return element(node, base);
+      const d = colmajor ? k - 1 - level : level;
+      const out = new Array(dims[d]);
+      for (let i = 0; i < dims[d]; i++) out[i] = build(level + 1, base + i * strides[d]);
       return out;
     }
-    return build(0, 0, 1);
+    return build(0, 0);
   }
 
-  function rows(names, columns, n) {
+  function column_values(col, n) {
+    const tag = col[0];
+    if (tag >= 1 && tag <= 4) {
+      const out = new Array(n);
+      for (let i = 0; i < n; i++) out[i] = element(col, i);
+      return out;
+    }
+    if (tag === 6) {
+      const out = new Array(n);
+      for (let i = 0; i < n; i++) out[i] = decode(col[1][i]);
+      return out;
+    }
+    if (tag === 7 || tag === 8) return decode(col);
+    return new Array(n).fill(null);
+  }
+
+  function columns(names, cols, n) {
+    const out = {};
+    for (let j = 0; j < names.length; j++) {
+      const col = cols[j];
+      const tag = col[0];
+      define(out, names[j], (tag >= 1 && tag <= 4) ? vector(col) : decode(col));
+    }
+    return out;
+  }
+
+  function values(cols, n) {
+    const p = cols.length;
+    const vals = new Array(p);
+    for (let j = 0; j < p; j++) vals[j] = column_values(cols[j], n);
+    const out = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const row = new Array(p);
+      for (let j = 0; j < p; j++) row[j] = vals[j][i];
+      out[i] = row;
+    }
+    return out;
+  }
+
+  function rows(names, cols, n) {
     const p = names.length;
+    if (na !== undefined) {
+      const vals = new Array(p);
+      for (let j = 0; j < p; j++) vals[j] = column_values(cols[j], n);
+      const out = new Array(n);
+      for (let i = 0; i < n; i++) {
+        const row = {};
+        for (let j = 0; j < p; j++) define(row, names[j], vals[j][i]);
+        out[i] = row;
+      }
+      return out;
+    }
     const kinds = new Array(p);
     const data = new Array(p);
     const extra = new Array(p);
     const has_na = new Array(p);
     for (let j = 0; j < p; j++) {
-      const col = columns[j];
+      const col = cols[j];
       const tag = col[0];
       if (tag >= 1 && tag <= 4) {
         kinds[j] = tag;
@@ -69,28 +150,20 @@ static const char* native_decode_js = R"JS(
         kinds[j] = 6;
         extra[j] = null;
         has_na[j] = false;
-        if (tag === 6) {
-          const vals = new Array(n);
-          for (let i = 0; i < n; i++) vals[i] = decode(col[1][i]);
-          data[j] = vals;
-        } else if (tag === 0) {
-          data[j] = new Array(n).fill(null);
-        } else {
-          data[j] = decode(col);
-        }
+        data[j] = column_values(col, n);
       }
     }
-    const values = new Array(p);
+    const expr = new Array(p);
     const checks = new Array(p);
     let any_na = false;
     for (let j = 0; j < p; j++) {
       const c = "c" + j + "[i]";
       switch (kinds[j]) {
-        case 1: values[j] = "(" + c + " !== 0)"; checks[j] = c + " !== NA"; break;
-        case 2: values[j] = c; checks[j] = c + " !== NA"; break;
-        case 3: values[j] = c; checks[j] = "x" + j + "[i] === 0"; break;
-        case 4: values[j] = "x" + j + "[" + c + " - 1]"; checks[j] = c + " !== NA"; break;
-        case 6: values[j] = c; checks[j] = "true"; break;
+        case 1: expr[j] = "(" + c + " !== 0)"; checks[j] = c + " !== NA"; break;
+        case 2: expr[j] = c; checks[j] = c + " !== NA"; break;
+        case 3: expr[j] = c; checks[j] = "x" + j + "[i] === 0"; break;
+        case 4: expr[j] = "x" + j + "[" + c + " - 1]"; checks[j] = c + " !== NA"; break;
+        case 6: expr[j] = c; checks[j] = "true"; break;
       }
       if (has_na[j]) any_na = true;
     }
@@ -103,15 +176,15 @@ static const char* native_decode_js = R"JS(
       for (let j = 0; j < p; j++) {
         const key = JSON.stringify(names[j]);
         const store = (names[j] === "__proto__") ?
-          "Object.defineProperty(row, " + key + ", {value: " + values[j] + ", enumerable: true, writable: true, configurable: true});" :
-          "row[" + key + "] = " + values[j] + ";";
+          "Object.defineProperty(row, " + key + ", {value: " + expr[j] + ", enumerable: true, writable: true, configurable: true});" :
+          "row[" + key + "] = " + expr[j] + ";";
         src += has_na[j] ? "if (" + checks[j] + ") " + store + "\n" : store + "\n";
       }
       src += "rows[i] = row;\n";
     } else {
       const fields = new Array(p);
       for (let j = 0; j < p; j++)
-        fields[j] = "[" + JSON.stringify(names[j]) + "]: " + values[j];
+        fields[j] = "[" + JSON.stringify(names[j]) + "]: " + expr[j];
       src += "rows[i] = {" + fields.join(", ") + "};\n";
     }
     src += "}\nreturn rows;\n";
@@ -121,17 +194,12 @@ static const char* native_decode_js = R"JS(
   function decode(node) {
     switch (node[0]) {
       case 0:
-        return {};
+        return null_value ? null : {};
       case 1:
       case 2:
       case 3:
-      case 4: {
-        if (node[3]) return element(node, 0);
-        const n = node[1].length;
-        const out = new Array(n);
-        for (let i = 0; i < n; i++) out[i] = element(node, i);
-        return out;
-      }
+      case 4:
+        return node[3] ? element(node, 0) : vector(node);
       case 5:
         return node[1];
       case 6: {
@@ -148,9 +216,13 @@ static const char* native_decode_js = R"JS(
         return out;
       }
       case 7:
+        if (dataframe === "columns") return columns(node[2], node[1], node[3]);
+        if (dataframe === "values") return values(node[1], node[3]);
         return rows(node[2], node[1], node[3]);
       case 8:
         return array(node[1], node[2]);
+      case 9:
+        return JSON.parse(node[1]);
     }
     throw new TypeError("Unknown node type " + node[0]);
   }
@@ -161,10 +233,16 @@ static const char* native_decode_js = R"JS(
 
 /* Converts a JavaScript value into the same kind of nodes, but with
  * codes in character vectors starting at 1 and 0 meaning NA, and masks
- * at position 2 for logical, integer and double vectors. */
+ * at position 2 for logical, integer and double vectors.
+ * Options follow jsonlite::fromJSON(): simplifyVector, simplifyDataFrame,
+ * simplifyMatrix. */
 static const char* native_encode_js = R"JS(
-(function (root) {
+(function (root, options) {
   "use strict";
+  const opts = options || {};
+  const simplify_vector = opts.simplifyVector !== false;
+  const simplify_frame = (opts.simplifyDataFrame === undefined) ? simplify_vector : opts.simplifyDataFrame !== false;
+  const simplify_matrix = (opts.simplifyMatrix === undefined) ? simplify_vector : opts.simplifyMatrix !== false;
   let depth = 0;
 
   function resolve(v) {
@@ -401,11 +479,11 @@ static const char* native_encode_js = R"JS(
     const vals = arr.slice();
     const c = classify(vals);
     let out;
-    if (c.objects + c.arrays + c.others === 0) {
+    if (simplify_vector && c.objects + c.arrays + c.others === 0) {
       out = vector(vals);
-    } else if (c.objects > 0 && c.arrays + c.others + c.primitives === 0) {
+    } else if (simplify_frame && c.objects > 0 && c.arrays + c.others + c.primitives === 0) {
       out = frame(vals);
-    } else if (c.arrays === n) {
+    } else if (simplify_matrix && c.arrays === n) {
       const dims = dims_of(vals);
       out = (dims !== null && dims[dims.length - 1] > 0) ? matrix(vals, dims) : list(vals);
     } else {
