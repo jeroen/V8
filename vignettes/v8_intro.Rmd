@@ -56,14 +56,24 @@ ct$source("https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.11/crossfilter
 
 ## Data Interchange
 
-By default all data interchange between R and JavaScript happens via JSON using the bidirectional mapping implemented in the [jsonlite](https://arxiv.org/abs/1403.2805) package.
+Values are converted between R and JavaScript using the bidirectional mapping described in [Ooms (2014)](https://arxiv.org/abs/1403.2805), the same mapping that the jsonlite package implements. The values are copied directly between R vectors and JavaScript arrays, without going through JSON text, so doubles keep their full precision.
 
 ```{r}
 ct$assign("mydata", mtcars)
 ct$get("mydata")
 ```
 
-Alternatively use `JS()` to assign the value of a JavaScript expression (without converting to JSON):
+The options of `jsonlite::toJSON()` and `jsonlite::fromJSON()` can be passed to `ct$assign()` and `ct$get()` to change the mapping:
+
+```{r}
+ct$assign("mydata", head(mtcars, 2), dataframe = "columns")
+ct$eval("JSON.stringify(mydata)")
+ct$get("mydata", simplifyVector = FALSE)$mpg
+```
+
+To convert values via JSON with the jsonlite package, as in earlier versions of V8, create the context with `v8(backend = "jsonlite")` or set `options(V8.backend = "jsonlite")`.
+
+Alternatively use `JS()` to assign the value of a JavaScript expression (without converting it):
 
 ```{r}
 ct$assign("foo", JS("function(x){return x*x}"))
@@ -231,7 +241,7 @@ ctx <- v8()
 ctx$console()
 ```
 
-From JavaScript we can read/write R objects via `console.r.get` and `console.r.assign`. The final argument is an optional list specifying arguments passed to `toJSON` or `fromJSON`.
+From JavaScript we can read/write R objects via `console.r.get` and `console.r.assign`. The final argument is an optional object with the same `toJSON` or `fromJSON` options as `ct$assign()` and `ct$get()`.
 
 ```javascript
 // read the iris object into JS
@@ -243,7 +253,7 @@ console.r.assign("iris2", iris)
 console.r.assign("iris3", iris, {simplifyVector : false})
 ```
 
-To call R functions use `console.r.call`. The first argument should be a string which evaluates to a function. The second argument contains a list of arguments passed to the function, similar to `do.call` in R. Both named and unnamed lists are supported. The return object is returned to JavaScript via JSON.
+To call R functions use `console.r.call`. The first argument should be a string which evaluates to a function. The second argument contains a list of arguments passed to the function, similar to `do.call` in R. Both named and unnamed lists are supported. The return object is converted to JavaScript in the same way.
 
 ```javascript
 //calls rnorm(n=2, mean=10, sd=5)
