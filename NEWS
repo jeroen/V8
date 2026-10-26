@@ -1,3 +1,6 @@
+8.2.1
+  - Fix a stack limit crash under ASAN on Debian with recent libv8
+
 8.2.0
   - Windows: fix threading bug in libv8
 
