@@ -224,8 +224,12 @@ void start_v8_isolate(void *dll){
   isolate->SetFatalErrorHandler(fatal_cb);
 
 #ifdef __SANITIZE_ADDRESS__
-  /* Disable stack limit when using sanitizers (highest possible value, backwards) */
-  isolate->SetStackLimit(1);
+  /* ASan inflates stack frames, so allow far more room than usual. Don't use
+   * SetStackLimit(1): newer V8 derives the stack size from the limit, and a
+   * near-zero limit makes the IsOnCentralStack() check fail (see #207). */
+  static const uintptr_t kAsanMaxStackSize = 64 * 1024 * 1024;
+  uintptr_t CurrentStackPosition = reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
+  isolate->SetStackLimit(CurrentStackPosition - kAsanMaxStackSize);
 #else
   /* Workaround for packages hitting stack limit on Fedora, such as ggdag.
    * CurrentStackPosition trick copied from chromium. */
