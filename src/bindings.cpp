@@ -356,8 +356,13 @@ static Rcpp::RObject convert_object(v8::Local<v8::Value> value){
   } else if(value->IsNull()){
     return Rcpp::CharacterVector::create(Rcpp::String("null"));
   } else if(value->IsArrayBuffer() || value->IsArrayBufferView()){
+#if V8_VERSION_TOTAL >= 1509
+    v8::Local<v8::ArrayBufferBase> buffer = value->IsArrayBufferView() ?
+    value.As<v8::ArrayBufferView>()->GetBuffer() : value.As<v8::ArrayBuffer>();
+#else
     v8::Local<v8::ArrayBuffer> buffer = value->IsArrayBufferView() ?
     value.As<v8::ArrayBufferView>()->Buffer() : value.As<v8::ArrayBuffer>();
+#endif
     Rcpp::RawVector data(buffer->ByteLength());
 #if V8_VERSION_TOTAL >= 1005 || NODEJS_LTS_API == 18
     memcpy(data.begin(), buffer->Data(), data.size());
